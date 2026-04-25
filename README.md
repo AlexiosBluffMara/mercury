@@ -2,6 +2,12 @@
   <img src="assets/banner.png" alt="Hermes Agent" width="100%">
 </p>
 
+# Mercury
+
+> **Mercury is a fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT).** Built by Red Team Kitchen for the RTX 5090 desktop, paired with the [Cortex](https://github.com/AlexiosBluffMara/cortex) brain-response analysis system. Tracking upstream Hermes for improvements; many thanks to Nous Research for the foundation. The original Hermes documentation below describes the parent project — see `CLAUDE.md` for what Mercury changed.
+
+---
+
 # Hermes Agent ☤
 
 <p align="center">
