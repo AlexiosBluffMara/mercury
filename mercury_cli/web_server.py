@@ -63,7 +63,18 @@ except ImportError:
 WEB_DIST = Path(os.environ["HERMES_WEB_DIST"]) if "HERMES_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
 _log = logging.getLogger(__name__)
 
-app = FastAPI(title="Hermes Agent", version=__version__)
+app = FastAPI(title="Mercury", version=__version__)
+
+# Mercury-specific routes + Tailscale identity middleware.  Mounted here so
+# every dashboard endpoint, including `/api/mercury/*`, sees the same CORS,
+# session-token, and Host-header guards as the upstream surface.
+from mercury_cli.mercury_routes import (  # noqa: E402
+    TailscaleIdentityMiddleware,
+    mercury_router,
+)
+
+app.include_router(mercury_router)
+app.add_middleware(TailscaleIdentityMiddleware)
 
 # ---------------------------------------------------------------------------
 # Session token for protecting sensitive endpoints (reveal).
@@ -106,6 +117,12 @@ _PUBLIC_API_PATHS: frozenset = frozenset({
     "/api/dashboard/themes",
     "/api/dashboard/plugins",
     "/api/dashboard/plugins/rescan",
+    # Mercury read-only endpoints — safe to expose without session token,
+    # since the tailnet ACL is the actual auth boundary and these only
+    # return non-sensitive state (catalog, GPU usage, tailnet identity).
+    "/api/mercury/brains",
+    "/api/mercury/cortex/state",
+    "/api/mercury/tailscale",
 })
 
 
