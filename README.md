@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Hermes Agent" width="100%">
+  <img src="assets/banner.svg" alt="Mercury — local-first dual-brain agent" width="100%">
 </p>
 
 # Mercury

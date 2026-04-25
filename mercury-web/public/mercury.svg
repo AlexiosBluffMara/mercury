@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Mercury">
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#d6dde6"/>
+      <stop offset="100%" stop-color="#9aa4b3"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="#0c1117"/>
+  <g transform="translate(32 34)">
+    <circle cx="0" cy="-6" r="11" fill="none" stroke="url(#silver)" stroke-width="2.5"/>
+    <line x1="0" y1="5" x2="0" y2="19" stroke="url(#silver)" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="-7" y1="13" x2="7" y2="13" stroke="url(#silver)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M -8 -16 Q 0 -22 8 -16" fill="none" stroke="url(#silver)" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>
