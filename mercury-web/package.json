@@ -1,7 +1,7 @@
 {
-  "name": "web",
+  "name": "mercury-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0-dev",
   "type": "module",
   "scripts": {
     "sync-assets": "rm -rf public/fonts public/ds-assets && cp -r node_modules/@nous-research/ui/dist/fonts public/fonts && cp -r node_modules/@nous-research/ui/dist/assets public/ds-assets",

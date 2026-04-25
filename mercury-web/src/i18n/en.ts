@@ -50,12 +50,12 @@ export const en: Translations = {
   },
 
   app: {
-    brand: "Hermes Agent",
-    brandShort: "HA",
+    brand: "Mercury",
+    brandShort: "MR",
     closeNavigation: "Close navigation",
     closeModelTools: "Close model and tools",
     footer: {
-      org: "Nous Research",
+      org: "Red Team Kitchen",
     },
     activeSessionsLabel: "Active Sessions:",
     gatewayStatusLabel: "Gateway Status:",
@@ -68,6 +68,7 @@ export const en: Translations = {
     },
     nav: {
       analytics: "Analytics",
+      brains: "Brains",
       chat: "Chat",
       config: "Config",
       cron: "Cron",

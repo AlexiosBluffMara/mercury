@@ -49,12 +49,12 @@ export const zh: Translations = {
   },
 
   app: {
-    brand: "Hermes Agent",
-    brandShort: "HA",
+    brand: "Mercury",
+    brandShort: "MR",
     closeNavigation: "关闭导航",
     closeModelTools: "关闭模型与工具",
     footer: {
-      org: "Nous Research",
+      org: "Red Team Kitchen",
     },
     activeSessionsLabel: "活跃会话：",
     gatewayStatusLabel: "网关状态：",
@@ -67,6 +67,7 @@ export const zh: Translations = {
     },
     nav: {
       analytics: "分析",
+      brains: "大脑",
       chat: "对话",
       config: "配置",
       cron: "定时任务",

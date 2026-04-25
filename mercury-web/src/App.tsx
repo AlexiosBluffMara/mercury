@@ -20,6 +20,7 @@ import {
   BookOpen,
   Clock,
   Code,
+  Cpu,
   Database,
   Download,
   Eye,
@@ -59,6 +60,7 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import CronPage from "@/pages/CronPage";
 import SkillsPage from "@/pages/SkillsPage";
 import ChatPage from "@/pages/ChatPage";
+import BrainsPage from "@/pages/BrainsPage";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useI18n } from "@/i18n";
@@ -82,6 +84,7 @@ const CHAT_NAV_ITEM: NavItem = {
 const BUILTIN_ROUTES_CORE: Record<string, ComponentType> = {
   "/": RootRedirect,
   "/sessions": SessionsPage,
+  "/brains": BrainsPage,
   "/analytics": AnalyticsPage,
   "/logs": LogsPage,
   "/cron": CronPage,
@@ -98,6 +101,7 @@ const BUILTIN_NAV_REST: NavItem[] = [
     label: "Sessions",
     icon: MessageSquare,
   },
+  { path: "/brains", labelKey: "brains", label: "Brains", icon: Cpu },
   {
     path: "/analytics",
     labelKey: "analytics",
@@ -395,9 +399,7 @@ export default function App() {
                 className="font-bold text-[1.125rem] leading-[0.95] tracking-[0.0525rem] text-midground"
                 style={{ mixBlendMode: "plus-lighter" }}
               >
-                Hermes
-                <br />
-                Agent
+                Mercury
               </Typography>
 
               <button
