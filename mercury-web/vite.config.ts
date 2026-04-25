@@ -72,7 +72,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../hermes_cli/web_dist",
+    outDir: "../mercury_cli/web_dist",
     emptyOutDir: true,
   },
   server: {
