@@ -141,26 +141,62 @@ May 18, both 2026):
 All three live under `skills/self-evolution/` as wrapper skills sharing
 Mercury's docker sandbox + the FTS5 trace store.
 
+## Setting up a fresh venv
+
+Mercury's venv lives on `C:` per the global CLAUDE.md (faster than `D:`).
+
+```bash
+# 1. Create venv with seed packages
+uv venv C:/Users/soumi/mercury/.venv --python 3.12 --seed
+
+# 2. Install Mercury with curated extras (~3 min)
+cd D:/mercury
+uv pip install -e ".[dev,messaging,cron,cli,pty,mcp,web,google]" \
+  --python C:/Users/soumi/mercury/.venv/Scripts/python.exe
+
+# 3. (Optional) Install Cortex into the same venv so the bridge wires up
+# `--no-deps` skips Cortex's heavy ML stack (torch, transformers, etc.) —
+# add those separately when you're ready to actually run TRIBE.
+cd D:/cortex
+C:/Users/soumi/mercury/.venv/Scripts/python.exe -m pip install -e . --no-deps
+
+# 4. Verify
+cd D:/mercury
+C:/Users/soumi/mercury/.venv/Scripts/python.exe -m pytest tests/mercury/ -v
+# expect: 35+ passed
+```
+
+When Cortex is installed, the four cortex tools (`brain_scan`,
+`narrate`, `visualize`, `describe_input`) auto-register in the
+`cortex` toolset on first call to
+`mercury.cortex_bridge.register_cortex_tools()`.
+
 ## What's missing (in approximate order)
 
-- [ ] Set up venv at `C:\Users\soumi\mercury\.venv` via `uv sync`
-- [ ] Smoke-test imports after the strip
-- [ ] `mercury/cortex_bridge.py` — async bridge to `D:\cortex`
-- [ ] `mercury/router.py` — dual-brain routing with GPU-lock awareness
-- [ ] `mercury/tailscale.py` — tailnet detection + `Tailscale-User-*` middleware
-- [ ] `mercury/copilot_models.py` — GPT-5 mini default + 0x model catalog
-- [ ] Wire `agent/gemini_native_adapter.py` against the unified
-      `google-genai` SDK (AI Studio dev key + Vertex prod path)
-- [ ] `skills/3d/` — `three-js-component`, `three-js-debug`,
-      `glsl-shader` skills (the `web/` package already has
-      `@react-three/fiber` + `three`)
-- [ ] `skills/cortex/` — `cortex-3d-viewer` + thin wrappers for
-      `brain_scan` / `narrate` / `visualize` / `describe_input`
-- [ ] Frontend: mobile-first responsive redesign in `web/`, distinct
-      visual identity from upstream Hermes
+- [x] Set up venv at `C:\Users\soumi\mercury\.venv` via `uv pip install`
+- [x] Smoke-test imports after the strip
+- [x] `mercury/cortex_bridge.py` — async bridge to `D:\cortex`
+- [x] `mercury/router.py` — dual-brain routing with GPU-lock awareness
+- [x] `mercury/tailscale.py` — tailnet detection + `Tailscale-User-*` middleware
+- [x] `mercury/copilot_models.py` — GPT-5 mini default + 0x model catalog
+- [x] Frontend: mobile-first redesign in `mercury-web/`, Mercury Silver
+      palette, distinct from upstream Hermes
+- [x] `skills/3d/` — `three-js-component`, `three-js-debug`, `glsl-shader`
+- [x] `skills/cortex/cortex-bridge/` — operator skill that documents
+      when and how to use the four cortex tools
+- [x] `mercury/genai_client.py` — unified `google-genai` SDK factory
+      covering AI Studio (dev) and Vertex AI / Gemini Enterprise Agent
+      Platform (prod)
+- [x] Cortex install into the Mercury venv with bridge live
+- [ ] Wire the FastAPI backend `/api/mercury/brains` endpoint that
+      `BrainsPage.tsx` polls (currently shows static catalog +
+      "endpoint not yet wired" notice)
 - [ ] `hermes_cli/` → `mercury_cli/` rename pass (also updates package
       paths, banner, scripts, config dirs)
 - [ ] `pyproject.toml` rename project to `mercury`
 - [ ] Mercury banner + branding (`assets/banner.png` etc)
 - [ ] Self-evolution skill wrappers (Hermes-self-evolution, ml-intern,
       autoresearch)
+- [ ] Tailscale binding for the FastAPI server (bind to 0.0.0.0,
+      consume `Tailscale-User-Login` header for identity, document
+      `tailscale serve --bg --https=443 http://localhost:8765`)
