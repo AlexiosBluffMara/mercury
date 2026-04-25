@@ -6846,44 +6846,45 @@ def cmd_logs(args):
 
 
 def main():
-    """Main entry point for hermes CLI."""
+    """Main entry point for the Mercury CLI."""
     parser = argparse.ArgumentParser(
-        prog="hermes",
-        description="Hermes Agent - AI assistant with tool-calling capabilities",
+        prog="mercury",
+        description="Mercury - local-first dual-brain agent (fork of NousResearch/hermes-agent)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    hermes                        Start interactive chat
-    hermes chat -q "Hello"        Single query mode
-    hermes -c                     Resume the most recent session
-    hermes -c "my project"        Resume a session by name (latest in lineage)
-    hermes --resume <session_id>  Resume a specific session by ID
-    hermes setup                  Run setup wizard
-    hermes logout                 Clear stored authentication
-    hermes auth add <provider>    Add a pooled credential
-    hermes auth list              List pooled credentials
-    hermes auth remove <p> <t>    Remove pooled credential by index, id, or label
-    hermes auth reset <provider>  Clear exhaustion status for a provider
-    hermes model                  Select default model
-    hermes config                 View configuration
-    hermes config edit            Edit config in $EDITOR
-    hermes config set model gpt-4 Set a config value
-    hermes gateway                Run messaging gateway
-    hermes -s hermes-agent-dev,github-auth
-    hermes -w                     Start in isolated git worktree
-    hermes gateway install        Install gateway background service
-    hermes sessions list          List past sessions
-    hermes sessions browse        Interactive session picker
-    hermes sessions rename ID T   Rename/title a session
-    hermes logs                   View agent.log (last 50 lines)
-    hermes logs -f                Follow agent.log in real time
-    hermes logs errors            View errors.log
-    hermes logs --since 1h        Lines from the last hour
-    hermes debug share             Upload debug report for support
-    hermes update                 Update to latest version
+    mercury                        Start interactive chat
+    mercury chat -q "Hello"        Single query mode
+    mercury -c                     Resume the most recent session
+    mercury -c "my project"        Resume a session by name (latest in lineage)
+    mercury --resume <session_id>  Resume a specific session by ID
+    mercury setup                  Run setup wizard
+    mercury logout                 Clear stored authentication
+    mercury auth add <provider>    Add a pooled credential
+    mercury auth list              List pooled credentials
+    mercury auth remove <p> <t>    Remove pooled credential by index, id, or label
+    mercury auth reset <provider>  Clear exhaustion status for a provider
+    mercury model                  Select default model
+    mercury config                 View configuration
+    mercury config edit            Edit config in $EDITOR
+    mercury config set model gpt-4 Set a config value
+    mercury gateway                Run messaging gateway
+    mercury -s three-js-component,cortex-bridge
+    mercury -w                     Start in isolated git worktree
+    mercury gateway install        Install gateway background service
+    mercury sessions list          List past sessions
+    mercury sessions browse        Interactive session picker
+    mercury sessions rename ID T   Rename/title a session
+    mercury logs                   View agent.log (last 50 lines)
+    mercury logs -f                Follow agent.log in real time
+    mercury logs errors            View errors.log
+    mercury logs --since 1h        Lines from the last hour
+    mercury dashboard              Launch the Tailscale-only WebUI
+    mercury debug share            Upload debug report for support
+    mercury update                 Update to latest version
 
 For more help on a command:
-    hermes <command> --help
+    mercury <command> --help
 """,
     )
 
