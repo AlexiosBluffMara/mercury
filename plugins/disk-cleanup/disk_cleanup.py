@@ -16,7 +16,7 @@ Rules:
   - >500 MB files → prompt always (deep only)
 
 Scope: strictly HERMES_HOME and /tmp/hermes-*
-Never touches: ~/.hermes/logs/ or any system directory.
+Never touches: ~/.mercury/logs/ or any system directory.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    from hermes_constants import get_hermes_home
+    from mercury_constants import get_hermes_home
 except Exception:  # pragma: no cover — plugin may load before constants resolves
     import os
 

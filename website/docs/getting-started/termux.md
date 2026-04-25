@@ -144,7 +144,7 @@ hermes
 hermes model
 ```
 
-Or set keys directly in `~/.hermes/.env`.
+Or set keys directly in `~/.mercury/.env`.
 
 ### Re-run the full interactive setup wizard later
 

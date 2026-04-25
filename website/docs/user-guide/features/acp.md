@@ -124,10 +124,10 @@ hermes acp
 
 ACP mode uses the same Hermes configuration as the CLI:
 
-- `~/.hermes/.env`
-- `~/.hermes/config.yaml`
-- `~/.hermes/skills/`
-- `~/.hermes/state.db`
+- `~/.mercury/.env`
+- `~/.mercury/config.yaml`
+- `~/.mercury/skills/`
+- `~/.mercury/state.db`
 
 Provider resolution uses Hermes' normal runtime resolver, so ACP inherits the currently configured provider and credentials.
 
@@ -187,7 +187,7 @@ ACP mode does not have its own login flow. It uses Hermes' existing provider set
 hermes model
 ```
 
-or by editing `~/.hermes/.env`.
+or by editing `~/.mercury/.env`.
 
 ## See also
 

@@ -115,7 +115,7 @@ class TestFromGlobalConfig:
                 }
             }
         }))
-        # Isolate from real ~/.hermes/honcho.json
+        # Isolate from real ~/.mercury/honcho.json
         monkeypatch.setenv("HERMES_HOME", str(tmp_path / "isolated"))
 
         config = HonchoClientConfig.from_global_config(config_path=config_file)
@@ -402,35 +402,35 @@ class TestResolveActiveHost:
     def test_profile_name_derives_host(self):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("HERMES_HONCHO_HOST", None)
-            with patch("hermes_cli.profiles.get_active_profile_name", return_value="coder"):
+            with patch("mercury_cli.profiles.get_active_profile_name", return_value="coder"):
                 assert resolve_active_host() == "hermes.coder"
 
     def test_default_profile_returns_hermes(self):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("HERMES_HONCHO_HOST", None)
-            with patch("hermes_cli.profiles.get_active_profile_name", return_value="default"):
+            with patch("mercury_cli.profiles.get_active_profile_name", return_value="default"):
                 assert resolve_active_host() == "hermes"
 
     def test_custom_profile_returns_hermes(self):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("HERMES_HONCHO_HOST", None)
-            with patch("hermes_cli.profiles.get_active_profile_name", return_value="custom"):
+            with patch("mercury_cli.profiles.get_active_profile_name", return_value="custom"):
                 assert resolve_active_host() == "hermes"
 
     def test_profiles_import_failure_falls_back(self):
         import sys
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("HERMES_HONCHO_HOST", None)
-            # Temporarily remove hermes_cli.profiles to simulate import failure
-            saved = sys.modules.get("hermes_cli.profiles")
-            sys.modules["hermes_cli.profiles"] = None  # type: ignore
+            # Temporarily remove mercury_cli.profiles to simulate import failure
+            saved = sys.modules.get("mercury_cli.profiles")
+            sys.modules["mercury_cli.profiles"] = None  # type: ignore
             try:
                 assert resolve_active_host() == "hermes"
             finally:
                 if saved is not None:
-                    sys.modules["hermes_cli.profiles"] = saved
+                    sys.modules["mercury_cli.profiles"] = saved
                 else:
-                    sys.modules.pop("hermes_cli.profiles", None)
+                    sys.modules.pop("mercury_cli.profiles", None)
 
 
 class TestProfileScopedConfig:
@@ -582,7 +582,7 @@ class TestGetHonchoClient:
         )
 
         with patch("honcho.Honcho", return_value=fake_honcho) as mock_honcho, \
-             patch("hermes_cli.config.load_config", return_value={"honcho": {"timeout": 88}}):
+             patch("mercury_cli.config.load_config", return_value={"honcho": {"timeout": 88}}):
             client = get_honcho_client(cfg)
 
         assert client is fake_honcho
@@ -602,7 +602,7 @@ class TestGetHonchoClient:
         )
 
         with patch("honcho.Honcho", return_value=fake_honcho) as mock_honcho, \
-             patch("hermes_cli.config.load_config", return_value={"honcho": {"request_timeout": "77.5"}}):
+             patch("mercury_cli.config.load_config", return_value={"honcho": {"request_timeout": "77.5"}}):
             client = get_honcho_client(cfg)
 
         assert client is fake_honcho

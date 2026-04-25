@@ -167,7 +167,7 @@ Create and manage scheduled cron jobs that run agent prompts on a recurring sche
 
 ### Skills
 
-Browse, search, and toggle skills and toolsets. Skills are loaded from `~/.hermes/skills/` and grouped by category.
+Browse, search, and toggle skills and toolsets. Skills are loaded from `~/.mercury/skills/` and grouped by category.
 
 - **Search** — filter skills and toolsets by name, description, or category
 - **Category filter** — click category pills to narrow the list (e.g. MLOps, MCP, Red Teaming, AI)
@@ -187,7 +187,7 @@ You → /reload
   Reloaded .env (3 var(s) updated)
 ```
 
-This re-reads `~/.hermes/.env` into the running process's environment. Useful when you've added a new provider key via the dashboard and want to use it immediately.
+This re-reads `~/.mercury/.env` into the running process's environment. Useful when you've added a new provider key via the dashboard and want to use it immediately.
 
 ## REST API
 
@@ -315,7 +315,7 @@ npm run dev
 
 The Vite dev server at `http://localhost:5173` proxies `/api` requests to the FastAPI backend at `http://127.0.0.1:9119`.
 
-The frontend is built with React 19, TypeScript, Tailwind CSS v4, and shadcn/ui-style components. Production builds output to `hermes_cli/web_dist/` which the FastAPI server serves as a static SPA.
+The frontend is built with React 19, TypeScript, Tailwind CSS v4, and shadcn/ui-style components. Production builds output to `mercury_cli/web_dist/` which the FastAPI server serves as a static SPA.
 
 ## Automatic Build on Update
 

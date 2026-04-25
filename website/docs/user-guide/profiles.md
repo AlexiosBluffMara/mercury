@@ -38,7 +38,7 @@ Creates a fresh profile with bundled skills seeded. Run `mybot setup` to configu
 hermes profile create work --clone
 ```
 
-Copies your current profile's `config.yaml`, `.env`, and `SOUL.md` into the new profile. Same API keys and model, but fresh sessions and memory. Edit `~/.hermes/profiles/work/.env` for different API keys, or `~/.hermes/profiles/work/SOUL.md` for a different personality.
+Copies your current profile's `config.yaml`, `.env`, and `SOUL.md` into the new profile. Same API keys and model, but fresh sessions and memory. Edit `~/.mercury/profiles/work/.env` for different API keys, or `~/.mercury/profiles/work/SOUL.md` for a different personality.
 
 ### Clone everything (`--clone-all`)
 
@@ -145,10 +145,10 @@ Each profile has its own `.env` file. Configure a different Telegram/Discord/Sla
 
 ```bash
 # Edit coder's tokens
-nano ~/.hermes/profiles/coder/.env
+nano ~/.mercury/profiles/coder/.env
 
 # Edit assistant's tokens
-nano ~/.hermes/profiles/assistant/.env
+nano ~/.mercury/profiles/assistant/.env
 ```
 
 ### Safety: token locks
@@ -174,7 +174,7 @@ Each profile has its own:
 
 ```bash
 coder config set model.model anthropic/claude-sonnet-4
-echo "You are a focused coding assistant." > ~/.hermes/profiles/coder/SOUL.md
+echo "You are a focused coding assistant." > ~/.mercury/profiles/coder/SOUL.md
 ```
 
 If you want this profile to work in a specific project by default, also set its own `terminal.cwd`:
@@ -233,7 +233,7 @@ Add the line to your `~/.bashrc` or `~/.zshrc` for persistent completion. Comple
 
 ## How it works
 
-Profiles use the `HERMES_HOME` environment variable. When you run `coder chat`, the wrapper script sets `HERMES_HOME=~/.hermes/profiles/coder` before launching hermes. Since 119+ files in the codebase resolve paths via `get_hermes_home()`, Hermes state automatically scopes to the profile's directory — config, sessions, memory, skills, state database, gateway PID, logs, and cron jobs.
+Profiles use the `HERMES_HOME` environment variable. When you run `coder chat`, the wrapper script sets `HERMES_HOME=~/.mercury/profiles/coder` before launching hermes. Since 119+ files in the codebase resolve paths via `get_hermes_home()`, Hermes state automatically scopes to the profile's directory — config, sessions, memory, skills, state database, gateway PID, logs, and cron jobs.
 
 This is separate from terminal working directory. Tool execution starts from `terminal.cwd` (or the launch directory when `cwd: "."` on the local backend), not automatically from `HERMES_HOME`.
 

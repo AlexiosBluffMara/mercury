@@ -2,7 +2,7 @@
 """
 Skills Sync -- Manifest-based seeding and updating of bundled skills.
 
-Copies bundled skills from the repo's skills/ directory into ~/.hermes/skills/
+Copies bundled skills from the repo's skills/ directory into ~/.mercury/skills/
 and uses a manifest to track which skills have been synced and their origin hash.
 
 Manifest format (v2): each line is "skill_name:origin_hash" where origin_hash
@@ -18,7 +18,7 @@ Update logic:
   - DELETED by user (in manifest, absent from user dir): respected, not re-added.
   - REMOVED from bundled (in manifest, gone from repo): cleaned from manifest.
 
-The manifest lives at ~/.hermes/skills/.bundled_manifest.
+The manifest lives at ~/.mercury/skills/.bundled_manifest.
 """
 
 import hashlib
@@ -26,7 +26,7 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from hermes_constants import get_hermes_home
+from mercury_constants import get_hermes_home
 from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
@@ -153,7 +153,7 @@ def _discover_bundled_skills(bundled_dir: Path) -> List[Tuple[str, Path]]:
 def _compute_relative_dest(skill_dir: Path, bundled_dir: Path) -> Path:
     """
     Compute the destination path in SKILLS_DIR preserving the category structure.
-    e.g., bundled/skills/mlops/axolotl -> ~/.hermes/skills/mlops/axolotl
+    e.g., bundled/skills/mlops/axolotl -> ~/.mercury/skills/mlops/axolotl
     """
     rel = skill_dir.relative_to(bundled_dir)
     return SKILLS_DIR / rel
@@ -175,7 +175,7 @@ def _dir_hash(directory: Path) -> str:
 
 def sync_skills(quiet: bool = False) -> dict:
     """
-    Sync bundled skills into ~/.hermes/skills/ using the manifest.
+    Sync bundled skills into ~/.mercury/skills/ using the manifest.
 
     Returns:
         dict with keys: copied (list), updated (list), skipped (int),
@@ -416,7 +416,7 @@ def reset_bundled_skill(name: str, restore: bool = False) -> dict:
 
 
 if __name__ == "__main__":
-    print("Syncing bundled skills into ~/.hermes/skills/ ...")
+    print("Syncing bundled skills into ~/.mercury/skills/ ...")
     result = sync_skills(quiet=False)
     parts = [
         f"{len(result['copied'])} new",

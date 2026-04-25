@@ -746,7 +746,7 @@ def test_skill_installs_cleanly_under_skills_guard():
     # python_os_environ  — reads MIGRATION_JSON_OUTPUT to enable JSON output mode
     #                      (feature flag, not an env dump)
     # hermes_config_mod  — print statements in the post-migration summary that
-    #                      tell the user to *review* ~/.hermes/config.yaml;
+    #                      tell the user to *review* ~/.mercury/config.yaml;
     #                      the script never writes to that file
     #
     # Accept "caution" or "safe" — just not "dangerous" from a *real* threat.

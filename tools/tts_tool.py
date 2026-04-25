@@ -15,7 +15,7 @@ Output formats:
 - Opus (.ogg) for Telegram voice bubbles (requires ffmpeg for Edge TTS)
 - MP3 (.mp3) for everything else (CLI, Discord, WhatsApp)
 
-Configuration is loaded from ~/.hermes/config.yaml under the 'tts:' key.
+Configuration is loaded from ~/.mercury/config.yaml under the 'tts:' key.
 The user chooses the provider and voice; the model just sends text.
 
 Usage:
@@ -41,7 +41,7 @@ from pathlib import Path
 from typing import Callable, Dict, Any, Optional
 from urllib.parse import urljoin
 
-from hermes_constants import display_hermes_home
+from mercury_constants import display_hermes_home
 
 logger = logging.getLogger(__name__)
 from tools.managed_tool_gateway import resolve_managed_tool_gateway
@@ -117,7 +117,7 @@ GEMINI_TTS_CHANNELS = 1
 GEMINI_TTS_SAMPLE_WIDTH = 2  # 16-bit PCM (L16)
 
 def _get_default_output_dir() -> str:
-    from hermes_constants import get_hermes_dir
+    from mercury_constants import get_hermes_dir
     return str(get_hermes_dir("cache/audio", "audio_cache"))
 
 DEFAULT_OUTPUT_DIR = _get_default_output_dir()
@@ -198,21 +198,21 @@ def _resolve_max_text_length(
 
 
 # ===========================================================================
-# Config loader -- reads tts: section from ~/.hermes/config.yaml
+# Config loader -- reads tts: section from ~/.mercury/config.yaml
 # ===========================================================================
 def _load_tts_config() -> Dict[str, Any]:
     """
-    Load TTS configuration from ~/.hermes/config.yaml.
+    Load TTS configuration from ~/.mercury/config.yaml.
 
     Returns a dict with provider settings. Falls back to defaults
     for any missing fields.
     """
     try:
-        from hermes_cli.config import load_config
+        from mercury_cli.config import load_config
         config = load_config()
         return config.get("tts", {})
     except ImportError:
-        logger.debug("hermes_cli.config not available, using default TTS config")
+        logger.debug("mercury_cli.config not available, using default TTS config")
         return {}
     except Exception as e:
         logger.warning("Failed to load TTS config: %s", e, exc_info=True)
@@ -921,7 +921,7 @@ def text_to_speech_tool(
     """
     Convert text to speech audio.
 
-    Reads provider/voice config from ~/.hermes/config.yaml (tts: section).
+    Reads provider/voice config from ~/.mercury/config.yaml (tts: section).
     The model sends text; the user configures voice and provider.
 
     On messaging platforms, the returned MEDIA:<path> tag is intercepted

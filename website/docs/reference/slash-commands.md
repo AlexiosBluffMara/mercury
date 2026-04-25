@@ -6,7 +6,7 @@ description: "Complete reference for interactive CLI and messaging slash command
 
 # Slash Commands Reference
 
-Hermes has two slash-command surfaces, both driven by a central `COMMAND_REGISTRY` in `hermes_cli/commands.py`:
+Hermes has two slash-command surfaces, both driven by a central `COMMAND_REGISTRY` in `mercury_cli/commands.py`:
 
 - **Interactive CLI slash commands** — dispatched by `cli.py`, with autocomplete from the registry
 - **Messaging slash commands** — dispatched by `gateway/run.py`, with help text and platform menus generated from the registry
@@ -99,7 +99,7 @@ Type `/` in the CLI to open the autocomplete menu. Built-in commands are case-in
 
 ### Quick Commands
 
-User-defined quick commands map a short alias to a longer prompt. Configure them in `~/.hermes/config.yaml`:
+User-defined quick commands map a short alias to a longer prompt. Configure them in `~/.mercury/config.yaml`:
 
 ```yaml
 quick_commands:

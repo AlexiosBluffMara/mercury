@@ -41,7 +41,7 @@ This page is the top-level map of Hermes Agent internals. Use it to orient yours
 ┌───────────────────┐              ┌──────────────────────┐
 │ Session Storage   │              │ Tool Backends         │
 │ (SQLite + FTS5)   │              │ Terminal (6 backends) │
-│ hermes_state.py   │              │ Browser (5 backends)  │
+│ mercury_state.py   │              │ Browser (5 backends)  │
 │ gateway/session.py│              │ Web (4 backends)      │
 └───────────────────┘              │ MCP (dynamic)         │
                                    │ File, Vision, etc.    │
@@ -56,8 +56,8 @@ hermes-agent/
 ├── cli.py                    # HermesCLI — interactive terminal UI (~10,000 lines)
 ├── model_tools.py            # Tool discovery, schema collection, dispatch
 ├── toolsets.py               # Tool groupings and platform presets
-├── hermes_state.py           # SQLite session/state database with FTS5
-├── hermes_constants.py       # HERMES_HOME, profile-aware paths
+├── mercury_state.py           # SQLite session/state database with FTS5
+├── mercury_constants.py       # HERMES_HOME, profile-aware paths
 ├── batch_runner.py           # Batch trajectory generation
 │
 ├── agent/                    # Agent internals
@@ -75,7 +75,7 @@ hermes-agent/
 │   ├── memory_provider.py   # Memory provider ABC
 │   └── trajectory.py         # Trajectory saving helpers
 │
-├── hermes_cli/               # CLI subcommands and setup
+├── mercury_cli/               # CLI subcommands and setup
 │   ├── main.py               # Entry point — all `hermes` subcommands (~6,000 lines)
 │   ├── config.py             # DEFAULT_CONFIG, OPTIONAL_ENV_VARS, migration
 │   ├── commands.py           # COMMAND_REGISTRY — central slash command definitions
@@ -230,7 +230,7 @@ Long-running process with 18 platform adapters, unified session routing, user au
 
 ### Plugin System
 
-Three discovery sources: `~/.hermes/plugins/` (user), `.hermes/plugins/` (project), and pip entry points. Plugins register tools, hooks, and CLI commands through a context API. Two specialized plugin types exist: memory providers (`plugins/memory/`) and context engines (`plugins/context_engine/`). Both are single-select — only one of each can be active at a time, configured via `hermes plugins` or `config.yaml`.
+Three discovery sources: `~/.mercury/plugins/` (user), `.hermes/plugins/` (project), and pip entry points. Plugins register tools, hooks, and CLI commands through a context API. Two specialized plugin types exist: memory providers (`plugins/memory/`) and context engines (`plugins/context_engine/`). Both are single-select — only one of each can be active at a time, configured via `hermes plugins` or `config.yaml`.
 
 → [Plugin Guide](/docs/guides/build-a-hermes-plugin), [Memory Provider Plugin](./memory-provider-plugin.md)
 

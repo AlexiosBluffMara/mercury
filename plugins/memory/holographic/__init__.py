@@ -94,7 +94,7 @@ FACT_FEEDBACK_SCHEMA = {
 # ---------------------------------------------------------------------------
 
 def _load_plugin_config() -> dict:
-    from hermes_constants import get_hermes_home
+    from mercury_constants import get_hermes_home
     config_path = get_hermes_home() / "config.yaml"
     if not config_path.exists():
         return {}
@@ -145,7 +145,7 @@ class HolographicMemoryProvider(MemoryProvider):
             pass
 
     def get_config_schema(self):
-        from hermes_constants import display_hermes_home
+        from mercury_constants import display_hermes_home
         _default_db = f"{display_hermes_home()}/memory_store.db"
         return [
             {"key": "db_path", "description": "SQLite database path", "default": _default_db},
@@ -155,12 +155,12 @@ class HolographicMemoryProvider(MemoryProvider):
         ]
 
     def initialize(self, session_id: str, **kwargs) -> None:
-        from hermes_constants import get_hermes_home
+        from mercury_constants import get_hermes_home
         _hermes_home = str(get_hermes_home())
         _default_db = _hermes_home + "/memory_store.db"
         db_path = self._config.get("db_path", _default_db)
         # Expand $HERMES_HOME in user-supplied paths so config values like
-        # "$HERMES_HOME/memory_store.db" or "~/.hermes/memory_store.db" both
+        # "$HERMES_HOME/memory_store.db" or "~/.mercury/memory_store.db" both
         # resolve to the active profile's directory.
         if isinstance(db_path, str):
             db_path = db_path.replace("$HERMES_HOME", _hermes_home)

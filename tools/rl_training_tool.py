@@ -44,7 +44,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from hermes_constants import get_hermes_home
+from mercury_constants import get_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -733,7 +733,7 @@ async def rl_start_training() -> str:
     # Check API keys
     if not os.getenv("TINKER_API_KEY"):
         return json.dumps({
-            "error": "TINKER_API_KEY not set. Add it to ~/.hermes/.env",
+            "error": "TINKER_API_KEY not set. Add it to ~/.mercury/.env",
         }, indent=2)
     
     # Find environment file

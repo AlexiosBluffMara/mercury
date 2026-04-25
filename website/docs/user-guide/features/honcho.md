@@ -39,13 +39,13 @@ hermes memory setup    # select "honcho" from the provider list
 Or configure manually:
 
 ```yaml
-# ~/.hermes/config.yaml
+# ~/.mercury/config.yaml
 memory:
   provider: honcho
 ```
 
 ```bash
-echo "HONCHO_API_KEY=*** >> ~/.hermes/.env
+echo "HONCHO_API_KEY=*** >> ~/.mercury/.env
 ```
 
 Get an API key at [honcho.dev](https://honcho.dev).

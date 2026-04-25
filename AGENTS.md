@@ -25,12 +25,12 @@ hermes-agent/
 ├── model_tools.py        # Tool orchestration, discover_builtin_tools(), handle_function_call()
 ├── toolsets.py           # Toolset definitions, _HERMES_CORE_TOOLS list
 ├── cli.py                # HermesCLI class — interactive CLI orchestrator (~11k LOC)
-├── hermes_state.py       # SessionDB — SQLite session store (FTS5 search)
-├── hermes_constants.py   # get_hermes_home(), display_hermes_home() — profile-aware paths
-├── hermes_logging.py     # setup_logging() — agent.log / errors.log / gateway.log (profile-aware)
+├── mercury_state.py       # SessionDB — SQLite session store (FTS5 search)
+├── mercury_constants.py   # get_hermes_home(), display_hermes_home() — profile-aware paths
+├── mercury_logging.py     # setup_logging() — agent.log / errors.log / gateway.log (profile-aware)
 ├── batch_runner.py       # Parallel batch processing
 ├── agent/                # Agent internals (provider adapters, memory, caching, compression, etc.)
-├── hermes_cli/           # CLI subcommands, setup wizard, plugins loader, skin engine
+├── mercury_cli/           # CLI subcommands, setup wizard, plugins loader, skin engine
 ├── tools/                # Tool implementations — auto-discovered via tools/registry.py
 │   └── environments/     # Terminal backends (local, docker, ssh, modal, daytona, singularity)
 ├── gateway/              # Messaging gateway — run.py + session.py + platforms/
@@ -56,8 +56,8 @@ hermes-agent/
 └── tests/                # Pytest suite (~15k tests across ~700 files as of Apr 2026)
 ```
 
-**User config:** `~/.hermes/config.yaml` (settings), `~/.hermes/.env` (API keys only).
-**Logs:** `~/.hermes/logs/` — `agent.log` (INFO+), `errors.log` (WARNING+),
+**User config:** `~/.mercury/config.yaml` (settings), `~/.mercury/.env` (API keys only).
+**Logs:** `~/.mercury/logs/` — `agent.log` (INFO+), `errors.log` (WARNING+),
 `gateway.log` when running the gateway. Profile-aware via `get_hermes_home()`.
 Browse with `hermes logs [--follow] [--level ...] [--session ...]`.
 
@@ -140,11 +140,11 @@ Reasoning content is stored in `assistant_msg["reasoning"]`.
 - **Rich** for banner/panels, **prompt_toolkit** for input with autocomplete
 - **KawaiiSpinner** (`agent/display.py`) — animated faces during API calls, `┊` activity feed for tool results
 - `load_cli_config()` in cli.py merges hardcoded defaults + user config YAML
-- **Skin engine** (`hermes_cli/skin_engine.py`) — data-driven CLI theming; initialized from `display.skin` config key at startup; skins customize banner colors, spinner faces/verbs/wings, tool prefix, response box, branding text
+- **Skin engine** (`mercury_cli/skin_engine.py`) — data-driven CLI theming; initialized from `display.skin` config key at startup; skins customize banner colors, spinner faces/verbs/wings, tool prefix, response box, branding text
 - `process_command()` is a method on `HermesCLI` — dispatches on canonical command name resolved via `resolve_command()` from the central registry
-- Skill slash commands: `agent/skill_commands.py` scans `~/.hermes/skills/`, injects as **user message** (not system prompt) to preserve prompt caching
+- Skill slash commands: `agent/skill_commands.py` scans `~/.mercury/skills/`, injects as **user message** (not system prompt) to preserve prompt caching
 
-### Slash Command Registry (`hermes_cli/commands.py`)
+### Slash Command Registry (`mercury_cli/commands.py`)
 
 All slash commands are defined in a central `COMMAND_REGISTRY` list of `CommandDef` objects. Every downstream consumer derives from this registry automatically:
 
@@ -158,7 +158,7 @@ All slash commands are defined in a central `COMMAND_REGISTRY` list of `CommandD
 
 ### Adding a Slash Command
 
-1. Add a `CommandDef` entry to `COMMAND_REGISTRY` in `hermes_cli/commands.py`:
+1. Add a `CommandDef` entry to `COMMAND_REGISTRY` in `mercury_cli/commands.py`:
 ```python
 CommandDef("mycommand", "Description of what it does", "Session",
            aliases=("mc",), args_hint="[arg]"),
@@ -242,7 +242,7 @@ npm test          # vitest
 
 ### TUI in the Dashboard (`hermes dashboard` → `/chat`)
 
-The dashboard embeds the real `hermes --tui` — **not** a rewrite.  See `hermes_cli/pty_bridge.py` + the `@app.websocket("/api/pty")` endpoint in `hermes_cli/web_server.py`.
+The dashboard embeds the real `hermes --tui` — **not** a rewrite.  See `mercury_cli/pty_bridge.py` + the `@app.websocket("/api/pty")` endpoint in `mercury_cli/web_server.py`.
 
 - Browser loads `web/src/pages/ChatPage.tsx`, which mounts xterm.js's `Terminal` with the WebGL renderer, `@xterm/addon-fit` for container-driven resize, and `@xterm/addon-unicode11` for modern wide-character widths.
 - `/api/pty?token=…` upgrades to a WebSocket; auth uses the same ephemeral `_SESSION_TOKEN` as REST, via query param (browsers can't set `Authorization` on WS upgrade).
@@ -297,7 +297,7 @@ The registry handles schema collection, dispatch, availability checking, and err
 ## Adding Configuration
 
 ### config.yaml options:
-1. Add to `DEFAULT_CONFIG` in `hermes_cli/config.py`
+1. Add to `DEFAULT_CONFIG` in `mercury_cli/config.py`
 2. Bump `_config_version` (check the current value at the top of `DEFAULT_CONFIG`)
    ONLY if you need to actively migrate/transform existing user config
    (renaming keys, changing structure). Adding a new key to an existing
@@ -305,7 +305,7 @@ The registry handles schema collection, dispatch, availability checking, and err
    a version bump.
 
 ### .env variables (SECRETS ONLY — API keys, tokens, passwords):
-1. Add to `OPTIONAL_ENV_VARS` in `hermes_cli/config.py` with metadata:
+1. Add to `OPTIONAL_ENV_VARS` in `mercury_cli/config.py` with metadata:
 ```python
 "NEW_API_KEY": {
     "description": "What it's for",
@@ -326,7 +326,7 @@ the env var in code (see `gateway_timeout`, `terminal.cwd` → `TERMINAL_CWD`).
 | Loader | Used by | Location |
 |--------|---------|----------|
 | `load_cli_config()` | CLI mode | `cli.py` — merges CLI-specific defaults + user YAML |
-| `load_config()` | `hermes tools`, `hermes setup`, most CLI subcommands | `hermes_cli/config.py` — merges `DEFAULT_CONFIG` + user YAML |
+| `load_config()` | `hermes tools`, `hermes setup`, most CLI subcommands | `mercury_cli/config.py` — merges `DEFAULT_CONFIG` + user YAML |
 | Direct YAML load | Gateway runtime | `gateway/run.py` + `gateway/config.py` — reads user YAML raw |
 
 If you add a new key and the CLI sees it but the gateway doesn't (or vice
@@ -344,13 +344,13 @@ versa), you're on the wrong loader. Check `DEFAULT_CONFIG` coverage.
 
 ## Skin/Theme System
 
-The skin engine (`hermes_cli/skin_engine.py`) provides data-driven CLI visual customization. Skins are **pure data** — no code changes needed to add a new skin.
+The skin engine (`mercury_cli/skin_engine.py`) provides data-driven CLI visual customization. Skins are **pure data** — no code changes needed to add a new skin.
 
 ### Architecture
 
 ```
-hermes_cli/skin_engine.py    # SkinConfig dataclass, built-in skins, YAML loader
-~/.hermes/skins/*.yaml       # User-installed custom skins (drop-in)
+mercury_cli/skin_engine.py    # SkinConfig dataclass, built-in skins, YAML loader
+~/.mercury/skins/*.yaml       # User-installed custom skins (drop-in)
 ```
 
 - `init_skin_from_config()` — called at CLI startup, reads `display.skin` from config
@@ -389,7 +389,7 @@ hermes_cli/skin_engine.py    # SkinConfig dataclass, built-in skins, YAML loader
 
 ### Adding a built-in skin
 
-Add to `_BUILTIN_SKINS` dict in `hermes_cli/skin_engine.py`:
+Add to `_BUILTIN_SKINS` dict in `mercury_cli/skin_engine.py`:
 
 ```python
 "mytheme": {
@@ -404,7 +404,7 @@ Add to `_BUILTIN_SKINS` dict in `hermes_cli/skin_engine.py`:
 
 ### User skins (YAML)
 
-Users create `~/.hermes/skins/<name>.yaml`:
+Users create `~/.mercury/skins/<name>.yaml`:
 
 ```yaml
 name: cyberpunk
@@ -435,11 +435,11 @@ Activate with `/skin cyberpunk` or `display.skin: cyberpunk` in config.yaml.
 
 Hermes has two plugin surfaces. Both live under `plugins/` in the repo so
 repo-shipped plugins can be discovered alongside user-installed ones in
-`~/.hermes/plugins/` and pip-installed entry points.
+`~/.mercury/plugins/` and pip-installed entry points.
 
-### General plugins (`hermes_cli/plugins.py` + `plugins/<name>/`)
+### General plugins (`mercury_cli/plugins.py` + `plugins/<name>/`)
 
-`PluginManager` discovers plugins from `~/.hermes/plugins/`, `./.hermes/plugins/`,
+`PluginManager` discovers plugins from `~/.mercury/plugins/`, `./.hermes/plugins/`,
 and pip entry points. Each plugin exposes a `register(ctx)` function that
 can:
 
@@ -476,7 +476,7 @@ provider (read from `memory.provider` in config.yaml), so disabled
 providers don't clutter `hermes --help`.
 
 **Rule (Teknium, May 2026):** plugins MUST NOT modify core files
-(`run_agent.py`, `cli.py`, `gateway/run.py`, `hermes_cli/main.py`, etc.).
+(`run_agent.py`, `cli.py`, `gateway/run.py`, `mercury_cli/main.py`, etc.).
 If a plugin needs a capability the framework doesn't expose, expand the
 generic plugin surface (new hook, new ctx method) — never hardcode
 plugin-specific logic into core. PR #5295 removed 95 lines of hardcoded
@@ -553,32 +553,32 @@ in config.yaml (or `HERMES_BACKGROUND_NOTIFICATIONS` env var):
 Hermes supports **profiles** — multiple fully isolated instances, each with its own
 `HERMES_HOME` directory (config, API keys, memory, sessions, skills, gateway, etc.).
 
-The core mechanism: `_apply_profile_override()` in `hermes_cli/main.py` sets
+The core mechanism: `_apply_profile_override()` in `mercury_cli/main.py` sets
 `HERMES_HOME` before any module imports. All `get_hermes_home()` references
 automatically scope to the active profile.
 
 ### Rules for profile-safe code
 
-1. **Use `get_hermes_home()` for all HERMES_HOME paths.** Import from `hermes_constants`.
+1. **Use `get_hermes_home()` for all HERMES_HOME paths.** Import from `mercury_constants`.
    NEVER hardcode `~/.hermes` or `Path.home() / ".hermes"` in code that reads/writes state.
    ```python
    # GOOD
-   from hermes_constants import get_hermes_home
+   from mercury_constants import get_hermes_home
    config_path = get_hermes_home() / "config.yaml"
 
    # BAD — breaks profiles
    config_path = Path.home() / ".hermes" / "config.yaml"
    ```
 
-2. **Use `display_hermes_home()` for user-facing messages.** Import from `hermes_constants`.
-   This returns `~/.hermes` for default or `~/.hermes/profiles/<name>` for profiles.
+2. **Use `display_hermes_home()` for user-facing messages.** Import from `mercury_constants`.
+   This returns `~/.hermes` for default or `~/.mercury/profiles/<name>` for profiles.
    ```python
    # GOOD
-   from hermes_constants import display_hermes_home
+   from mercury_constants import display_hermes_home
    print(f"Config saved to {display_hermes_home()}/config.yaml")
 
    # BAD — shows wrong path for profiles
-   print("Config saved to ~/.hermes/config.yaml")
+   print("Config saved to ~/.mercury/config.yaml")
    ```
 
 3. **Module-level constants are fine** — they cache `get_hermes_home()` at import time,
@@ -607,16 +607,16 @@ automatically scope to the active profile.
 ## Known Pitfalls
 
 ### DO NOT hardcode `~/.hermes` paths
-Use `get_hermes_home()` from `hermes_constants` for code paths. Use `display_hermes_home()`
+Use `get_hermes_home()` from `mercury_constants` for code paths. Use `display_hermes_home()`
 for user-facing print/log messages. Hardcoding `~/.hermes` breaks profiles — each profile
 has its own `HERMES_HOME` directory. This was the source of 5 bugs fixed in PR #3575.
 
 ### DO NOT introduce new `simple_term_menu` usage
-Existing call sites in `hermes_cli/main.py` remain for legacy fallback only;
+Existing call sites in `mercury_cli/main.py` remain for legacy fallback only;
 the preferred UI is curses (stdlib) because `simple_term_menu` has
 ghost-duplication rendering bugs in tmux/iTerm2 with arrow keys. New
-interactive menus must use `hermes_cli/curses_ui.py` — see
-`hermes_cli/tools_config.py` for the canonical pattern.
+interactive menus must use `mercury_cli/curses_ui.py` — see
+`mercury_cli/tools_config.py` for the canonical pattern.
 
 ### DO NOT use `\033[K` (ANSI erase-to-EOL) in spinner/display code
 Leaks as literal `?[K` text under `prompt_toolkit`'s `patch_stdout`. Use space-padding: `f"\r{line}{' ' * pad}"`.
@@ -651,12 +651,12 @@ Unused code that was never shipped was dead for a reason. Before wiring an
 unused module into a live code path, E2E test the real resolution chain
 with actual imports (not mocks) against a temp `HERMES_HOME`.
 
-### Tests must not write to `~/.hermes/`
-The `_isolate_hermes_home` autouse fixture in `tests/conftest.py` redirects `HERMES_HOME` to a temp dir. Never hardcode `~/.hermes/` paths in tests.
+### Tests must not write to `~/.mercury/`
+The `_isolate_hermes_home` autouse fixture in `tests/conftest.py` redirects `HERMES_HOME` to a temp dir. Never hardcode `~/.mercury/` paths in tests.
 
 **Profile tests**: When testing profile features, also mock `Path.home()` so that
 `_get_profiles_root()` and `_get_default_hermes_home()` resolve within the temp dir.
-Use the pattern from `tests/hermes_cli/test_profiles.py`:
+Use the pattern from `tests/mercury_cli/test_profiles.py`:
 ```python
 @pytest.fixture
 def profile_env(tmp_path, monkeypatch):
@@ -691,7 +691,7 @@ Five real sources of local-vs-CI drift the script closes:
 | | Without wrapper | With wrapper |
 |---|---|---|
 | Provider API keys | Whatever is in your env (auto-detects pool) | All `*_API_KEY`/`*_TOKEN`/etc. unset |
-| HOME / `~/.hermes/` | Your real config+auth.json | Temp dir per test |
+| HOME / `~/.mercury/` | Your real config+auth.json | Temp dir per test |
 | Timezone | Local TZ (PDT etc.) | UTC |
 | Locale | Whatever is set | C.UTF-8 |
 | xdist workers | `-n auto` = all cores (20+ on a workstation) | `-n 4` matching CI |

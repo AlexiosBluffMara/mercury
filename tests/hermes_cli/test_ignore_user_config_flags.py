@@ -4,7 +4,7 @@ Ported from openai/codex#18646 (`feat: add --ignore-user-config and --ignore-rul
 Codex's flags fully isolate a run from user-level config and exec-policy .rules
 files. In Hermes the equivalent isolation is:
 
-* ``--ignore-user-config`` → skip ``~/.hermes/config.yaml`` in ``load_cli_config()``
+* ``--ignore-user-config`` → skip ``~/.mercury/config.yaml`` in ``load_cli_config()``
   (credentials in ``.env`` are still loaded).
 * ``--ignore-rules`` → skip AGENTS.md / SOUL.md / .cursorrules auto-injection
   and persistent memory (maps to ``AIAgent(skip_context_files=True,
@@ -151,7 +151,7 @@ class TestIgnoreRulesEnvGate:
 
 
 class TestCmdChatWiring:
-    """The wiring inside ``cmd_chat()`` in ``hermes_cli/main.py`` must set
+    """The wiring inside ``cmd_chat()`` in ``mercury_cli/main.py`` must set
     both env vars before importing ``cli`` (which evaluates
     ``load_cli_config()`` at module import).
     """
@@ -224,11 +224,11 @@ class TestArgparseFlagsRegistered:
         assert args.ignore_rules is True
 
     def test_main_py_registers_both_flags(self):
-        """E2E: the real hermes_cli/main.py parser accepts both flags.
+        """E2E: the real mercury_cli/main.py parser accepts both flags.
 
-        We invoke the real argparse tree builder from hermes_cli.main.
+        We invoke the real argparse tree builder from mercury_cli.main.
         """
-        import hermes_cli.main as hm
+        import mercury_cli.main as hm
 
         # hm has a helper that builds the argparse tree inside main().
         # We can extract it by catching the SystemExit on --help.

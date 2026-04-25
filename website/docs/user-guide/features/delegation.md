@@ -134,7 +134,7 @@ Single-task delegation runs directly without thread pool overhead.
 You can configure a different model for subagents via `config.yaml` — useful for delegating simple tasks to cheaper/faster models:
 
 ```yaml
-# In ~/.hermes/config.yaml
+# In ~/.mercury/config.yaml
 delegation:
   model: "google/gemini-flash-2.0"    # Cheaper model for subagents
   provider: "openrouter"              # Optional: route subagents to a different provider
@@ -219,7 +219,7 @@ delegate_task(
 ## Configuration
 
 ```yaml
-# In ~/.hermes/config.yaml
+# In ~/.mercury/config.yaml
 delegation:
   max_iterations: 50                        # Max turns per child (default: 50)
   # max_concurrent_children: 3              # Parallel children per batch (default: 3)

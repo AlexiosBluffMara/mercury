@@ -4,7 +4,7 @@ Cron job scheduler - executes due jobs.
 Provides tick() which checks for due jobs and runs them. The gateway
 calls this every 60 seconds from a background thread.
 
-Uses a file-based lock (~/.hermes/cron/.tick.lock) so only one tick
+Uses a file-based lock (~/.mercury/cron/.tick.lock) so only one tick
 runs at a time if multiple processes overlap.
 """
 
@@ -31,12 +31,12 @@ from typing import List, Optional
 
 # Add parent directory to path for imports BEFORE repo-level imports.
 # Without this, standalone invocations (e.g. after `hermes update` reloads
-# the module) fail with ModuleNotFoundError for hermes_time et al.
+# the module) fail with ModuleNotFoundError for mercury_time et al.
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from hermes_constants import get_hermes_home
-from hermes_cli.config import load_config
-from hermes_time import now as _hermes_now
+from mercury_constants import get_hermes_home
+from mercury_cli.config import load_config
+from mercury_time import now as _hermes_now
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ def _resolve_cron_enabled_toolsets(job: dict, cfg: dict) -> list[str] | None:
     if per_job:
         return per_job
     try:
-        from hermes_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
+        from mercury_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
         return sorted(_get_platform_tools(cfg or {}, "cron"))
     except Exception as exc:
         logger.warning(
@@ -538,7 +538,7 @@ def _run_job_script(script_path: str) -> tuple[bool, str]:
         (success, output) — on failure *output* contains the error message so the
         LLM can report the problem to the user.
     """
-    from hermes_constants import get_hermes_home
+    from mercury_constants import get_hermes_home
 
     scripts_dir = get_hermes_home() / "scripts"
     scripts_dir.mkdir(parents=True, exist_ok=True)
@@ -784,7 +784,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
     # and discoverable via session_search (same pattern as gateway/run.py).
     _session_db = None
     try:
-        from hermes_state import SessionDB
+        from mercury_state import SessionDB
         _session_db = SessionDB()
     except Exception as e:
         logger.debug("Job '%s': SQLite session store not available: %s", job.get("id", "?"), e)
@@ -897,7 +897,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
 
         # Apply IPv4 preference if configured.
         try:
-            from hermes_constants import apply_ipv4_preference
+            from mercury_constants import apply_ipv4_preference
             _net_cfg = _cfg.get("network", {})
             if isinstance(_net_cfg, dict) and _net_cfg.get("force_ipv4"):
                 apply_ipv4_preference(force=True)
@@ -905,7 +905,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
             pass
 
         # Reasoning config from config.yaml
-        from hermes_constants import parse_reasoning_effort
+        from mercury_constants import parse_reasoning_effort
         effort = str(_cfg.get("agent", {}).get("reasoning_effort", "")).strip()
         reasoning_config = parse_reasoning_effort(effort)
 
@@ -932,11 +932,11 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
         # Provider routing
         pr = _cfg.get("provider_routing", {})
 
-        from hermes_cli.runtime_provider import (
+        from mercury_cli.runtime_provider import (
             resolve_runtime_provider,
             format_runtime_provider_error,
         )
-        from hermes_cli.auth import AuthError
+        from mercury_cli.auth import AuthError
         try:
             runtime_kwargs = {
                 "requested": job.get("provider") or os.getenv("HERMES_INFERENCE_PROVIDER"),

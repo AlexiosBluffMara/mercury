@@ -16,9 +16,9 @@ Hermes has a shared provider runtime resolver used across:
 
 Primary implementation:
 
-- `hermes_cli/runtime_provider.py` — credential resolution, `_resolve_custom_runtime()`
-- `hermes_cli/auth.py` — provider registry, `resolve_provider()`
-- `hermes_cli/model_switch.py` — shared `/model` switch pipeline (CLI + gateway)
+- `mercury_cli/runtime_provider.py` — credential resolution, `_resolve_custom_runtime()`
+- `mercury_cli/auth.py` — provider registry, `resolve_provider()`
+- `mercury_cli/model_switch.py` — shared `/model` switch pipeline (CLI + gateway)
 - `agent/auxiliary_client.py` — auxiliary model routing
 
 If you are trying to add a new first-class inference provider, read [Adding Providers](./adding-providers.md) alongside this page.
@@ -80,7 +80,7 @@ This resolver is the main reason Hermes can share auth/runtime logic between:
 
 ## AI Gateway
 
-Set `AI_GATEWAY_API_KEY` in `~/.hermes/.env` and run with `--provider ai-gateway`. Hermes fetches available models from the gateway's `/models` endpoint, filtering to language models with tool-use support.
+Set `AI_GATEWAY_API_KEY` in `~/.mercury/.env` and run with `--provider ai-gateway`. Hermes fetches available models from the gateway's `/models` endpoint, filtering to language models with tool-use support.
 
 ## OpenRouter, AI Gateway, and custom OpenAI-compatible base URLs
 

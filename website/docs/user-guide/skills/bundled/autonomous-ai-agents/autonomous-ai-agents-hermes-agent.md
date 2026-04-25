@@ -327,16 +327,16 @@ Type these during an interactive chat session.
 ## Key Paths & Config
 
 ```
-~/.hermes/config.yaml       Main configuration
-~/.hermes/.env              API keys and secrets
+~/.mercury/config.yaml       Main configuration
+~/.mercury/.env              API keys and secrets
 $HERMES_HOME/skills/        Installed skills
-~/.hermes/sessions/         Session transcripts
-~/.hermes/logs/             Gateway and error logs
-~/.hermes/auth.json         OAuth tokens and credential pools
-~/.hermes/hermes-agent/     Source code (if git-installed)
+~/.mercury/sessions/         Session transcripts
+~/.mercury/logs/             Gateway and error logs
+~/.mercury/auth.json         OAuth tokens and credential pools
+~/.mercury/hermes-agent/     Source code (if git-installed)
 ```
 
-Profiles use `~/.hermes/profiles/<name>/` with the same layout.
+Profiles use `~/.mercury/profiles/<name>/` with the same layout.
 
 ### Config Sections
 
@@ -568,7 +568,7 @@ terminal(command="tmux new-session -d -s resumed 'hermes --resume 20260225_14305
 ### Gateway issues
 Check logs first:
 ```bash
-grep -i "failed to send\|error" ~/.hermes/logs/gateway.log | tail -20
+grep -i "failed to send\|error" ~/.mercury/logs/gateway.log | tail -20
 ```
 
 Common gateway problems:
@@ -606,9 +606,9 @@ hermes config set auxiliary.vision.model <model_name>
 | Memory | `hermes memory status` or [Memory docs](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory) |
 | Env variables | `hermes config env-path` or [Env vars reference](https://hermes-agent.nousresearch.com/docs/reference/environment-variables) |
 | CLI commands | `hermes --help` or [CLI reference](https://hermes-agent.nousresearch.com/docs/reference/cli-commands) |
-| Gateway logs | `~/.hermes/logs/gateway.log` |
-| Session files | `~/.hermes/sessions/` or `hermes sessions browse` |
-| Source code | `~/.hermes/hermes-agent/` |
+| Gateway logs | `~/.mercury/logs/gateway.log` |
+| Session files | `~/.mercury/sessions/` or `hermes sessions browse` |
+| Source code | `~/.mercury/hermes-agent/` |
 
 ---
 
@@ -624,9 +624,9 @@ hermes-agent/
 ├── model_tools.py        # Tool discovery and dispatch
 ├── toolsets.py           # Toolset definitions
 ├── cli.py                # Interactive CLI (HermesCLI)
-├── hermes_state.py       # SQLite session store
+├── mercury_state.py       # SQLite session store
 ├── agent/                # Prompt builder, context compression, memory, model routing, credential pooling, skill dispatch
-├── hermes_cli/           # CLI subcommands, config, setup, commands
+├── mercury_cli/           # CLI subcommands, config, setup, commands
 │   ├── commands.py       # Slash command registry (CommandDef)
 │   ├── config.py         # DEFAULT_CONFIG, env var definitions
 │   └── main.py           # CLI entry point and argparse
@@ -639,7 +639,7 @@ hermes-agent/
 └── website/              # Docusaurus docs site
 ```
 
-Config: `~/.hermes/config.yaml` (settings), `~/.hermes/.env` (API keys).
+Config: `~/.mercury/config.yaml` (settings), `~/.mercury/.env` (API keys).
 
 ### Adding a Tool (3 files)
 
@@ -673,7 +673,7 @@ All handlers must return JSON strings. Use `get_hermes_home()` for paths, never 
 
 ### Adding a Slash Command
 
-1. Add `CommandDef` to `COMMAND_REGISTRY` in `hermes_cli/commands.py`
+1. Add `CommandDef` to `COMMAND_REGISTRY` in `mercury_cli/commands.py`
 2. Add handler in `cli.py` → `process_command()`
 3. (Optional) Add gateway handler in `gateway/run.py`
 
@@ -698,7 +698,7 @@ python -m pytest tests/ -o 'addopts=' -q   # Full suite
 python -m pytest tests/tools/ -q            # Specific area
 ```
 
-- Tests auto-redirect `HERMES_HOME` to temp dirs — never touch real `~/.hermes/`
+- Tests auto-redirect `HERMES_HOME` to temp dirs — never touch real `~/.mercury/`
 - Run full suite before pushing any change
 - Use `-o 'addopts='` to clear any baked-in pytest flags
 
@@ -716,6 +716,6 @@ Types: `fix:`, `feat:`, `refactor:`, `docs:`, `chore:`
 
 - **Never break prompt caching** — don't change context, tools, or system prompt mid-conversation
 - **Message role alternation** — never two assistant or two user messages in a row
-- Use `get_hermes_home()` from `hermes_constants` for all paths (profile-safe)
+- Use `get_hermes_home()` from `mercury_constants` for all paths (profile-safe)
 - Config values go in `config.yaml`, secrets go in `.env`
 - New tools need a `check_fn` so they only appear when requirements are met

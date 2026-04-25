@@ -25,7 +25,7 @@ The following is the complete skill definition that Hermes loads when this skill
 
 # Obsidian Vault
 
-**Location:** Set via `OBSIDIAN_VAULT_PATH` environment variable (e.g. in `~/.hermes/.env`).
+**Location:** Set via `OBSIDIAN_VAULT_PATH` environment variable (e.g. in `~/.mercury/.env`).
 
 If unset, defaults to `~/Documents/Obsidian Vault`.
 

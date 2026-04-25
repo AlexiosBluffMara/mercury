@@ -10,9 +10,9 @@ Hermes has three hook systems that run custom code at key lifecycle points:
 
 | System | Registered via | Runs in | Use case |
 |--------|---------------|---------|----------|
-| **[Gateway hooks](#gateway-event-hooks)** | `HOOK.yaml` + `handler.py` in `~/.hermes/hooks/` | Gateway only | Logging, alerts, webhooks |
+| **[Gateway hooks](#gateway-event-hooks)** | `HOOK.yaml` + `handler.py` in `~/.mercury/hooks/` | Gateway only | Logging, alerts, webhooks |
 | **[Plugin hooks](#plugin-hooks)** | `ctx.register_hook()` in a [plugin](/docs/user-guide/features/plugins) | CLI + Gateway | Tool interception, metrics, guardrails |
-| **[Shell hooks](#shell-hooks)** | `hooks:` block in `~/.hermes/config.yaml` pointing at shell scripts | CLI + Gateway | Drop-in scripts for blocking, auto-formatting, context injection |
+| **[Shell hooks](#shell-hooks)** | `hooks:` block in `~/.mercury/config.yaml` pointing at shell scripts | CLI + Gateway | Drop-in scripts for blocking, auto-formatting, context injection |
 
 All three systems are non-blocking — errors in any hook are caught and logged, never crashing the agent.
 
@@ -22,10 +22,10 @@ Gateway hooks fire automatically during gateway operation (Telegram, Discord, Sl
 
 ### Creating a Hook
 
-Each hook is a directory under `~/.hermes/hooks/` containing two files:
+Each hook is a directory under `~/.mercury/hooks/` containing two files:
 
 ```text
-~/.hermes/hooks/
+~/.mercury/hooks/
 └── my-hook/
     ├── HOOK.yaml      # Declares which events to listen for
     └── handler.py     # Python handler function
@@ -91,9 +91,9 @@ Handlers registered for `command:*` fire for any `command:` event (`command:mode
 
 #### Boot Checklist (BOOT.md) — Built-in
 
-The gateway ships with a built-in `boot-md` hook that looks for `~/.hermes/BOOT.md` on every startup. If the file exists, the agent runs its instructions in a background session. No installation needed — just create the file.
+The gateway ships with a built-in `boot-md` hook that looks for `~/.mercury/BOOT.md` on every startup. If the file exists, the agent runs its instructions in a background session. No installation needed — just create the file.
 
-**Create `~/.hermes/BOOT.md`:**
+**Create `~/.mercury/BOOT.md`:**
 
 ```markdown
 # Startup Checklist
@@ -114,7 +114,7 @@ No BOOT.md? The hook silently skips — zero overhead. Create the file whenever 
 Send yourself a message when the agent takes more than 10 steps:
 
 ```yaml
-# ~/.hermes/hooks/long-task-alert/HOOK.yaml
+# ~/.mercury/hooks/long-task-alert/HOOK.yaml
 name: long-task-alert
 description: Alert when agent is taking many steps
 events:
@@ -122,7 +122,7 @@ events:
 ```
 
 ```python
-# ~/.hermes/hooks/long-task-alert/handler.py
+# ~/.mercury/hooks/long-task-alert/handler.py
 import os
 import httpx
 
@@ -147,7 +147,7 @@ async def handle(event_type: str, context: dict):
 Track which slash commands are used:
 
 ```yaml
-# ~/.hermes/hooks/command-logger/HOOK.yaml
+# ~/.mercury/hooks/command-logger/HOOK.yaml
 name: command-logger
 description: Log slash command usage
 events:
@@ -155,7 +155,7 @@ events:
 ```
 
 ```python
-# ~/.hermes/hooks/command-logger/handler.py
+# ~/.mercury/hooks/command-logger/handler.py
 import json
 from datetime import datetime
 from pathlib import Path
@@ -180,7 +180,7 @@ def handle(event_type: str, context: dict):
 POST to an external service on new sessions:
 
 ```yaml
-# ~/.hermes/hooks/session-webhook/HOOK.yaml
+# ~/.mercury/hooks/session-webhook/HOOK.yaml
 name: session-webhook
 description: Notify external service on new sessions
 events:
@@ -189,7 +189,7 @@ events:
 ```
 
 ```python
-# ~/.hermes/hooks/session-webhook/handler.py
+# ~/.mercury/hooks/session-webhook/handler.py
 import httpx
 
 WEBHOOK_URL = "https://your-service.example.com/hermes-events"
@@ -204,7 +204,7 @@ async def handle(event_type: str, context: dict):
 
 ### How It Works
 
-1. On gateway startup, `HookRegistry.discover_and_load()` scans `~/.hermes/hooks/`
+1. On gateway startup, `HookRegistry.discover_and_load()` scans `~/.mercury/hooks/`
 2. Each subdirectory with `HOOK.yaml` + `handler.py` is loaded dynamically
 3. Handlers are registered for their declared events
 4. At each lifecycle point, `hooks.emit()` fires all matching handlers
@@ -782,14 +782,14 @@ Use shell hooks when you want a drop-in, single-file script (Bash, Python, anyth
 - **Inject context into the next LLM turn** — prepend `git status` output, the current weekday, or retrieved documents to the user message (see [`pre_llm_call`](#pre_llm_call)).
 - **Observe lifecycle events** — write a log line when a subagent completes (`subagent_stop`) or a session starts (`on_session_start`).
 
-Shell hooks are registered by calling `agent.shell_hooks.register_from_config(cfg)` at both CLI startup (`hermes_cli/main.py`) and gateway startup (`gateway/run.py`). They compose naturally with Python plugin hooks — both flow through the same dispatcher.
+Shell hooks are registered by calling `agent.shell_hooks.register_from_config(cfg)` at both CLI startup (`mercury_cli/main.py`) and gateway startup (`gateway/run.py`). They compose naturally with Python plugin hooks — both flow through the same dispatcher.
 
 ### Comparison at a glance
 
 | Dimension | Shell hooks | [Plugin hooks](#plugin-hooks) | [Gateway hooks](#gateway-event-hooks) |
 |-----------|-------------|-------------------------------|---------------------------------------|
-| Declared in | `hooks:` block in `~/.hermes/config.yaml` | `register()` in a `plugin.yaml` plugin | `HOOK.yaml` + `handler.py` directory |
-| Lives under | `~/.hermes/agent-hooks/` (by convention) | `~/.hermes/plugins/<name>/` | `~/.hermes/hooks/<name>/` |
+| Declared in | `hooks:` block in `~/.mercury/config.yaml` | `register()` in a `plugin.yaml` plugin | `HOOK.yaml` + `handler.py` directory |
+| Lives under | `~/.mercury/agent-hooks/` (by convention) | `~/.mercury/plugins/<name>/` | `~/.mercury/hooks/<name>/` |
 | Language | Any (Bash, Python, Go binary, …) | Python only | Python only |
 | Runs in | CLI + Gateway | CLI + Gateway | Gateway only |
 | Events | `VALID_HOOKS` (incl. `subagent_stop`) | `VALID_HOOKS` | Gateway lifecycle (`gateway:startup`, `agent:*`, `command:*`) |
@@ -851,16 +851,16 @@ Malformed JSON, non-zero exit codes, and timeouts log a warning but never abort 
 #### 1. Auto-format Python files after every write
 
 ```yaml
-# ~/.hermes/config.yaml
+# ~/.mercury/config.yaml
 hooks:
   post_tool_call:
     - matcher: "write_file|patch"
-      command: "~/.hermes/agent-hooks/auto-format.sh"
+      command: "~/.mercury/agent-hooks/auto-format.sh"
 ```
 
 ```bash
 #!/usr/bin/env bash
-# ~/.hermes/agent-hooks/auto-format.sh
+# ~/.mercury/agent-hooks/auto-format.sh
 payload="$(cat -)"
 path=$(echo "$payload" | jq -r '.tool_input.path // empty')
 [[ "$path" == *.py ]] && command -v black >/dev/null && black "$path" 2>/dev/null
@@ -875,13 +875,13 @@ The agent's in-context view of the file is **not** re-read automatically — the
 hooks:
   pre_tool_call:
     - matcher: "terminal"
-      command: "~/.hermes/agent-hooks/block-rm-rf.sh"
+      command: "~/.mercury/agent-hooks/block-rm-rf.sh"
       timeout: 5
 ```
 
 ```bash
 #!/usr/bin/env bash
-# ~/.hermes/agent-hooks/block-rm-rf.sh
+# ~/.mercury/agent-hooks/block-rm-rf.sh
 payload="$(cat -)"
 cmd=$(echo "$payload" | jq -r '.tool_input.command // empty')
 if echo "$cmd" | grep -qE 'rm[[:space:]]+-rf?[[:space:]]+/'; then
@@ -896,12 +896,12 @@ fi
 ```yaml
 hooks:
   pre_llm_call:
-    - command: "~/.hermes/agent-hooks/inject-cwd-context.sh"
+    - command: "~/.mercury/agent-hooks/inject-cwd-context.sh"
 ```
 
 ```bash
 #!/usr/bin/env bash
-# ~/.hermes/agent-hooks/inject-cwd-context.sh
+# ~/.mercury/agent-hooks/inject-cwd-context.sh
 cat - >/dev/null   # discard stdin payload
 if status=$(git status --porcelain 2>/dev/null) && [[ -n "$status" ]]; then
   jq --null-input --arg s "$status" \
@@ -918,20 +918,20 @@ Claude Code's `UserPromptSubmit` event is intentionally not a separate Hermes ev
 ```yaml
 hooks:
   subagent_stop:
-    - command: "~/.hermes/agent-hooks/log-orchestration.sh"
+    - command: "~/.mercury/agent-hooks/log-orchestration.sh"
 ```
 
 ```bash
 #!/usr/bin/env bash
-# ~/.hermes/agent-hooks/log-orchestration.sh
-log=~/.hermes/logs/orchestration.log
+# ~/.mercury/agent-hooks/log-orchestration.sh
+log=~/.mercury/logs/orchestration.log
 jq -c '{ts: now, parent: .session_id, extra: .extra}' < /dev/stdin >> "$log"
 printf '{}\n'
 ```
 
 ### Consent model
 
-Each unique `(event, command)` pair prompts the user for approval the first time Hermes sees it, then persists the decision to `~/.hermes/shell-hooks-allowlist.json`. Subsequent runs (CLI or gateway) skip the prompt.
+Each unique `(event, command)` pair prompts the user for approval the first time Hermes sees it, then persists the decision to `~/.mercury/shell-hooks-allowlist.json`. Subsequent runs (CLI or gateway) skip the prompt.
 
 Three escape hatches bypass the interactive prompt — any one is sufficient:
 
@@ -957,7 +957,7 @@ Non-TTY runs (gateway, cron, CI) need one of these three — otherwise any newly
 Shell hooks run with **your full user credentials** — same trust boundary as a cron entry or a shell alias. Treat the `hooks:` block in `config.yaml` as privileged configuration:
 
 - Only reference scripts you wrote or fully reviewed.
-- Keep scripts inside `~/.hermes/agent-hooks/` so the path is easy to audit.
+- Keep scripts inside `~/.mercury/agent-hooks/` so the path is easy to audit.
 - Re-run `hermes hooks doctor` after you pull a shared config to spot newly-added hooks before they register.
 - If your config.yaml is version-controlled across a team, review PRs that change the `hooks:` section the same way you'd review CI config.
 

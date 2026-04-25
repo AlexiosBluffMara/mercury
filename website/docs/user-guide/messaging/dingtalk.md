@@ -102,7 +102,7 @@ hermes gateway setup
 
 Select **DingTalk** when prompted. The setup wizard can authorize via one of two paths:
 
-- **QR-code device flow (recommended).** Scan the QR that prints in your terminal with the DingTalk mobile app — your Client ID and Client Secret are returned automatically and written to `~/.hermes/.env`. No developer-console trip needed.
+- **QR-code device flow (recommended).** Scan the QR that prints in your terminal with the DingTalk mobile app — your Client ID and Client Secret are returned automatically and written to `~/.mercury/.env`. No developer-console trip needed.
 - **Manual paste.** If you already have credentials (or QR scanning isn't convenient), paste your Client ID, Client Secret, and allowed user IDs when prompted.
 
 :::note openClaw branding disclosure
@@ -111,7 +111,7 @@ Because DingTalk's `verification_uri_complete` is hardcoded to the openClaw iden
 
 ### Option B: Manual Configuration
 
-Add the following to your `~/.hermes/.env` file:
+Add the following to your `~/.mercury/.env` file:
 
 ```bash
 # Required
@@ -125,7 +125,7 @@ DINGTALK_ALLOWED_USERS=user-id-1
 # DINGTALK_ALLOWED_USERS=user-id-1,user-id-2
 ```
 
-Optional behavior settings in `~/.hermes/config.yaml`:
+Optional behavior settings in `~/.mercury/config.yaml`:
 
 ```yaml
 group_sessions_per_user: true
@@ -220,7 +220,7 @@ pip install dingtalk-stream httpx
 
 **Cause**: The credentials aren't set in your environment or `.env` file.
 
-**Fix**: Verify `DINGTALK_CLIENT_ID` and `DINGTALK_CLIENT_SECRET` are set correctly in `~/.hermes/.env`. The Client ID is your AppKey, and the Client Secret is your AppSecret from the DingTalk Developer Console.
+**Fix**: Verify `DINGTALK_CLIENT_ID` and `DINGTALK_CLIENT_SECRET` are set correctly in `~/.mercury/.env`. The Client ID is your AppKey, and the Client Secret is your AppSecret from the DingTalk Developer Console.
 
 ### Stream disconnects / reconnection loops
 

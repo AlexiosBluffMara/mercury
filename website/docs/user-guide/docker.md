@@ -24,7 +24,7 @@ docker run -it --rm \
   nousresearch/hermes-agent setup
 ```
 
-This drops you into the setup wizard, which will prompt you for your API keys and write them to `~/.hermes/.env`. You only need to do this once. It is highly recommended to set up a chat system for the gateway to work with at this point.
+This drops you into the setup wizard, which will prompt you for your API keys and write them to `~/.mercury/.env`. You only need to do this once. It is highly recommended to set up a chat system for the gateway to work with at this point.
 
 ## Running in gateway mode
 
@@ -86,7 +86,7 @@ Or if you have already opened a terminal in your running container (via Docker D
 
 ## Persistent volumes
 
-The `/opt/data` volume is the single source of truth for all Hermes state. It maps to your host's `~/.hermes/` directory and contains:
+The `/opt/data` volume is the single source of truth for all Hermes state. It maps to your host's `~/.mercury/` directory and contains:
 
 | Path | Contents |
 |------|----------|
@@ -239,7 +239,7 @@ docker compose up -d
 
 ## Skills and credential files
 
-When using Docker as the execution environment (not the methods above, but when the agent runs commands inside a Docker sandbox), Hermes automatically bind-mounts the skills directory (`~/.hermes/skills/`) and any credential files declared by skills into the container as read-only volumes. This means skill scripts, templates, and references are available inside the sandbox without manual configuration.
+When using Docker as the execution environment (not the methods above, but when the agent runs commands inside a Docker sandbox), Hermes automatically bind-mounts the skills directory (`~/.mercury/skills/`) and any credential files declared by skills into the container as read-only volumes. This means skill scripts, templates, and references are available inside the sandbox without manual configuration.
 
 The same syncing happens for SSH and Modal backends — skills and credential files are uploaded via rsync or the Modal mount API before each command.
 
@@ -253,7 +253,7 @@ Check logs: `docker logs hermes`. Common causes:
 
 ### "Permission denied" errors
 
-The container runs as root by default. If your host `~/.hermes/` was created by a non-root user, permissions should work. If you get errors, ensure the data directory is writable:
+The container runs as root by default. If your host `~/.mercury/` was created by a non-root user, permissions should work. If you get errors, ensure the data directory is writable:
 
 ```sh
 chmod -R 755 ~/.hermes

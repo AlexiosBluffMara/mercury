@@ -158,7 +158,7 @@ Sessions reset based on configurable policies:
 | Idle | 1440 min | Reset after N minutes of inactivity |
 | Both | (combined) | Whichever triggers first |
 
-Configure per-platform overrides in `~/.hermes/gateway.json`:
+Configure per-platform overrides in `~/.mercury/gateway.json`:
 
 ```json
 {
@@ -221,7 +221,7 @@ Send any message while the agent is working to interrupt it. Key behaviors:
 
 ## Tool Progress Notifications
 
-Control how much tool activity is displayed in `~/.hermes/config.yaml`:
+Control how much tool activity is displayed in `~/.mercury/config.yaml`:
 
 ```yaml
 display:
@@ -264,7 +264,7 @@ Each `/background` prompt spawns a **separate agent instance** that runs asynchr
 
 ### Background Process Notifications
 
-When the agent running a background session uses `terminal(background=true)` to start long-running processes (servers, builds, etc.), the gateway can push status updates to your chat. Control this with `display.background_process_notifications` in `~/.hermes/config.yaml`:
+When the agent running a background session uses `terminal(background=true)` to start long-running processes (servers, builds, etc.), the gateway can push status updates to your chat. Control this with `display.background_process_notifications` in `~/.mercury/config.yaml`:
 
 ```yaml
 display:
@@ -331,7 +331,7 @@ hermes gateway install               # Install as launchd agent
 hermes gateway start                 # Start the service
 hermes gateway stop                  # Stop the service
 hermes gateway status                # Check status
-tail -f ~/.hermes/logs/gateway.log   # View logs
+tail -f ~/.mercury/logs/gateway.log   # View logs
 ```
 
 The generated plist lives at `~/Library/LaunchAgents/ai.hermes.gateway.plist`. It includes three environment variables:

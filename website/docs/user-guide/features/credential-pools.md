@@ -173,7 +173,7 @@ Hermes automatically discovers credentials from multiple sources and seeds the p
 | Environment variables | `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY` | Yes |
 | OAuth tokens (auth.json) | Codex device code, Nous device code | Yes |
 | Claude Code credentials | `~/.claude/.credentials.json` | Yes (Anthropic) |
-| Hermes PKCE OAuth | `~/.hermes/auth.json` | Yes (Anthropic) |
+| Hermes PKCE OAuth | `~/.mercury/auth.json` | Yes (Anthropic) |
 | Custom endpoint config | `model.api_key` in config.yaml | Yes (custom endpoints) |
 | Manual entries | Added via `hermes auth add` | Persisted in auth.json |
 
@@ -200,13 +200,13 @@ For the full data flow diagram, see [`docs/credential-pool-flow.excalidraw`](htt
 The credential pool integrates at the provider resolution layer:
 
 1. **`agent/credential_pool.py`** — Pool manager: storage, selection, rotation, cooldowns
-2. **`hermes_cli/auth_commands.py`** — CLI commands and interactive wizard
-3. **`hermes_cli/runtime_provider.py`** — Pool-aware credential resolution
+2. **`mercury_cli/auth_commands.py`** — CLI commands and interactive wizard
+3. **`mercury_cli/runtime_provider.py`** — Pool-aware credential resolution
 4. **`run_agent.py`** — Error recovery: 429/402/401 → pool rotation → fallback
 
 ## Storage
 
-Pool state is stored in `~/.hermes/auth.json` under the `credential_pool` key:
+Pool state is stored in `~/.mercury/auth.json` under the `credential_pool` key:
 
 ```json
 {

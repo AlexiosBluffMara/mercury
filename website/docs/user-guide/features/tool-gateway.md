@@ -74,7 +74,7 @@ Select a tool category (Web, Browser, Image Generation, or TTS), then choose **N
 
 ### Manual configuration
 
-Set the `use_gateway` flag directly in `~/.hermes/config.yaml`:
+Set the `use_gateway` flag directly in `~/.mercury/config.yaml`:
 
 ```yaml
 web:
@@ -102,7 +102,7 @@ When `use_gateway: true` is set for a tool, the runtime routes API calls through
 3. **TTS** — `text_to_speech` uses the gateway's OpenAI Audio endpoint
 4. **Browser** — `browser_navigate` and other browser tools use the gateway's Browser Use endpoint
 
-The gateway authenticates using your Nous Portal credentials (stored in `~/.hermes/auth.json` after `hermes model`).
+The gateway authenticates using your Nous Portal credentials (stored in `~/.mercury/auth.json` after `hermes model`).
 
 ### Precedence
 
@@ -153,7 +153,7 @@ Tools marked "active via Nous subscription" are routed through the gateway. Tool
 
 ## Advanced: Self-Hosted Gateway
 
-For self-hosted or custom gateway deployments, you can override the gateway endpoints via environment variables in `~/.hermes/.env`:
+For self-hosted or custom gateway deployments, you can override the gateway endpoints via environment variables in `~/.mercury/.env`:
 
 ```bash
 TOOL_GATEWAY_DOMAIN=nousresearch.com     # Base domain for gateway routing

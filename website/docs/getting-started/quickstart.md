@@ -88,8 +88,8 @@ You can switch providers at any time with `hermes model` — no lock-in. For a f
 
 Hermes separates secrets from normal config:
 
-- **Secrets and tokens** → `~/.hermes/.env`
-- **Non-secret settings** → `~/.hermes/config.yaml`
+- **Secrets and tokens** → `~/.mercury/.env`
+- **Non-secret settings** → `~/.mercury/config.yaml`
 
 The easiest way to set values correctly is through the CLI:
 
@@ -224,7 +224,7 @@ Or use `/skills` inside a chat session.
 ### MCP servers
 
 ```yaml
-# Add to ~/.hermes/config.yaml
+# Add to ~/.mercury/config.yaml
 mcp_servers:
   github:
     command: npx

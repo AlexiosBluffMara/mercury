@@ -10,10 +10,10 @@ from typing import Optional
 def _hermes_home_path() -> Path:
     """Resolve the active HERMES_HOME (profile-aware) without circular imports."""
     try:
-        from hermes_constants import get_hermes_home  # local import to avoid cycles
+        from mercury_constants import get_hermes_home  # local import to avoid cycles
         return get_hermes_home()
     except Exception:
-        return Path(os.path.expanduser("~/.hermes"))
+        return Path(os.path.expanduser("~/.mercury"))
 
 
 def build_write_denied_paths(home: str) -> set[str]:

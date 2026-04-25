@@ -44,7 +44,7 @@ hermes setup
 hermes chat
 ```
 
-After `nix profile install`, `hermes`, `hermes-agent`, and `hermes-acp` are on your PATH. From here, the workflow is identical to the [standard installation](./installation.md) — `hermes setup` walks you through provider selection, `hermes gateway install` sets up a launchd (macOS) or systemd user service, and config lives in `~/.hermes/`.
+After `nix profile install`, `hermes`, `hermes-agent`, and `hermes-acp` are on your PATH. From here, the workflow is identical to the [standard installation](./installation.md) — `hermes setup` walks you through provider selection, `hermes gateway install` sets up a launchd (macOS) or systemd user service, and config lives in `~/.mercury/`.
 
 <details>
 <summary><strong>Building from a local clone</strong></summary>
@@ -119,7 +119,7 @@ services.hermes-agent.environmentFiles = [ "/var/lib/hermes/env" ];
 :::
 
 :::tip addToSystemPackages
-Setting `addToSystemPackages = true` does two things: puts the `hermes` CLI on your system PATH **and** sets `HERMES_HOME` system-wide so the interactive CLI shares state (sessions, skills, cron) with the gateway service. Without it, running `hermes` in your shell creates a separate `~/.hermes/` directory.
+Setting `addToSystemPackages = true` does two things: puts the `hermes` CLI on your system PATH **and** sets `HERMES_HOME` system-wide so the interactive CLI shares state (sessions, skills, cron) with the gateway service. Without it, running `hermes` in your shell creates a separate `~/.mercury/` directory.
 :::
 
 :::info Container-aware CLI
@@ -489,7 +489,7 @@ The container uses `--network=host`, so the OAuth callback listener on `127.0.0.
 
 ```bash
 hermes mcp add my-oauth-server --url https://mcp.example.com/mcp --auth oauth
-scp ~/.hermes/mcp-tokens/my-oauth-server{,.client}.json \
+scp ~/.mercury/mcp-tokens/my-oauth-server{,.client}.json \
     server:/var/lib/hermes/.hermes/mcp-tokens/
 # Ensure: chown hermes:hermes, chmod 0600
 ```

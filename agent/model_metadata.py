@@ -18,7 +18,7 @@ import yaml
 
 from utils import base_url_host_matches, base_url_hostname
 
-from hermes_constants import OPENROUTER_MODELS_URL
+from mercury_constants import OPENROUTER_MODELS_URL
 
 logger = logging.getLogger(__name__)
 
@@ -691,7 +691,7 @@ def fetch_endpoint_model_metadata(
 
 def _get_context_cache_path() -> Path:
     """Return path to the persistent context length cache file."""
-    from hermes_constants import get_hermes_home
+    from mercury_constants import get_hermes_home
     return get_hermes_home() / "context_length_cache.yaml"
 
 
@@ -1323,7 +1323,7 @@ def get_model_context_length(
     # returns the provider-enforced limit which is what users can actually use.
     if effective_provider in ("copilot", "copilot-acp", "github-copilot"):
         try:
-            from hermes_cli.models import get_copilot_model_context
+            from mercury_cli.models import get_copilot_model_context
             ctx = get_copilot_model_context(model, api_key=api_key)
             if ctx:
                 return ctx

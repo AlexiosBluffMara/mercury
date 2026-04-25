@@ -66,7 +66,7 @@ import requests
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path
 from agent.auxiliary_client import call_llm
-from hermes_constants import get_hermes_home
+from mercury_constants import get_hermes_home
 
 try:
     from tools.website_policy import check_website_access
@@ -189,7 +189,7 @@ def _get_command_timeout() -> int:
     _command_timeout_resolved = True
     result = DEFAULT_COMMAND_TIMEOUT
     try:
-        from hermes_cli.config import read_raw_config
+        from mercury_cli.config import read_raw_config
         cfg = read_raw_config()
         val = cfg.get("browser", {}).get("command_timeout")
         if val is not None:
@@ -275,7 +275,7 @@ def _get_cdp_override() -> str:
         return _resolve_cdp_override(env_override)
 
     try:
-        from hermes_cli.config import read_raw_config
+        from mercury_cli.config import read_raw_config
 
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {})
@@ -301,7 +301,7 @@ def _get_dialog_policy_config() -> Tuple[str, float]:
     )
 
     try:
-        from hermes_cli.config import read_raw_config
+        from mercury_cli.config import read_raw_config
 
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {}) if isinstance(cfg, dict) else {}
@@ -413,7 +413,7 @@ def _get_cloud_provider() -> Optional[CloudBrowserProvider]:
 
     _cloud_provider_resolved = True
     try:
-        from hermes_cli.config import read_raw_config
+        from mercury_cli.config import read_raw_config
         cfg = read_raw_config()
         browser_cfg = cfg.get("browser", {})
         provider_key = None
@@ -443,7 +443,7 @@ def _get_cloud_provider() -> Optional[CloudBrowserProvider]:
     return _cached_cloud_provider
 
 
-from hermes_constants import is_termux as _is_termux_environment
+from mercury_constants import is_termux as _is_termux_environment
 
 
 def _browser_install_hint() -> str:
@@ -496,7 +496,7 @@ def _allow_private_urls() -> bool:
     _allow_private_urls_resolved = True
     _cached_allow_private_urls = False  # safe default
     try:
-        from hermes_cli.config import read_raw_config
+        from mercury_cli.config import read_raw_config
         cfg = read_raw_config()
         _cached_allow_private_urls = bool(cfg.get("browser", {}).get("allow_private_urls"))
     except Exception as e:
@@ -2020,7 +2020,7 @@ def _maybe_start_recording(task_id: str):
         if task_id in _recording_sessions:
             return
     try:
-        from hermes_cli.config import read_raw_config
+        from mercury_cli.config import read_raw_config
         hermes_home = get_hermes_home()
         cfg = read_raw_config()
         record_enabled = cfg.get("browser", {}).get("record_sessions", False)
@@ -2150,7 +2150,7 @@ def browser_vision(question: str, annotate: bool = False, task_id: Optional[str]
     effective_task_id = task_id or "default"
     
     # Save screenshot to persistent location so it can be shared with users
-    from hermes_constants import get_hermes_dir
+    from mercury_constants import get_hermes_dir
     screenshots_dir = get_hermes_dir("cache/screenshots", "browser_screenshots")
     screenshot_path = screenshots_dir / f"browser_screenshot_{uuid_mod.uuid4().hex}.png"
     
@@ -2224,7 +2224,7 @@ def browser_vision(question: str, annotate: bool = False, task_id: Optional[str]
         vision_timeout = 120.0
         vision_temperature = 0.1
         try:
-            from hermes_cli.config import load_config
+            from mercury_cli.config import load_config
             _cfg = load_config()
             _vision_cfg = _cfg.get("auxiliary", {}).get("vision", {})
             _vt = _vision_cfg.get("timeout")

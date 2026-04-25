@@ -6,7 +6,7 @@ the best available backend without duplicating fallback logic.
 
 Resolution order for text tasks (auto mode):
   1. OpenRouter  (OPENROUTER_API_KEY)
-  2. Nous Portal (~/.hermes/auth.json active provider)
+  2. Nous Portal (~/.mercury/auth.json active provider)
   3. Custom endpoint (config.yaml model.base_url + OPENAI_API_KEY)
   4. Codex OAuth (Responses API via chatgpt.com with gpt-5.3-codex,
      wrapped to look like a chat.completions client)
@@ -46,8 +46,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from openai import OpenAI
 
 from agent.credential_pool import load_pool
-from hermes_cli.config import get_hermes_home
-from hermes_constants import OPENROUTER_BASE_URL
+from mercury_cli.config import get_hermes_home
+from mercury_constants import OPENROUTER_BASE_URL
 from utils import base_url_host_matches, base_url_hostname, normalize_proxy_env_vars
 
 logger = logging.getLogger(__name__)
@@ -171,7 +171,7 @@ _OR_HEADERS = {
 
 # Vercel AI Gateway app attribution headers. HTTP-Referer maps to
 # referrerUrl and X-Title maps to appName in the gateway's analytics.
-from hermes_cli import __version__ as _HERMES_VERSION
+from mercury_cli import __version__ as _HERMES_VERSION
 
 _AI_GATEWAY_HEADERS = {
     "HTTP-Referer": "https://hermes-agent.nousresearch.com",
@@ -700,7 +700,7 @@ class AsyncAnthropicAuxiliaryClient:
 
 
 def _read_nous_auth() -> Optional[dict]:
-    """Read and validate ~/.hermes/auth.json for an active Nous provider.
+    """Read and validate ~/.mercury/auth.json for an active Nous provider.
 
     Returns the provider state dict if Nous is active with tokens,
     otherwise None.
@@ -756,7 +756,7 @@ def _resolve_nous_runtime_api(*, force_refresh: bool = False) -> Optional[tuple[
     or the credential pool.
     """
     try:
-        from hermes_cli.auth import resolve_nous_runtime_credentials
+        from mercury_cli.auth import resolve_nous_runtime_credentials
 
         creds = resolve_nous_runtime_credentials(
             min_key_ttl_seconds=max(60, int(os.getenv("HERMES_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
@@ -790,7 +790,7 @@ def _read_codex_access_token() -> Optional[str]:
             return token
 
     try:
-        from hermes_cli.auth import _read_codex_tokens
+        from mercury_cli.auth import _read_codex_tokens
         data = _read_codex_tokens()
         tokens = data.get("tokens", {})
         access_token = tokens.get("access_token")
@@ -824,7 +824,7 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
     credentials, or (None, None) if none are configured.
     """
     try:
-        from hermes_cli.auth import PROVIDER_REGISTRY, resolve_api_key_provider_credentials
+        from mercury_cli.auth import PROVIDER_REGISTRY, resolve_api_key_provider_credentials
     except ImportError:
         logger.debug("Could not import PROVIDER_REGISTRY for API-key fallback")
         return None, None
@@ -837,7 +837,7 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
             # Without this gate, Claude Code credentials get silently used
             # as auxiliary fallback when the user's primary provider fails.
             try:
-                from hermes_cli.auth import is_provider_explicitly_configured
+                from mercury_cli.auth import is_provider_explicitly_configured
                 if not is_provider_explicitly_configured("anthropic"):
                     continue
             except ImportError:
@@ -866,7 +866,7 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
             if base_url_host_matches(base_url, "api.kimi.com"):
                 extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
             elif base_url_host_matches(base_url, "api.githubcopilot.com"):
-                from hermes_cli.models import copilot_default_headers
+                from mercury_cli.models import copilot_default_headers
 
                 extra["default_headers"] = copilot_default_headers()
             return OpenAI(api_key=api_key, base_url=base_url, **extra), model
@@ -892,7 +892,7 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
         if base_url_host_matches(base_url, "api.kimi.com"):
             extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
         elif base_url_host_matches(base_url, "api.githubcopilot.com"):
-            from hermes_cli.models import copilot_default_headers
+            from mercury_cli.models import copilot_default_headers
 
             extra["default_headers"] = copilot_default_headers()
         return OpenAI(api_key=api_key, base_url=base_url, **extra), model
@@ -968,7 +968,7 @@ def _try_nous(vision: bool = False) -> Tuple[Optional[OpenAI], Optional[str]]:
     # or returns a null recommendation for this task type.
     model = _NOUS_MODEL
     try:
-        from hermes_cli.models import get_nous_recommended_aux_model
+        from mercury_cli.models import get_nous_recommended_aux_model
         recommended = get_nous_recommended_aux_model(vision=vision)
         if recommended:
             model = recommended
@@ -1009,7 +1009,7 @@ def _read_main_model() -> str:
     model. Environment variables are no longer consulted.
     """
     try:
-        from hermes_cli.config import load_config
+        from mercury_cli.config import load_config
         cfg = load_config()
         model_cfg = cfg.get("model", {})
         if isinstance(model_cfg, str) and model_cfg.strip():
@@ -1030,7 +1030,7 @@ def _read_main_provider() -> str:
     if not configured.
     """
     try:
-        from hermes_cli.config import load_config
+        from mercury_cli.config import load_config
         cfg = load_config()
         model_cfg = cfg.get("model", {})
         if isinstance(model_cfg, dict):
@@ -1050,7 +1050,7 @@ def _resolve_custom_runtime() -> Tuple[Optional[str], Optional[str], Optional[st
     environment.
     """
     try:
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from mercury_cli.runtime_provider import resolve_runtime_provider
 
         runtime = resolve_runtime_provider(requested="custom")
     except Exception as exc:
@@ -1227,7 +1227,7 @@ def _try_anthropic() -> Tuple[Optional[Any], Optional[str]]:
     # base_url (e.g. Codex endpoint) would leak into Anthropic requests.
     base_url = _pool_runtime_base_url(entry, _ANTHROPIC_DEFAULT_BASE_URL) if pool_present else _ANTHROPIC_DEFAULT_BASE_URL
     try:
-        from hermes_cli.config import load_config
+        from mercury_cli.config import load_config
         cfg = load_config()
         model_cfg = cfg.get("model")
         if isinstance(model_cfg, dict):
@@ -1418,7 +1418,7 @@ def _refresh_provider_credentials(provider: str) -> bool:
     normalized = _normalize_aux_provider(provider)
     try:
         if normalized == "openai-codex":
-            from hermes_cli.auth import resolve_codex_runtime_credentials
+            from mercury_cli.auth import resolve_codex_runtime_credentials
 
             creds = resolve_codex_runtime_credentials(force_refresh=True)
             if not str(creds.get("api_key", "") or "").strip():
@@ -1426,7 +1426,7 @@ def _refresh_provider_credentials(provider: str) -> bool:
             _evict_cached_clients(normalized)
             return True
         if normalized == "nous":
-            from hermes_cli.auth import resolve_nous_runtime_credentials
+            from mercury_cli.auth import resolve_nous_runtime_credentials
 
             creds = resolve_nous_runtime_credentials(
                 min_key_ttl_seconds=max(60, int(os.getenv("HERMES_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
@@ -1527,7 +1527,7 @@ def _resolve_auto(main_runtime: Optional[Dict[str, Any]] = None) -> Tuple[Option
     # ── Warn once if OPENAI_BASE_URL is set but config.yaml uses a named
     #    provider (not 'custom').  This catches the common "env poisoning"
     #    scenario where a user switches providers via `hermes model` but the
-    #    old OPENAI_BASE_URL lingers in ~/.hermes/.env. ──
+    #    old OPENAI_BASE_URL lingers in ~/.mercury/.env. ──
     if not _stale_base_url_warned:
         _env_base = os.getenv("OPENAI_BASE_URL", "").strip()
         _cfg_provider = runtime_provider or _read_main_provider()
@@ -1538,7 +1538,7 @@ def _resolve_auto(main_runtime: Optional[Dict[str, Any]] = None) -> Tuple[Option
                 "OPENAI_BASE_URL is set (%s) but model.provider is '%s'. "
                 "Auxiliary clients may route to the wrong endpoint. "
                 "Run: hermes model to reconfigure, or remove "
-                "OPENAI_BASE_URL from ~/.hermes/.env",
+                "OPENAI_BASE_URL from ~/.mercury/.env",
                 _env_base, _cfg_provider,
             )
             _stale_base_url_warned = True
@@ -1633,7 +1633,7 @@ def _to_async_client(sync_client, model: str):
     if base_url_host_matches(sync_base_url, "openrouter.ai"):
         async_kwargs["default_headers"] = dict(_OR_HEADERS)
     elif base_url_host_matches(sync_base_url, "api.githubcopilot.com"):
-        from hermes_cli.models import copilot_default_headers
+        from mercury_cli.models import copilot_default_headers
 
         async_kwargs["default_headers"] = copilot_default_headers()
     elif base_url_host_matches(sync_base_url, "api.kimi.com"):
@@ -1646,7 +1646,7 @@ def _normalize_resolved_model(model_name: Optional[str], provider: str) -> Optio
     if not model_name:
         return model_name
     try:
-        from hermes_cli.model_normalize import normalize_model_for_provider
+        from mercury_cli.model_normalize import normalize_model_for_provider
 
         return normalize_model_for_provider(model_name, provider)
     except Exception:
@@ -1828,7 +1828,7 @@ def resolve_provider_client(
             if base_url_host_matches(custom_base, "api.kimi.com"):
                 extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
             elif base_url_host_matches(custom_base, "api.githubcopilot.com"):
-                from hermes_cli.models import copilot_default_headers
+                from mercury_cli.models import copilot_default_headers
                 extra["default_headers"] = copilot_default_headers()
             client = OpenAI(api_key=custom_key, base_url=custom_base, **extra)
             client = _wrap_if_needed(client, final_model, custom_base)
@@ -1850,7 +1850,7 @@ def resolve_provider_client(
 
     # ── Named custom providers (config.yaml providers dict / custom_providers list) ───
     try:
-        from hermes_cli.runtime_provider import _get_named_custom_provider
+        from mercury_cli.runtime_provider import _get_named_custom_provider
         custom_entry = _get_named_custom_provider(provider)
         if custom_entry:
             custom_base = custom_entry.get("base_url", "").strip()
@@ -1915,13 +1915,13 @@ def resolve_provider_client(
 
     # ── API-key providers from PROVIDER_REGISTRY ─────────────────────
     try:
-        from hermes_cli.auth import (
+        from mercury_cli.auth import (
             PROVIDER_REGISTRY,
             resolve_api_key_provider_credentials,
             resolve_external_process_provider_credentials,
         )
     except ImportError:
-        logger.debug("hermes_cli.auth not available for provider %s", provider)
+        logger.debug("mercury_cli.auth not available for provider %s", provider)
         return None, None
 
     pconfig = PROVIDER_REGISTRY.get(provider)
@@ -1970,7 +1970,7 @@ def resolve_provider_client(
         if base_url_host_matches(base_url, "api.kimi.com"):
             headers["User-Agent"] = "claude-code/0.1.0"
         elif base_url_host_matches(base_url, "api.githubcopilot.com"):
-            from hermes_cli.models import copilot_default_headers
+            from mercury_cli.models import copilot_default_headers
 
             headers.update(copilot_default_headers())
         client = OpenAI(api_key=api_key, base_url=base_url,
@@ -1982,7 +1982,7 @@ def resolve_provider_client(
         # routes through responses.stream().
         if provider == "copilot" and final_model and not raw_codex:
             try:
-                from hermes_cli.models import _should_use_copilot_responses_api
+                from mercury_cli.models import _should_use_copilot_responses_api
                 if _should_use_copilot_responses_api(final_model):
                     logger.debug(
                         "resolve_provider_client: copilot model %s needs "
@@ -2677,7 +2677,7 @@ def _get_auxiliary_task_config(task: str) -> Dict[str, Any]:
     if not task:
         return {}
     try:
-        from hermes_cli.config import load_config
+        from mercury_cli.config import load_config
         config = load_config()
     except ImportError:
         return {}

@@ -75,7 +75,7 @@ mercury/                 # Mercury-specific additions (this fork only)
   router.py                 # TODO — dual-brain dispatcher
   tailscale.py              # TODO — tailnet detection + headers middleware
   copilot_models.py         # TODO — GPT-5 mini default + 0x model list
-hermes_cli/              # CLI commands (rename → mercury_cli pending)
+mercury_cli/              # CLI commands (rename → mercury_cli pending)
 gateway/platforms/       # whatsapp.py, discord.py, email.py + base/helpers/api_server/webhook
 plugins/memory/holographic/  # the only memory provider we ship by default
 skills/                  # built-in skills + cortex/ + 3d/ (3d/ TODO)
@@ -91,8 +91,8 @@ mcp_serve.py             # Mercury can BE an MCP server
 ```
 
 User config lives at `~/.mercury/` (config.yaml, .env, memories/, skills/,
-plugins/, state.db, logs/, pairing/). Rename pass from `~/.hermes/`
-pending — until then upstream binaries still write to `~/.hermes/`.
+plugins/, state.db, logs/, pairing/). Rename pass from `~/.mercury/`
+pending — until then upstream binaries still write to `~/.mercury/`.
 
 ## Hardware / environment
 
@@ -191,7 +191,7 @@ When Cortex is installed, the four cortex tools (`brain_scan`,
 - [ ] Wire the FastAPI backend `/api/mercury/brains` endpoint that
       `BrainsPage.tsx` polls (currently shows static catalog +
       "endpoint not yet wired" notice)
-- [ ] `hermes_cli/` → `mercury_cli/` rename pass (also updates package
+- [ ] `mercury_cli/` → `mercury_cli/` rename pass (also updates package
       paths, banner, scripts, config dirs)
 - [ ] `pyproject.toml` rename project to `mercury`
 - [ ] Mercury banner + branding (`assets/banner.png` etc)

@@ -1044,7 +1044,7 @@ def execute_code(
 
         # Per-profile HOME isolation: redirect system tool configs into
         # {HERMES_HOME}/home/ when that directory exists.
-        from hermes_constants import get_subprocess_home
+        from mercury_constants import get_subprocess_home
         _profile_home = get_subprocess_home()
         if _profile_home:
             child_env["HOME"] = _profile_home
@@ -1203,7 +1203,7 @@ def execute_code(
 
         # Redact secrets (API keys, tokens, etc.) from sandbox output.
         # The sandbox env-var filter (lines 434-454) blocks os.environ access,
-        # but scripts can still read secrets from disk (e.g. open('~/.hermes/.env')).
+        # but scripts can still read secrets from disk (e.g. open('~/.mercury/.env')).
         # This ensures leaked secrets never enter the model context.
         from agent.redact import redact_sensitive_text
         stdout_text = redact_sensitive_text(stdout_text)
@@ -1507,7 +1507,7 @@ def build_execute_code_schema(enabled_sandbox_tools: set = None,
     if mode == "strict":
         cwd_note = (
             "Scripts run in their own temp dir, not the session's CWD — use absolute paths "
-            "(os.path.expanduser('~/.hermes/.env')) or terminal()/read_file() for user files."
+            "(os.path.expanduser('~/.mercury/.env')) or terminal()/read_file() for user files."
         )
     else:
         cwd_note = (

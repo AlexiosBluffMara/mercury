@@ -33,7 +33,7 @@ from __future__ import annotations
 import json
 from typing import Set
 
-from hermes_constants import get_hermes_home
+from mercury_constants import get_hermes_home
 
 
 def normalize_whatsapp_identifier(value: str) -> str:

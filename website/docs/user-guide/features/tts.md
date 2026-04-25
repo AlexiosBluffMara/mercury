@@ -35,12 +35,12 @@ Convert text to speech with nine providers:
 | Telegram | Voice bubble (plays inline) | Opus `.ogg` |
 | Discord | Voice bubble (Opus/OGG), falls back to file attachment | Opus/MP3 |
 | WhatsApp | Audio file attachment | MP3 |
-| CLI | Saved to `~/.hermes/audio_cache/` | MP3 |
+| CLI | Saved to `~/.mercury/audio_cache/` | MP3 |
 
 ### Configuration
 
 ```yaml
-# In ~/.hermes/config.yaml
+# In ~/.mercury/config.yaml
 tts:
   provider: "edge"              # "edge" | "elevenlabs" | "openai" | "minimax" | "mistral" | "gemini" | "xai" | "neutts" | "kittentts"
   speed: 1.0                    # Global speed multiplier (provider-specific settings override this)
@@ -133,7 +133,7 @@ Local transcription works out of the box when `faster-whisper` is installed. If 
 ### Configuration
 
 ```yaml
-# In ~/.hermes/config.yaml
+# In ~/.mercury/config.yaml
 stt:
   provider: "local"           # "local" | "groq" | "openai" | "mistral"
   local:

@@ -1,4 +1,4 @@
-"""Comprehensive tests for hermes_cli.profiles module.
+"""Comprehensive tests for mercury_cli.profiles module.
 
 Tests cover: validation, directory resolution, CRUD operations, active profile
 management, export/import, renaming, alias collision checks, profile isolation,
@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from hermes_cli.profiles import (
+from mercury_cli.profiles import (
     validate_profile_name,
     get_profile_dir,
     create_profile,
@@ -192,7 +192,7 @@ class TestDeleteProfile:
         profile_dir = create_profile("coder", no_alias=True)
         assert profile_dir.is_dir()
         # Mock gateway import to avoid real systemd/launchd interaction
-        with patch("hermes_cli.profiles._cleanup_gateway_service"):
+        with patch("mercury_cli.profiles._cleanup_gateway_service"):
             delete_profile("coder", yes=True)
         assert not profile_dir.is_dir()
 
@@ -377,7 +377,7 @@ class TestRenameProfile:
         assert old_dir.is_dir()
 
         # Mock alias collision to avoid subprocess calls
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"):
+        with patch("mercury_cli.profiles.check_alias_collision", return_value="skip"):
             new_dir = rename_profile("oldname", "newname")
 
         assert not old_dir.is_dir()
@@ -771,7 +771,7 @@ class TestInternalHelpers:
         assert home == docker_home
 
     def test_profiles_root_profile_mode(self, tmp_path, monkeypatch):
-        """In profile mode (HERMES_HOME under ~/.hermes), profiles root is still ~/.hermes/profiles."""
+        """In profile mode (HERMES_HOME under ~/.hermes), profiles root is still ~/.mercury/profiles."""
         native = tmp_path / ".hermes"
         profile_dir = native / "profiles" / "coder"
         profile_dir.mkdir(parents=True)
@@ -782,7 +782,7 @@ class TestInternalHelpers:
 
     def test_active_profile_path_docker(self, tmp_path, monkeypatch):
         """In Docker, active_profile file lives under HERMES_HOME."""
-        from hermes_cli.profiles import _get_active_profile_path
+        from mercury_cli.profiles import _get_active_profile_path
         docker_home = tmp_path / "opt" / "data"
         docker_home.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -841,7 +841,7 @@ class TestEdgeCases:
 
     def test_gateway_running_check_with_pid_file(self, profile_env):
         """Verify _check_gateway_running uses the shared gateway PID validator."""
-        from hermes_cli.profiles import _check_gateway_running
+        from mercury_cli.profiles import _check_gateway_running
         tmp_path = profile_env
         default_home = tmp_path / ".hermes"
 
@@ -854,7 +854,7 @@ class TestEdgeCases:
 
     def test_gateway_running_check_plain_pid(self, profile_env):
         """Shared PID validator returning None means the profile is not running."""
-        from hermes_cli.profiles import _check_gateway_running
+        from mercury_cli.profiles import _check_gateway_running
         tmp_path = profile_env
         default_home = tmp_path / ".hermes"
 
@@ -901,7 +901,7 @@ class TestEdgeCases:
         set_active_profile("coder")
         assert get_active_profile() == "coder"
 
-        with patch("hermes_cli.profiles._cleanup_gateway_service"):
+        with patch("mercury_cli.profiles._cleanup_gateway_service"):
             delete_profile("coder", yes=True)
 
         assert get_active_profile() == "default"

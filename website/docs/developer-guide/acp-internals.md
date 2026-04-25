@@ -24,7 +24,7 @@ Key implementation files:
 ```text
 hermes acp / hermes-acp / python -m acp_adapter
   -> acp_adapter.entry.main()
-  -> load ~/.hermes/.env
+  -> load ~/.mercury/.env
   -> configure stderr logging
   -> construct HermesACPAgent
   -> acp.run_agent(agent)
@@ -145,7 +145,7 @@ ACP does not implement its own auth store.
 Instead it reuses Hermes' runtime resolver:
 
 - `acp_adapter/auth.py`
-- `hermes_cli/runtime_provider.py`
+- `mercury_cli/runtime_provider.py`
 
 So ACP advertises and uses the currently configured Hermes provider/credentials.
 
@@ -178,5 +178,5 @@ ACP temporarily installs an approval callback on the terminal tool during prompt
 
 - `tests/acp/` — ACP test suite
 - `toolsets.py` — `hermes-acp` toolset definition
-- `hermes_cli/main.py` — `hermes acp` CLI subcommand
+- `mercury_cli/main.py` — `hermes acp` CLI subcommand
 - `pyproject.toml` — `[acp]` optional dependency + `hermes-acp` script

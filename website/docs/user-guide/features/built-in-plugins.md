@@ -7,7 +7,7 @@ description: "Plugins shipped with Hermes Agent that run automatically via lifec
 
 # Built-in Plugins
 
-Hermes ships a small set of plugins bundled with the repository. They live under `<repo>/plugins/<name>/` and load automatically alongside user-installed plugins in `~/.hermes/plugins/`. They use the same plugin surface as third-party plugins — hooks, tools, slash commands — just maintained in-tree.
+Hermes ships a small set of plugins bundled with the repository. They live under `<repo>/plugins/<name>/` and load automatically alongside user-installed plugins in `~/.mercury/plugins/`. They use the same plugin surface as third-party plugins — hooks, tools, slash commands — just maintained in-tree.
 
 See the [Plugins](/docs/user-guide/features/plugins) page for the general plugin system, and [Build a Hermes Plugin](/docs/guides/build-a-hermes-plugin) to write your own.
 
@@ -16,7 +16,7 @@ See the [Plugins](/docs/user-guide/features/plugins) page for the general plugin
 The `PluginManager` scans four sources, in order:
 
 1. **Bundled** — `<repo>/plugins/<name>/` (what this page documents)
-2. **User** — `~/.hermes/plugins/<name>/`
+2. **User** — `~/.mercury/plugins/<name>/`
 3. **Project** — `./.hermes/plugins/<name>/` (requires `HERMES_ENABLE_PROJECT_PLUGINS=1`)
 4. **Pip entry points** — `hermes_agent.plugins`
 
@@ -32,7 +32,7 @@ Bundled plugins ship disabled. Discovery finds them (they appear in `hermes plug
 hermes plugins enable disk-cleanup
 ```
 
-Or via `~/.hermes/config.yaml`:
+Or via `~/.mercury/config.yaml`:
 
 ```yaml
 plugins:
@@ -103,7 +103,7 @@ Auto-tracks and removes ephemeral files created during sessions — test scripts
 
 Bundled plugins are written exactly like any other Hermes plugin — see [Build a Hermes Plugin](/docs/guides/build-a-hermes-plugin). The only differences are:
 
-- Directory lives at `<repo>/plugins/<name>/` instead of `~/.hermes/plugins/<name>/`
+- Directory lives at `<repo>/plugins/<name>/` instead of `~/.mercury/plugins/<name>/`
 - Manifest source is reported as `bundled` in `hermes plugins list`
 - User plugins with the same name override the bundled version
 

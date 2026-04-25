@@ -26,7 +26,7 @@ Before executing any command, Hermes checks it against a curated list of dangero
 
 ### Approval Modes
 
-The approval system supports three modes, configured via `approvals.mode` in `~/.hermes/config.yaml`:
+The approval system supports three modes, configured via `approvals.mode` in `~/.mercury/config.yaml`:
 
 ```yaml
 approvals:
@@ -72,7 +72,7 @@ YOLO mode disables **all** dangerous command safety checks for the session. Use 
 
 When a dangerous command prompt appears, the user has a configurable amount of time to respond. If no response is given within the timeout, the command is **denied** by default (fail-closed).
 
-Configure the timeout in `~/.hermes/config.yaml`:
+Configure the timeout in `~/.mercury/config.yaml`:
 
 ```yaml
 approvals:
@@ -105,8 +105,8 @@ The following patterns trigger approval prompts (defined in `tools/approval.py`)
 | `python -e` / `perl -e` / `ruby -e` / `node -c` | Script execution via `-e`/`-c` flag |
 | `curl ... \| sh` / `wget ... \| sh` | Pipe remote content to shell |
 | `bash <(curl ...)` / `sh <(wget ...)` | Execute remote script via process substitution |
-| `tee` to `/etc/`, `~/.ssh/`, `~/.hermes/.env` | Overwrite sensitive file via tee |
-| `>` / `>>` to `/etc/`, `~/.ssh/`, `~/.hermes/.env` | Overwrite sensitive file via redirection |
+| `tee` to `/etc/`, `~/.ssh/`, `~/.mercury/.env` | Overwrite sensitive file via tee |
+| `>` / `>>` to `/etc/`, `~/.ssh/`, `~/.mercury/.env` | Overwrite sensitive file via redirection |
 | `xargs rm` | xargs with rm |
 | `find -exec rm` / `find -delete` | Find with destructive actions |
 | `cp`/`mv`/`install` to `/etc/` | Copy/move file into system config |
@@ -149,7 +149,7 @@ The `HERMES_EXEC_ASK=1` environment variable is automatically set when running t
 
 ### Permanent Allowlist
 
-Commands approved with "always" are saved to `~/.hermes/config.yaml`:
+Commands approved with "always" are saved to `~/.mercury/config.yaml`:
 
 ```yaml
 # Permanently allowed dangerous command patterns
@@ -181,7 +181,7 @@ The `_is_user_authorized()` method checks in this order:
 
 ### Platform Allowlists
 
-Set allowed user IDs as comma-separated values in `~/.hermes/.env`:
+Set allowed user IDs as comma-separated values in `~/.mercury/.env`:
 
 ```bash
 # Platform-specific allowlists
@@ -205,7 +205,7 @@ If **no allowlists are configured** and `GATEWAY_ALLOW_ALL_USERS` is not set, **
 
 ```
 No user allowlists configured. All unauthorized users will be denied.
-Set GATEWAY_ALLOW_ALL_USERS=true in ~/.hermes/.env to allow open access,
+Set GATEWAY_ALLOW_ALL_USERS=true in ~/.mercury/.env to allow open access,
 or configure platform allowlists (e.g., TELEGRAM_ALLOWED_USERS=your_id).
 ```
 :::
@@ -221,7 +221,7 @@ For more flexible authorization, Hermes includes a code-based pairing system. In
 3. The bot owner runs `hermes pairing approve <platform> <code>` on the CLI
 4. The user is permanently approved for that platform
 
-Control how unauthorized direct messages are handled in `~/.hermes/config.yaml`:
+Control how unauthorized direct messages are handled in `~/.mercury/config.yaml`:
 
 ```yaml
 unauthorized_dm_behavior: pair
@@ -263,7 +263,7 @@ hermes pairing revoke telegram 123456789
 hermes pairing clear-pending
 ```
 
-**Storage:** Pairing data is stored in `~/.hermes/pairing/` with per-platform JSON files:
+**Storage:** Pairing data is stored in `~/.mercury/pairing/` with per-platform JSON files:
 - `{platform}-pending.json` — pending pairing requests
 - `{platform}-approved.json` — approved users
 - `_rate_limits.json` — rate limit and lockout tracking
@@ -292,7 +292,7 @@ _SECURITY_ARGS = [
 
 ### Resource Limits
 
-Container resources are configurable in `~/.hermes/config.yaml`:
+Container resources are configurable in `~/.mercury/config.yaml`:
 
 ```yaml
 terminal:
@@ -307,7 +307,7 @@ terminal:
 
 ### Filesystem Persistence
 
-- **Persistent mode** (`container_persistent: true`): Bind-mounts `/workspace` and `/root` from `~/.hermes/sandboxes/docker/<task_id>/`
+- **Persistent mode** (`container_persistent: true`): Bind-mounts `/workspace` and `/root` from `~/.mercury/sandboxes/docker/<task_id>/`
 - **Ephemeral mode** (`container_persistent: false`): Uses tmpfs for workspace — everything is lost on cleanup
 
 :::tip
@@ -393,7 +393,7 @@ terminal:
     - my_custom_oauth_token.json
 ```
 
-Paths are relative to `~/.hermes/`. Files are mounted to `/root/.hermes/` inside the container.
+Paths are relative to `~/.mercury/`. Files are mounted to `/root/.hermes/` inside the container.
 
 ### What Each Sandbox Filters
 
@@ -452,7 +452,7 @@ Error messages from MCP tools are sanitized before being returned to the LLM. Th
 You can restrict which websites the agent can access through its web and browser tools. This is useful for preventing the agent from accessing internal services, admin panels, or other sensitive URLs.
 
 ```yaml
-# In ~/.hermes/config.yaml
+# In ~/.mercury/config.yaml
 security:
   website_blocklist:
     enabled: true
@@ -491,7 +491,7 @@ Hermes integrates [tirith](https://github.com/sheeki03/tirith) for content-level
 Tirith auto-installs from GitHub releases on first use with SHA-256 checksum verification (and cosign provenance verification if cosign is available).
 
 ```yaml
-# In ~/.hermes/config.yaml
+# In ~/.mercury/config.yaml
 security:
   tirith_enabled: true       # Enable/disable tirith scanning (default: true)
   tirith_path: "tirith"      # Path to tirith binary (default: PATH lookup)
@@ -526,19 +526,19 @@ Blocked files show a warning:
 1. **Set explicit allowlists** — never use `GATEWAY_ALLOW_ALL_USERS=true` in production
 2. **Use container backend** — set `terminal.backend: docker` in config.yaml
 3. **Restrict resource limits** — set appropriate CPU, memory, and disk limits
-4. **Store secrets securely** — keep API keys in `~/.hermes/.env` with proper file permissions
+4. **Store secrets securely** — keep API keys in `~/.mercury/.env` with proper file permissions
 5. **Enable DM pairing** — use pairing codes instead of hardcoding user IDs when possible
 6. **Review command allowlist** — periodically audit `command_allowlist` in config.yaml
 7. **Set `MESSAGING_CWD`** — don't let the agent operate from sensitive directories
 8. **Run as non-root** — never run the gateway as root
-9. **Monitor logs** — check `~/.hermes/logs/` for unauthorized access attempts
+9. **Monitor logs** — check `~/.mercury/logs/` for unauthorized access attempts
 10. **Keep updated** — run `hermes update` regularly for security patches
 
 ### Securing API Keys
 
 ```bash
 # Set proper permissions on the .env file
-chmod 600 ~/.hermes/.env
+chmod 600 ~/.mercury/.env
 
 # Keep separate keys for different services
 # Never commit .env files to version control

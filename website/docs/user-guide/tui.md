@@ -108,7 +108,7 @@ The per-skin status-bar colors and thresholds are shared with the classic CLI �
 
 ## Configuration
 
-The TUI respects all standard Hermes config: `~/.hermes/config.yaml`, profiles, personalities, skins, quick commands, credential pools, memory providers, tool/skill enablement. No TUI-specific config file exists.
+The TUI respects all standard Hermes config: `~/.mercury/config.yaml`, profiles, personalities, skins, quick commands, credential pools, memory providers, tool/skill enablement. No TUI-specific config file exists.
 
 A handful of keys tune the TUI surface specifically:
 
@@ -158,7 +158,7 @@ existing configs keep working unchanged.
 
 ## Sessions
 
-Sessions are shared between the TUI and the classic CLI — both write to the same `~/.hermes/state.db`. You can start a session in one, resume in the other. The session picker surfaces sessions from both sources, with a source tag.
+Sessions are shared between the TUI and the classic CLI — both write to the same `~/.mercury/state.db`. You can start a session in one, resume in the other. The session picker surfaces sessions from both sources, with a source tag.
 
 See [Sessions](sessions.md) for lifecycle, search, compression, and export.
 

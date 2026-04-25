@@ -12,7 +12,7 @@ import threading
 from collections import OrderedDict
 from pathlib import Path
 
-from hermes_constants import get_hermes_home, get_skills_dir, is_wsl
+from mercury_constants import get_hermes_home, get_skills_dir, is_wsl
 from typing import Optional
 
 from agent.skill_utils import (
@@ -632,7 +632,7 @@ def build_skills_system_prompt(
     Falls back to a full filesystem scan when both layers miss.
 
     External skill directories (``skills.external_dirs`` in config.yaml) are
-    scanned alongside the local ``~/.hermes/skills/`` directory.  External dirs
+    scanned alongside the local ``~/.mercury/skills/`` directory.  External dirs
     are read-only — they appear in the index but new skills are always created
     in the local dir.  Local skills take precedence when names collide.
     """
@@ -850,7 +850,7 @@ def build_skills_system_prompt(
 def build_nous_subscription_prompt(valid_tool_names: "set[str] | None" = None) -> str:
     """Build a compact Nous subscription capability block for the system prompt."""
     try:
-        from hermes_cli.nous_subscription import get_nous_subscription_features
+        from mercury_cli.nous_subscription import get_nous_subscription_features
         from tools.tool_backend_helpers import managed_nous_tools_enabled
     except Exception as exc:
         logger.debug("Failed to import Nous subscription helper: %s", exc)
@@ -937,7 +937,7 @@ def load_soul_md() -> Optional[str]:
     ``skip_soul=True`` so SOUL.md isn't injected twice.
     """
     try:
-        from hermes_cli.config import ensure_hermes_home
+        from mercury_cli.config import ensure_hermes_home
         ensure_hermes_home()
     except Exception as e:
         logger.debug("Could not ensure HERMES_HOME before loading SOUL.md: %s", e)

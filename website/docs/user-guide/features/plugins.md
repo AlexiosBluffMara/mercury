@@ -13,10 +13,10 @@ Hermes has a plugin system for adding custom tools, hooks, and integrations with
 
 ## Quick overview
 
-Drop a directory into `~/.hermes/plugins/` with a `plugin.yaml` and Python code:
+Drop a directory into `~/.mercury/plugins/` with a `plugin.yaml` and Python code:
 
 ```
-~/.hermes/plugins/my-plugin/
+~/.mercury/plugins/my-plugin/
 ├── plugin.yaml      # manifest
 ├── __init__.py      # register() — wires schemas to handlers
 ├── schemas.py       # tool schemas (what the LLM sees)
@@ -29,7 +29,7 @@ Start Hermes — your tools appear alongside built-in tools. The model can call 
 
 Here is a complete plugin that adds a `hello_world` tool and logs every tool call via a hook.
 
-**`~/.hermes/plugins/hello-world/plugin.yaml`**
+**`~/.mercury/plugins/hello-world/plugin.yaml`**
 
 ```yaml
 name: hello-world
@@ -37,7 +37,7 @@ version: "1.0"
 description: A minimal example plugin
 ```
 
-**`~/.hermes/plugins/hello-world/__init__.py`**
+**`~/.mercury/plugins/hello-world/__init__.py`**
 
 ```python
 """Minimal Hermes plugin — registers a tool and a hook."""
@@ -73,7 +73,7 @@ def register(ctx):
     ctx.register_hook("post_tool_call", on_tool_call)
 ```
 
-Drop both files into `~/.hermes/plugins/hello-world/`, restart Hermes, and the model can immediately call `hello_world`. The hook prints a log line after every tool invocation.
+Drop both files into `~/.mercury/plugins/hello-world/`, restart Hermes, and the model can immediately call `hello_world`. The hook prints a log line after every tool invocation.
 
 Project-local plugins under `./.hermes/plugins/` are disabled by default. Enable them only for trusted repositories by setting `HERMES_ENABLE_PROJECT_PLUGINS=true` before starting Hermes.
 
@@ -96,7 +96,7 @@ Project-local plugins under `./.hermes/plugins/` are disabled by default. Enable
 | Source | Path | Use case |
 |--------|------|----------|
 | Bundled | `<repo>/plugins/` | Ships with Hermes — see [Built-in Plugins](/docs/user-guide/features/built-in-plugins) |
-| User | `~/.hermes/plugins/` | Personal plugins |
+| User | `~/.mercury/plugins/` | Personal plugins |
 | Project | `.hermes/plugins/` | Project-specific plugins (requires `HERMES_ENABLE_PROJECT_PLUGINS=true`) |
 | pip | `hermes_agent.plugins` entry_points | Distributed packages |
 
@@ -104,7 +104,7 @@ Later sources override earlier ones on name collision, so a user plugin with the
 
 ## Plugins are opt-in
 
-**Every plugin — user-installed, bundled, or pip — is disabled by default.** Discovery finds them (so they show up in `hermes plugins` and `/plugins`), but nothing loads until you add the plugin's name to `plugins.enabled` in `~/.hermes/config.yaml`. This stops anything with hooks or tools from running without your explicit consent.
+**Every plugin — user-installed, bundled, or pip — is disabled by default.** Discovery finds them (so they show up in `hermes plugins` and `/plugins`), but nothing loads until you add the plugin's name to `plugins.enabled` in `~/.mercury/config.yaml`. This stops anything with hooks or tools from running without your explicit consent.
 
 ```yaml
 plugins:
@@ -127,7 +127,7 @@ After `hermes plugins install owner/repo`, you're asked `Enable 'name' now? [y/N
 
 ### Migration for existing users
 
-When you upgrade to a version of Hermes that has opt-in plugins (config schema v21+), any user plugins already installed under `~/.hermes/plugins/` that weren't already in `plugins.disabled` are **automatically grandfathered** into `plugins.enabled`. Your existing setup keeps working. Bundled plugins are NOT grandfathered — even existing users have to opt in explicitly.
+When you upgrade to a version of Hermes that has opt-in plugins (config schema v21+), any user plugins already installed under `~/.mercury/plugins/` that weren't already in `plugins.disabled` are **automatically grandfathered** into `plugins.enabled`. Your existing setup keeps working. Bundled plugins are NOT grandfathered — even existing users have to opt in explicitly.
 
 ## Available hooks
 
@@ -149,7 +149,7 @@ Hermes has three kinds of plugins:
 
 | Type | What it does | Selection | Location |
 |------|-------------|-----------|----------|
-| **General plugins** | Add tools, hooks, slash commands, CLI commands | Multi-select (enable/disable) | `~/.hermes/plugins/` |
+| **General plugins** | Add tools, hooks, slash commands, CLI commands | Multi-select (enable/disable) | `~/.mercury/plugins/` |
 | **Memory providers** | Replace or augment built-in memory | Single-select (one active) | `plugins/memory/` |
 | **Context engines** | Replace the built-in context compressor | Single-select (one active) | `plugins/context_engine/` |
 

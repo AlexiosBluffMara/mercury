@@ -1,9 +1,9 @@
-"""Tests for hermes_cli.gateway."""
+"""Tests for mercury_cli.gateway."""
 
 from types import SimpleNamespace
 from unittest.mock import patch, call
 
-import hermes_cli.gateway as gateway
+import mercury_cli.gateway as gateway
 
 
 class TestSystemdLingerStatus:

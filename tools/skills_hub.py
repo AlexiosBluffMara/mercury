@@ -10,7 +10,7 @@ This is a library module (not an agent tool). It provides:
   - HubLockFile: Track provenance of installed hub skills
   - Hub state directory management (quarantine, audit log, taps, index cache)
 
-Used by hermes_cli/skills_hub.py for CLI commands and the /skills slash command.
+Used by mercury_cli/skills_hub.py for CLI commands and the /skills slash command.
 """
 
 import hashlib
@@ -25,7 +25,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from hermes_constants import get_hermes_home
+from mercury_constants import get_hermes_home
 from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse, urlunparse
 
@@ -2157,12 +2157,12 @@ class OptionalSkillSource(SkillSource):
 
     These skills are official (maintained by Nous Research) but not activated
     by default — they don't appear in the system prompt and aren't copied to
-    ~/.hermes/skills/ during setup.  They are discoverable via the Skills Hub
+    ~/.mercury/skills/ during setup.  They are discoverable via the Skills Hub
     (search / install / inspect) and labelled "official" with "builtin" trust.
     """
 
     def __init__(self):
-        from hermes_constants import get_optional_skills_dir
+        from mercury_constants import get_optional_skills_dir
 
         self._optional_dir = get_optional_skills_dir(
             Path(__file__).parent.parent / "optional-skills"

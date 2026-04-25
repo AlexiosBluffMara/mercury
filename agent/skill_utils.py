@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from hermes_constants import get_config_path, get_skills_dir
+from mercury_constants import get_config_path, get_skills_dir
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +176,7 @@ def get_external_skills_dirs() -> List[Path]:
 
     Each entry is expanded (``~`` and ``${VAR}``) and resolved to an absolute
     path.  Only directories that actually exist are returned.  Duplicates and
-    paths that resolve to the local ``~/.hermes/skills/`` are silently skipped.
+    paths that resolve to the local ``~/.mercury/skills/`` are silently skipped.
     """
     config_path = get_config_path()
     if not config_path.exists():
@@ -225,7 +225,7 @@ def get_external_skills_dirs() -> List[Path]:
 
 
 def get_all_skills_dirs() -> List[Path]:
-    """Return all skill directories: local ``~/.hermes/skills/`` first, then external.
+    """Return all skill directories: local ``~/.mercury/skills/`` first, then external.
 
     The local dir is always first (and always included even if it doesn't exist
     yet — callers handle that).  External dirs follow in config order.

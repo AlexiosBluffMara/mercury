@@ -64,10 +64,10 @@ If `git status --short` shows unexpected changes after `hermes update`, stop and
 `hermes update` protects itself against accidental terminal loss:
 
 - The update ignores `SIGHUP`, so closing your SSH session or terminal window no longer kills it mid-install. `pip` and `git` child processes inherit this protection, so the Python environment cannot be left half-installed by a dropped connection.
-- All output is mirrored to `~/.hermes/logs/update.log` while the update runs. If your terminal disappears, reconnect and inspect the log to see whether the update finished and whether the gateway restart succeeded:
+- All output is mirrored to `~/.mercury/logs/update.log` while the update runs. If your terminal disappears, reconnect and inspect the log to see whether the update finished and whether the gateway restart succeeded:
 
 ```bash
-tail -f ~/.hermes/logs/update.log
+tail -f ~/.mercury/logs/update.log
 ```
 
 - `Ctrl-C` (SIGINT) and system shutdown (SIGTERM) are still honored — those are deliberate cancellations, not accidents.
@@ -172,7 +172,7 @@ See [Nix Setup](./nix-setup.md) for more details.
 hermes uninstall
 ```
 
-The uninstaller gives you the option to keep your configuration files (`~/.hermes/`) for a future reinstall.
+The uninstaller gives you the option to keep your configuration files (`~/.mercury/`) for a future reinstall.
 
 ### Manual Uninstall
 

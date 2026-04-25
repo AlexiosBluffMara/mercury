@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from hermes_constants import display_hermes_home
+from mercury_constants import display_hermes_home
 from agent.skill_preprocessing import (
     expand_inline_shell as _expand_inline_shell,
     load_skills_config as _load_skills_config,
@@ -213,7 +213,7 @@ def _build_skill_message(
 
 
 def scan_skill_commands() -> Dict[str, Dict[str, Any]]:
-    """Scan ~/.hermes/skills/ and return a mapping of /command -> skill info.
+    """Scan ~/.mercury/skills/ and return a mapping of /command -> skill info.
 
     Returns:
         Dict mapping "/skill-name" to {name, description, skill_md_path, skill_dir}.

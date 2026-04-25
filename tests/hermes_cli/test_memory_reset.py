@@ -24,7 +24,7 @@ def memory_env(tmp_path, monkeypatch):
 
     # Create sample memory files
     (memories / "MEMORY.md").write_text(
-        "§\nHermes repo is at ~/.hermes/hermes-agent\n§\nUser prefers dark themes",
+        "§\nHermes repo is at ~/.mercury/hermes-agent\n§\nUser prefers dark themes",
         encoding="utf-8",
     )
     (memories / "USER.md").write_text(
@@ -39,7 +39,7 @@ def _run_memory_reset(target="all", yes=False, monkeypatch=None, confirm_input="
 
     Simulates what happens when `hermes memory reset` is run.
     """
-    from hermes_constants import get_hermes_home, display_hermes_home
+    from mercury_constants import get_hermes_home, display_hermes_home
 
     mem_dir = get_hermes_home() / "memories"
     files_to_reset = []

@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
-from hermes_cli.config import get_hermes_home
+from mercury_cli.config import get_hermes_home
 from utils import is_truthy_value
 
 logger = logging.getLogger(__name__)
@@ -462,8 +462,8 @@ def load_gateway_config() -> GatewayConfig:
 
     Priority (highest to lowest):
     1. Environment variables
-    2. ~/.hermes/config.yaml (primary user-facing config)
-    3. ~/.hermes/gateway.json (legacy — provides defaults under config.yaml)
+    2. ~/.mercury/config.yaml (primary user-facing config)
+    3. ~/.mercury/gateway.json (legacy — provides defaults under config.yaml)
     4. Built-in defaults
     """
     _home = get_hermes_home()
@@ -828,7 +828,7 @@ def _validate_gateway_config(config: "GatewayConfig") -> None:
     # without changing placeholder values get a clear startup error instead
     # of a confusing "auth failed" from the platform API.
     try:
-        from hermes_cli.auth import has_usable_secret
+        from mercury_cli.auth import has_usable_secret
     except ImportError:
         has_usable_secret = None  # type: ignore[assignment]
 

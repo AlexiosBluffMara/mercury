@@ -170,7 +170,7 @@ Notes:
 - Completion requests are debounced by 60 ms. Input starting with `/` uses `complete.slash`. A trailing token that starts with `./`, `../`, `~/`, `/`, or `@` uses `complete.path`.
 - Text pastes are inserted inline directly into the draft. Nothing is newline-flattened.
 - `Ctrl+G` writes the current draft, including any multiline buffer, to a temp file, temporarily swaps screen buffers, launches `$EDITOR`, then restores the TUI and submits the saved text if the editor exits cleanly.
-- Input history is stored in `~/.hermes/.hermes_history` or under `HERMES_HOME`.
+- Input history is stored in `~/.mercury/.hermes_history` or under `HERMES_HOME`.
 
 ## Rendering
 

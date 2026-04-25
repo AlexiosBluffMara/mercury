@@ -4,7 +4,7 @@ Skill Manager Tool -- Agent-Managed Skill Creation & Editing
 
 Allows the agent to create, update, and delete skills, turning successful
 approaches into reusable procedural knowledge. New skills are created in
-~/.hermes/skills/. Existing skills (bundled, hub-installed, or user-created)
+~/.mercury/skills/. Existing skills (bundled, hub-installed, or user-created)
 can be modified or deleted wherever they live.
 
 Skills are the agent's procedural memory: they capture *how to do a specific
@@ -20,7 +20,7 @@ Actions:
   remove_file-- Remove a supporting file from a user skill
 
 Directory layout for user skills:
-    ~/.hermes/skills/
+    ~/.mercury/skills/
     ├── my-skill/
     │   ├── SKILL.md
     │   ├── references/
@@ -39,7 +39,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from hermes_constants import get_hermes_home, display_hermes_home
+from mercury_constants import get_hermes_home, display_hermes_home
 from typing import Dict, Any, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ def _guard_agent_created_enabled() -> bool:
     on via `hermes config set skills.guard_agent_created true`.
     """
     try:
-        from hermes_cli.config import load_config
+        from mercury_cli.config import load_config
         cfg = load_config()
         return bool(cfg.get("skills", {}).get("guard_agent_created", False))
     except Exception:
@@ -98,7 +98,7 @@ def _security_scan_skill(skill_dir: Path) -> Optional[str]:
 import yaml
 
 
-# All skills live in ~/.hermes/skills/ (single source of truth)
+# All skills live in ~/.mercury/skills/ (single source of truth)
 HERMES_HOME = get_hermes_home()
 SKILLS_DIR = HERMES_HOME / "skills"
 
@@ -234,7 +234,7 @@ def _find_skill(name: str) -> Optional[Dict[str, Any]]:
     """
     Find a skill by name across all skill directories.
 
-    Searches the local skills dir (~/.hermes/skills/) first, then any
+    Searches the local skills dir (~/.mercury/skills/) first, then any
     external dirs configured via skills.external_dirs.  Returns
     {"path": Path} or None.
     """

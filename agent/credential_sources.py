@@ -2,9 +2,9 @@
 
 Hermes seeds its credential pool from many places:
 
-    env:<VAR>     — os.environ / ~/.hermes/.env
+    env:<VAR>     — os.environ / ~/.mercury/.env
     claude_code   — ~/.claude/.credentials.json
-    hermes_pkce   — ~/.hermes/.anthropic_oauth.json
+    hermes_pkce   — ~/.mercury/.anthropic_oauth.json
     device_code   — auth.json providers.<provider> (nous, openai-codex, ...)
     qwen-cli      — ~/.qwen/oauth_creds.json
     gh_cli        — gh auth token
@@ -145,12 +145,12 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
     """env:<VAR> — the most common case.
 
     Handles three user situations:
-      1. Var lives only in ~/.hermes/.env  → clear it
+      1. Var lives only in ~/.mercury/.env  → clear it
       2. Var lives only in the user's shell (shell profile, systemd
          EnvironmentFile, launchd plist) → hint them where to unset it
       3. Var lives in both → clear from .env, hint about shell
     """
-    from hermes_cli.config import get_env_path, remove_env_value
+    from mercury_cli.config import get_env_path, remove_env_value
 
     result = RemovalResult()
     env_var = removed.source[len("env:"):]
@@ -178,7 +178,7 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
     if shell_exported:
         result.hints.extend([
             f"Note: {env_var} is still set in your shell environment "
-            f"(not in ~/.hermes/.env).",
+            f"(not in ~/.mercury/.env).",
             "  Unset it there (shell profile, systemd EnvironmentFile, "
             "launchd plist, etc.) or it will keep being visible to Hermes.",
             f"  The pool entry is now suppressed — Hermes will ignore "
@@ -206,8 +206,8 @@ def _remove_claude_code(provider: str, removed) -> RemovalResult:
 
 
 def _remove_hermes_pkce(provider: str, removed) -> RemovalResult:
-    """~/.hermes/.anthropic_oauth.json is ours — delete it outright."""
-    from hermes_constants import get_hermes_home
+    """~/.mercury/.anthropic_oauth.json is ours — delete it outright."""
+    from mercury_constants import get_hermes_home
 
     result = RemovalResult()
     oauth_file = get_hermes_home() / ".anthropic_oauth.json"
@@ -222,7 +222,7 @@ def _remove_hermes_pkce(provider: str, removed) -> RemovalResult:
 
 def _clear_auth_store_provider(provider: str) -> bool:
     """Delete auth_store.providers[provider].  Returns True if deleted."""
-    from hermes_cli.auth import (
+    from mercury_cli.auth import (
         _auth_store_lock,
         _load_auth_store,
         _save_auth_store,
@@ -270,7 +270,7 @@ def _remove_codex_device_code(provider: str, removed) -> RemovalResult:
     that canonical key here; the central dispatcher also suppresses
     ``removed.source`` which is fine — belt-and-suspenders, idempotent.
     """
-    from hermes_cli.auth import suppress_credential_source
+    from mercury_cli.auth import suppress_credential_source
 
     result = RemovalResult()
     if _clear_auth_store_provider(provider):
@@ -317,7 +317,7 @@ def _remove_copilot_gh(provider: str, removed) -> RemovalResult:
     # the pool entry.  The central dispatcher in auth_remove_command will
     # ALSO suppress removed.source, but it's idempotent so double-calling
     # is harmless.
-    from hermes_cli.auth import suppress_credential_source
+    from mercury_cli.auth import suppress_credential_source
     suppress_credential_source(provider, "gh_cli")
     for env_var in ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
         suppress_credential_source(provider, f"env:{env_var}")
@@ -372,7 +372,7 @@ def _register_all_sources() -> None:
     register(RemovalStep(
         provider="anthropic", source_id="hermes_pkce",
         remove_fn=_remove_hermes_pkce,
-        description="~/.hermes/.anthropic_oauth.json",
+        description="~/.mercury/.anthropic_oauth.json",
     ))
     register(RemovalStep(
         provider="nous", source_id="device_code",
