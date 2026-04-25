@@ -1,3 +1,0 @@
-[console_scripts]
-mercury = mercury_cli.main:main
-mercury-agent = run_agent:main
