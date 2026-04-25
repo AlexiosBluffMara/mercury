@@ -145,12 +145,8 @@ def create_environment(
         from tools.environments.docker import DockerEnvironment
         return DockerEnvironment(image=image, cwd=cwd, timeout=timeout, **kwargs)
     
-    elif env_type == "modal":
-        from tools.environments.modal import ModalEnvironment
-        return ModalEnvironment(image=image, cwd=cwd, timeout=timeout, **kwargs)
-    
     else:
-        raise ValueError(f"Unknown environment type: {env_type}. Use 'local', 'docker', or 'modal'")
+        raise ValueError(f"Unknown environment type: {env_type}. Mercury supports 'local' and 'docker'.")
 
 
 # ============================================================================
