@@ -187,16 +187,30 @@ When Cortex is installed, the four cortex tools (`brain_scan`,
 - [x] `mercury/genai_client.py` — unified `google-genai` SDK factory
       covering AI Studio (dev) and Vertex AI / Gemini Enterprise Agent
       Platform (prod)
-- [x] Cortex install into the Mercury venv with bridge live
-- [ ] Wire the FastAPI backend `/api/mercury/brains` endpoint that
-      `BrainsPage.tsx` polls (currently shows static catalog +
-      "endpoint not yet wired" notice)
-- [ ] `mercury_cli/` → `mercury_cli/` rename pass (also updates package
-      paths, banner, scripts, config dirs)
-- [ ] `pyproject.toml` rename project to `mercury`
-- [ ] Mercury banner + branding (`assets/banner.png` etc)
+- [x] Cortex install into the Mercury venv with bridge live (no-deps)
+- [x] FastAPI `/api/mercury/brains` + `/cortex/state` + `/tailscale`
+      endpoints in `mercury_cli/mercury_routes.py`
+- [x] `TailscaleIdentityMiddleware` parsing `Tailscale-User-*` headers
+      onto `request.state.tailnet_identity`
+- [x] `hermes_{cli,constants,state,logging,time}` -> `mercury_*`
+      rename pass (642 files, 5020 replacements,
+      `scripts/rename_to_mercury.py`)
+- [x] `pyproject.toml` rename project to `mercury` + console scripts
+      `mercury` and `mercury-agent`
+- [x] Mercury banner SVG (`assets/banner.svg`) + caduceus favicon
+      (`mercury-web/public/mercury.svg`)
+- [ ] Cortex full ML deps install (torch, transformers, neuralset,
+      scipy, scikit-learn, ...) — running in background; not strictly
+      required until you actually want to drive TRIBE inference
+      end-to-end
 - [ ] Self-evolution skill wrappers (Hermes-self-evolution, ml-intern,
       autoresearch)
+- [ ] `hermes_tools` (the auto-generated namespace exposed by the
+      code-execution sandbox to user code) — 51 references; rename in
+      a dedicated commit once the public-API impact is scoped
+- [ ] `argparse` prog name in `mercury_cli` — CLI usage line still
+      prints "hermes" (cosmetic)
+- [ ] `HERMES_*` env-var renames pending a config-migration story
 - [ ] Tailscale binding for the FastAPI server (bind to 0.0.0.0,
       consume `Tailscale-User-Login` header for identity, document
       `tailscale serve --bg --https=443 http://localhost:8765`)
