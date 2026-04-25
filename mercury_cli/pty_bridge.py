@@ -26,15 +26,23 @@ Design constraints:
 from __future__ import annotations
 
 import errno
-import fcntl
 import os
 import select
 import signal
 import struct
 import sys
-import termios
 import time
 from typing import Optional, Sequence
+
+# fcntl + termios are POSIX-only.  On Windows we import them as None so the
+# module loads (the embedded-TUI / xterm.js bridge is gated by
+# _PTY_AVAILABLE below and never actually runs on Windows).
+if sys.platform != "win32":
+    import fcntl
+    import termios
+else:
+    fcntl = None  # type: ignore[assignment]
+    termios = None  # type: ignore[assignment]
 
 try:
     import ptyprocess  # type: ignore

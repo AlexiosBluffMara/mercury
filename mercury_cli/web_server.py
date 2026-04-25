@@ -3186,5 +3186,5 @@ def start_server(
 
         threading.Thread(target=_open, daemon=True).start()
 
-    print(f"  Hermes Web UI → http://{host}:{port}")
+    print(f"  Mercury Web UI -> http://{host}:{port}")
     uvicorn.run(app, host=host, port=port, log_level="warning")
