@@ -8,52 +8,82 @@ import os
 from pathlib import Path
 
 
-def get_hermes_home() -> Path:
-    """Return the Hermes home directory (default: ~/.hermes).
+def _native_home() -> Path:
+    """The default Mercury home, with legacy ~/.hermes fallback for migration grace.
 
-    Reads HERMES_HOME env var, falls back to ~/.hermes.
-    This is the single source of truth — all other copies should import this.
+    Resolution: ~/.mercury/ if it exists, else ~/.hermes/ if THAT exists
+    (so users carrying over from upstream Hermes keep their data without
+    a migration step), else ~/.mercury/ as the canonical default for
+    fresh installs.
     """
+    home = Path.home()
+    mercury = home / ".mercury"
+    if mercury.exists():
+        return mercury
+    legacy = home / ".hermes"
+    if legacy.exists():
+        return legacy
+    return mercury
+
+
+def get_hermes_home() -> Path:
+    """Return the Mercury home directory.
+
+    Resolution order:
+      1. MERCURY_HOME env var
+      2. HERMES_HOME env var (legacy, kept for upstream-compat)
+      3. ~/.mercury/ if it exists
+      4. ~/.hermes/ if it exists (legacy fallback for users upgrading
+         from upstream Hermes — no migration step needed)
+      5. ~/.mercury/ (canonical default for fresh installs)
+
+    The function name is `get_hermes_home` for upstream-import compat;
+    the alias `get_mercury_home` below points at the same impl.
+    """
+    val = os.environ.get("MERCURY_HOME", "").strip()
+    if val:
+        return Path(val)
     val = os.environ.get("HERMES_HOME", "").strip()
-    return Path(val) if val else Path.home() / ".hermes"
+    if val:
+        return Path(val)
+    return _native_home()
+
+
+# Mercury-style alias — new code should use this name.
+get_mercury_home = get_hermes_home
 
 
 def get_default_hermes_root() -> Path:
-    """Return the root Hermes directory for profile-level operations.
+    """Return the root Mercury directory for profile-level operations.
 
-    In standard deployments this is ``~/.hermes``.
+    In standard deployments this is ``~/.mercury`` (or legacy ``~/.hermes``
+    if that's where the user's data lives).
 
-    In Docker or custom deployments where ``HERMES_HOME`` points outside
-    ``~/.hermes`` (e.g. ``/opt/data``), returns ``HERMES_HOME`` directly
-    — that IS the root.
+    In Docker or custom deployments where ``MERCURY_HOME`` / ``HERMES_HOME``
+    points outside the native home (e.g. ``/opt/data``), returns the env
+    var path directly — that IS the root.
 
     In profile mode where ``HERMES_HOME`` is ``<root>/profiles/<name>``,
     returns ``<root>`` so that ``profile list`` can see all profiles.
-    Works both for standard (``~/.mercury/profiles/coder``) and Docker
-    (``/opt/data/profiles/coder``) layouts.
 
     Import-safe — no dependencies beyond stdlib.
     """
-    native_home = Path.home() / ".hermes"
-    env_home = os.environ.get("HERMES_HOME", "")
+    native_home = _native_home()
+    env_home = os.environ.get("MERCURY_HOME", "") or os.environ.get("HERMES_HOME", "")
     if not env_home:
         return native_home
     env_path = Path(env_home)
     try:
         env_path.resolve().relative_to(native_home.resolve())
-        # HERMES_HOME is under ~/.hermes (normal or profile mode)
         return native_home
     except ValueError:
         pass
 
     # Docker / custom deployment.
     # Check if this is a profile path: <root>/profiles/<name>
-    # If the immediate parent dir is named "profiles", the root is
-    # the grandparent — this covers Docker profiles correctly.
     if env_path.parent.name == "profiles":
         return env_path.parent.parent
 
-    # Not a profile path — HERMES_HOME itself is the root
     return env_path
 
 

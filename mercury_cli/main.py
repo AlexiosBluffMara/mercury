@@ -51,6 +51,18 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+# Mercury runs primarily on Windows where the default console encoder is
+# cp1252.  Upstream Hermes prints box-drawing characters, arrows, and
+# emoji in banners, doctor output, and skill cards — those all crash
+# under cp1252.  Force UTF-8 stdout/stderr globally; modern terminals
+# (Windows Terminal, VS Code, git-bash) all handle it.
+if sys.platform == "win32":
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        except (AttributeError, ValueError):
+            pass
+
 def _add_accept_hooks_flag(parser) -> None:
     """Attach the ``--accept-hooks`` flag.  Shared across every agent
     subparser so the flag works regardless of CLI position."""
