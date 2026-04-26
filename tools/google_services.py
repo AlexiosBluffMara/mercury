@@ -183,27 +183,23 @@ def google_maps_find_places(args: dict | None = None, **_kw: Any) -> dict[str, A
 
 def google_books_search(args: dict | None = None, **_kw: Any) -> dict[str, Any]:
     args = args or {}
-    query = args.get("query")
+    isbn = args.get("isbn")
+    query = args.get("query") or (f"isbn:{isbn}" if isbn else None)
     if not query:
         return {"ok": False, "error": "missing_query"}
 
-    import google.auth
-    import google.auth.transport.requests
+    # Books API public endpoints don't require auth — and the org policy
+    # bans API keys.  We hit it anonymously, which works for ALL search
+    # ops (not for managing your own library, which we don't need).
     import httpx
 
-    creds, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/books"])
-    creds.refresh(google.auth.transport.requests.Request())
-
     params = {"q": query, "maxResults": int(args.get("max_results", 10))}
-    if args.get("isbn"):
-        params["q"] = f"isbn:{args['isbn']}"
 
     try:
         with httpx.Client(timeout=20.0) as c:
             r = c.get(
                 "https://www.googleapis.com/books/v1/volumes",
                 params=params,
-                headers={"Authorization": f"Bearer {creds.token}"},
             )
             r.raise_for_status()
             data = r.json()
@@ -232,24 +228,35 @@ def google_books_search(args: dict | None = None, **_kw: Any) -> dict[str, Any]:
 # ─── Knowledge Graph Search ─────────────────────────────────────────────────
 
 def google_knowledge_graph(args: dict | None = None, **_kw: Any) -> dict[str, Any]:
+    """Knowledge Graph Search via Wikidata fallback.
+
+    Google's KG Search API requires an API key, which the
+    philanthropytraders.com Workspace org disallows.  Wikidata's free
+    public REST API gives equivalent entity-disambiguation + structured
+    facts (and is what KG Search is built on top of in many cases).
+    No auth required, no rate limit for typical use.
+    """
     args = args or {}
     query = args.get("query")
+    limit = int(args.get("limit", 5))
     if not query:
         return {"ok": False, "error": "missing_query"}
 
-    import google.auth
-    import google.auth.transport.requests
     import httpx
-
-    creds, _ = google.auth.default()
-    creds.refresh(google.auth.transport.requests.Request())
 
     try:
         with httpx.Client(timeout=15.0) as c:
             r = c.get(
-                "https://kgsearch.googleapis.com/v1/entities:search",
-                params={"query": query, "limit": int(args.get("limit", 5))},
-                headers={"Authorization": f"Bearer {creds.token}"},
+                "https://www.wikidata.org/w/api.php",
+                params={
+                    "action": "wbsearchentities",
+                    "search": query,
+                    "language": "en",
+                    "format": "json",
+                    "limit": limit,
+                    "type": "item",
+                },
+                headers={"User-Agent": "Mercury/0.1 (https://github.com/AlexiosBluffMara/mercury)"},
             )
             r.raise_for_status()
             data = r.json()
@@ -257,17 +264,15 @@ def google_knowledge_graph(args: dict | None = None, **_kw: Any) -> dict[str, An
         return {"ok": False, "error": "kg_api_error", "message": str(exc)}
 
     entities = []
-    for el in data.get("itemListElement", []):
-        result = el.get("result", {})
+    for hit in data.get("search", []):
         entities.append({
-            "name": result.get("name"),
-            "types": result.get("@type"),
-            "description": result.get("description"),
-            "detailed_description": (result.get("detailedDescription") or {}).get("articleBody"),
-            "url": result.get("url"),
-            "score": el.get("resultScore"),
+            "name": hit.get("label"),
+            "qid": hit.get("id"),
+            "description": hit.get("description"),
+            "url": hit.get("concepturi") or f"https://www.wikidata.org/wiki/{hit.get('id','')}",
+            "match": hit.get("match", {}).get("text"),
         })
-    return {"ok": True, "query": query, "entities": entities}
+    return {"ok": True, "query": query, "entities": entities, "source": "wikidata"}
 
 
 # ─── Translate v3 ───────────────────────────────────────────────────────────

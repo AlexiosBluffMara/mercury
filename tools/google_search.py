@@ -27,7 +27,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "gemini-3.1-flash"
+DEFAULT_MODEL = "gemini-2.5-flash"  # 3.1 not yet in Vertex us-central1 catalog as of 2026-04-26; flip when it lands
 
 GOOGLE_SEARCH_SCHEMA = {
     "name": "google_search",
