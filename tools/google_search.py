@@ -14,8 +14,11 @@ https://ai.google.dev/gemini-api/docs/google-search):
 
 Each Mercury call counts as ONE prompt; the model may issue multiple
 search queries internally per prompt (each billed separately on the
-Gemini 3 path).  Mercury defaults to Gemini 2.5 Flash to maximize the
-1,500/day free quota — that's ~62 grounded answers per hour 24/7.
+Gemini 3 path).  Mercury defaults to **Gemini 3.1 Flash** — newest Flash variant on
+the 3-series with the same $14/1k pricing curve and 5,000 prompts/
+month free tier.  Sharper reasoning than 3.0 Flash for the same cost
+and quota.  Fallback to gemini-2.5-flash if the 3.1 cap is hit
+(2.5 has 1,500/day, $35/1k beyond — ample weekly burst headroom).
 """
 from __future__ import annotations
 
@@ -24,7 +27,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.1-flash"
 
 GOOGLE_SEARCH_SCHEMA = {
     "name": "google_search",
@@ -53,9 +56,10 @@ GOOGLE_SEARCH_SCHEMA = {
             "model": {
                 "type": "string",
                 "description": (
-                    "Gemini model id.  Default 'gemini-2.5-flash' (1500/day free). "
-                    "Use 'gemini-2.5-pro' for harder questions (paid). "
-                    "Use 'gemini-3-flash' once you've migrated (5k/month free)."
+                    "Gemini model id.  Default 'gemini-3.1-flash' (5k/month "
+                    "free, $14/1k beyond).  Use 'gemini-2.5-flash' if 3.1 is "
+                    "rate-limited (1500/day free) or 'gemini-3.1-pro' for "
+                    "harder questions once free has been spent."
                 ),
                 "default": DEFAULT_MODEL,
             },

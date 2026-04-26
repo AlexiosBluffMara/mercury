@@ -1,0 +1,65 @@
+# Mercury MCP servers — append into ~/.hermes/config.yaml under `mcp_servers:`
+#
+# Each block adds a tool family to the agent.  Tools auto-namespace as
+# `mcp_<server>_<tool>`.  Mercury merges them into the registry on agent
+# boot, so a `mercury gateway run` restart picks up new servers.
+#
+# Auth: most use environment variables; secrets live in ~/.hermes/.env
+# and are forwarded via the `env:` block per server.
+
+mcp_servers:
+
+  # Microsoft's Playwright MCP — accessibility-tree based browser
+  # automation.  Complements (does NOT replace) agent-browser; they have
+  # different perf characteristics — see CLAUDE.md "browser comparison"
+  # for which to prefer when.
+  playwright:
+    command: "npx"
+    args: ["-y", "@playwright/mcp@latest"]
+
+  # Upstash Context7 — live, version-pinned docs for 50+ frameworks.
+  # Massive hallucination-killer for code-related questions.
+  context7:
+    command: "npx"
+    args: ["-y", "@upstash/context7-mcp"]
+
+  # Google Workspace CLI — Gmail, Drive, Calendar, Sheets, Docs, Chat,
+  # Admin.  100+ agent skills, single auth via `gws auth login` (run
+  # once interactively).  Reads Google's Discovery Service so new APIs
+  # appear automatically.
+  workspace:
+    command: "gws"
+    args: ["mcp"]
+
+  # Notion — pages, databases, blocks.  Internal-tool / second-brain
+  # surface.  Needs NOTION_API_KEY (integration token) in ~/.hermes/.env.
+  notion:
+    command: "npx"
+    args: ["-y", "@suekou/mcp-notion-server"]
+    env:
+      NOTION_TOKEN: "${NOTION_TOKEN}"
+
+  # Sandboxed local-fs ops.  Mercury already has file_* tools, but the
+  # MCP variant is convenient when Claude Code or Cursor connects to
+  # Mercury — they get the same local-fs surface that Mercury has.
+  filesystem:
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "D:/mercury"
+      - "D:/cortex"
+      - "C:/Users/soumi/Documents"
+
+  # Cloudflare — Workers, R2, D1, Tunnel, registrar.  Aligns with the
+  # Cloudflare-everywhere stack.  Needs CLOUDFLARE_API_TOKEN with
+  # appropriate zone/account permissions.
+  cloudflare:
+    command: "npx"
+    args: ["-y", "@cloudflare/mcp-server-cloudflare"]
+    env:
+      CLOUDFLARE_API_TOKEN: "${CLOUDFLARE_API_TOKEN}"
+
+  # GitHub MCP intentionally NOT included — `gh` CLI on PATH already
+  # gives Mercury everything it needs through the terminal tool.  Adding
+  # an MCP variant on top would be redundant and burn an extra session.

@@ -53,6 +53,12 @@ def _vertex_envs_set() -> bool:
 
 
 def detect_mode() -> GenAIMode:
+    """Default to Vertex when GOOGLE_CLOUD_PROJECT is set OR
+    GOOGLE_GENAI_USE_VERTEXAI=true.  Mercury runs under the
+    philanthropytraders.com Workspace org, which forbids API keys at
+    org-policy level — Vertex/ADC is the only path that works for
+    GCP-resourced calls.  AI Studio remains a fallback for personal-key
+    flows (e.g. when working off-org)."""
     if _vertex_envs_set():
         return "vertex"
     if _read_api_key():
