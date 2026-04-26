@@ -106,35 +106,62 @@ I considered building from scratch. Three reasons not to:
 
 ---
 
-## What's working today
+## What's verified working today (2026-04-26)
 
 A live AI bot named **Snowy** (display: "Snowy The Bot") sits in my
-personal Discord server. From any channel I can:
+personal Discord server (`#bot-test-3` is its home channel). I have a
+12-of-12 end-to-end smoke test that runs against every external
+service Mercury talks to and confirms each is responding correctly.
+Run with `python D:/mercury/scripts/e2e_smoke.py`. **As of this
+brief, all 12 checks pass in 34 seconds wall-clock.**
 
-- Ask open-ended questions and get a synthesized answer with
-  citations from Google Search (via Gemini 3.1 Flash grounding)
-- Drop a URL and get a clean Markdown summary of the page (via
-  Firecrawl, with `agent-browser` as a JS-rendered fallback)
-- Drop an image and get OCR + label detection + safe-search
-  classification (via Cloud Vision API)
-- Ask the agent to write code; it will choose between Copilot's
-  GPT-5 mini (free) and a paid escalation to Claude Sonnet 4.6 only
-  when the question is hard enough to need it
-- Ask for directions, restaurant searches along a route, ISBN
-  lookups, language translations, entity facts (via Maps Routes,
-  Places, Books, Knowledge Graph, Translate APIs respectively)
-- Soon: drop an audio file and get either a fast local transcription
-  (faster-whisper on the 5090) or a high-accuracy cloud one (Cloud
-  Speech-to-Text)
-- Soon: drop a video and have Mercury route it through Cortex —
-  Meta's TRIBE v2 model predicts which cortical regions of the human
-  brain would activate while watching that video, then Cortex's
-  Gemma 4 fine-tune generates a 7-tier explanation from
-  toddler-level to neuroscience-researcher-level
+| # | Capability | What I asked | What it returned | Backing API |
+|---|---|---|---|---|
+| 1 | Cortex bridge | Live GPU state | `idle, free_gb=23.6` | Local TRIBE/Gemma scheduler |
+| 2 | Vertex AI auth | "Are credentials configured?" | `mode=vertex` | gcloud Application Default Credentials |
+| 3 | Tool registry | "How many tools?" | 101 tools across 26 toolsets | Mercury internal |
+| 4 | Google Search | "What is the official ISU mascot?" | "Reggie Redbird" + 4 citations | Gemini 2.5 Flash grounding |
+| 5 | Books API | ISBN 9780262035613 | "Deep Learning" by Goodfellow | books.googleapis.com (anonymous read) |
+| 6 | Knowledge Graph | "Illinois State University" | ISU as top entity, with description | Wikidata public API |
+| 7 | Translate v3 | "Hello, world..." → ja | "こんにちは、世界。マーキュリーがオンラインになりました。" | translate.googleapis.com |
+| 8 | Maps Routes | Normal IL → Champaign IL | 86.6 km, 57 minutes | routes.googleapis.com |
+| 9 | Maps Places along route | "coffee shop, max detour 5 min" | 10 places, top: Tropical Smoothie Cafe | places.googleapis.com |
+| 10 | Text-to-Speech | "Mercury smoke test successful." | 17 KB MP3 with Neural2-J voice | texttospeech.googleapis.com |
+| 11 | Cloud Vision | Test image URL | 0 labels (test image too small; structure verified) | vision.googleapis.com |
+| 12 | Firecrawl | example.com | "# Example Domain..." clean Markdown | firecrawl.dev |
 
-The agent itself decides which of the 70 registered tools to use for
-any given question. I can override via `/skill` slash commands
-(75 skills are autocompleted in the Discord UI today).
+In addition to the verified checks, the agent already handles:
+
+- Open-ended questions in Discord with model-routed responses (free
+  GPT-5 mini for most; auto-escalation to Sonnet 4.6 for hard ones).
+- Code generation, debugging, and self-debug via the `claude` CLI
+  (uses my Claude Max subscription, no separate API billing).
+- 75 skill packages registered with Discord slash-command autocomplete
+  (`/skill` opens a fuzzy picker).
+- A 5-tool auto-debug loop (`errors_tail`, `session_replay`,
+  `gateway_status`, `gateway_restart`, `debug_with_claude_code`) the
+  agent can invoke when something breaks at runtime.
+- Filesystem access into a Tolaria-format markdown vault at
+  `~/.mercury/vault/`, also opened in Obsidian on Windows so I can
+  see what Mercury writes there in real time.
+- Notion integration via MCP server (page search, content read/write).
+- Persistent memory: holographic SQLite + FTS5 fact store + frozen
+  MEMORY.md/USER.md for prompt-cache efficiency, all under
+  `~/.mercury/`.
+
+**Soon (one drop-the-file step away):**
+
+- Drop a video in `#bot-test-3` and have Mercury route it through
+  Cortex — Meta's TRIBE v2 model predicts which cortical regions
+  activate while watching that video, then Cortex's Gemma 4 fine-tune
+  generates a 7-tier explanation from toddler-level to
+  neuroscience-researcher-level. TRIBE weights (677 MB) are
+  downloaded; Cortex's full ML stack (PyTorch + cu128 + transformers
+  + neuralset) is installed and verified on the 5090's Blackwell
+  sm_120 GPU.
+- Drop an audio file → faster-whisper local transcription (3 GB
+  model, lives alongside Gemma in 12 GB VRAM total).
+- WhatsApp gateway pairing (adapter present, needs a one-time QR scan).
 
 ---
 
