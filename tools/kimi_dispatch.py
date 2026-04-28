@@ -46,7 +46,13 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 NOUS_BASE_URL = "https://inference-api.nousresearch.com/v1"
 
-DEFAULT_MODEL_CODER   = "moonshotai/kimi-k2.6"
+# K2.6 is SOTA but is a thinking model and burns the token budget on hidden
+# chain-of-thought before emitting code (verified on this stack — 6000-token
+# generations come back empty unless reasoning_effort is honored, and Nous
+# Portal currently doesn't honor it for K2.6).  K2 (the non-thinking original)
+# returns clean code at half the cost.  Override via --model when you really
+# want K2.6's 256K context or its thinking trace.
+DEFAULT_MODEL_CODER   = "moonshotai/kimi-k2"
 DEFAULT_MODEL_PLANNER = "nousresearch/hermes-4-405b"
 
 CODER_SYSTEM_PROMPT = (
