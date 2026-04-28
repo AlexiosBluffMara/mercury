@@ -61,6 +61,7 @@ import CronPage from "@/pages/CronPage";
 import SkillsPage from "@/pages/SkillsPage";
 import ChatPage from "@/pages/ChatPage";
 import BrainsPage from "@/pages/BrainsPage";
+import CortexOverlayPage from "@/pages/CortexOverlayPage";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useI18n } from "@/i18n";
@@ -85,6 +86,7 @@ const BUILTIN_ROUTES_CORE: Record<string, ComponentType> = {
   "/": RootRedirect,
   "/sessions": SessionsPage,
   "/brains": BrainsPage,
+  "/cortex": CortexOverlayPage,
   "/analytics": AnalyticsPage,
   "/logs": LogsPage,
   "/cron": CronPage,
@@ -102,6 +104,7 @@ const BUILTIN_NAV_REST: NavItem[] = [
     icon: MessageSquare,
   },
   { path: "/brains", labelKey: "brains", label: "Brains", icon: Cpu },
+  { path: "/cortex", labelKey: "cortex", label: "Cortex", icon: Sparkles },
   {
     path: "/analytics",
     labelKey: "analytics",
