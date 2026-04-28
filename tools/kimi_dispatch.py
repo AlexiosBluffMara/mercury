@@ -100,13 +100,19 @@ def _resolve_api_key() -> str:
 
 
 def _post_chat(api_key: str, model: str, messages: list[dict],
-               max_tokens: int = 8192, temperature: float = 0.2) -> dict:
+               max_tokens: int = 8192, temperature: float = 0.2,
+               stream: bool = True, progress: bool = True) -> dict:
+    """SSE-streamed chat completion. Re-aggregates the deltas into the same
+    OpenAI shape as a non-streaming response so callers can ignore streaming.
+
+    Streaming halves the wall-clock for long generations and surfaces
+    partial output if the connection breaks mid-flight."""
     body = json.dumps({
         "model":       model,
         "messages":    messages,
         "max_tokens":  max_tokens,
         "temperature": temperature,
-        "stream":      False,
+        "stream":      stream,
     }).encode("utf-8")
     req = urllib.request.Request(
         f"{NOUS_BASE_URL}/chat/completions",
@@ -114,12 +120,51 @@ def _post_chat(api_key: str, model: str, messages: list[dict],
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type":  "application/json",
+            "Accept":        "text/event-stream" if stream else "application/json",
         },
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=300) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+        if not stream:
+            with urllib.request.urlopen(req, timeout=600) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+
+        # Streaming path: read SSE line-by-line, accumulate the message
+        content_parts: list[str] = []
+        usage: dict = {}
+        model_id: str = model
+        with urllib.request.urlopen(req, timeout=600) as resp:
+            for raw in resp:
+                line = raw.decode("utf-8", errors="replace").strip()
+                if not line.startswith("data:"):
+                    continue
+                payload = line[5:].strip()
+                if payload == "[DONE]":
+                    break
+                try:
+                    chunk = json.loads(payload)
+                except json.JSONDecodeError:
+                    continue
+                # OpenAI-compatible stream chunk
+                model_id = chunk.get("model", model_id)
+                if chunk.get("usage"):
+                    usage = chunk["usage"]
+                for c in chunk.get("choices", []):
+                    delta = c.get("delta", {})
+                    text = delta.get("content")
+                    if text:
+                        content_parts.append(text)
+                        if progress:
+                            sys.stderr.write(".")
+                            sys.stderr.flush()
+        if progress:
+            sys.stderr.write("\n")
+        return {
+            "model":   model_id,
+            "choices": [{"message": {"content": "".join(content_parts)}}],
+            "usage":   usage,
+        }
+
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
         raise SystemExit(f"HTTP {e.code} from Nous Portal: {body[:600]}")
