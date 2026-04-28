@@ -101,19 +101,32 @@ def _resolve_api_key() -> str:
 
 def _post_chat(api_key: str, model: str, messages: list[dict],
                max_tokens: int = 8192, temperature: float = 0.2,
-               stream: bool = True, progress: bool = True) -> dict:
+               stream: bool = True, progress: bool = True,
+               reasoning_effort: str = "low") -> dict:
     """SSE-streamed chat completion. Re-aggregates the deltas into the same
     OpenAI shape as a non-streaming response so callers can ignore streaming.
 
     Streaming halves the wall-clock for long generations and surfaces
-    partial output if the connection breaks mid-flight."""
-    body = json.dumps({
+    partial output if the connection breaks mid-flight.
+
+    Kimi K2.6 (and Hermes 4) are reasoning models — uncapped, they spend the
+    entire token budget on hidden chain-of-thought and return empty content.
+    `reasoning_effort="low"` keeps their thinking compact so most tokens go
+    to the actual answer.  Set to "minimal" / "medium" / "high" or pass
+    None to defer to the model's default."""
+    payload: dict = {
         "model":       model,
         "messages":    messages,
         "max_tokens":  max_tokens,
         "temperature": temperature,
         "stream":      stream,
-    }).encode("utf-8")
+    }
+    if reasoning_effort:
+        # OpenAI-compatible reasoning controls; both shapes are accepted by
+        # different routers — pass both for safety.
+        payload["reasoning_effort"] = reasoning_effort
+        payload["reasoning"] = {"effort": reasoning_effort}
+    body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         f"{NOUS_BASE_URL}/chat/completions",
         data=body,
@@ -130,7 +143,8 @@ def _post_chat(api_key: str, model: str, messages: list[dict],
                 return json.loads(resp.read().decode("utf-8"))
 
         # Streaming path: read SSE line-by-line, accumulate the message
-        content_parts: list[str] = []
+        content_parts:   list[str] = []
+        reasoning_parts: list[str] = []
         usage: dict = {}
         model_id: str = model
         with urllib.request.urlopen(req, timeout=600) as resp:
@@ -138,14 +152,13 @@ def _post_chat(api_key: str, model: str, messages: list[dict],
                 line = raw.decode("utf-8", errors="replace").strip()
                 if not line.startswith("data:"):
                     continue
-                payload = line[5:].strip()
-                if payload == "[DONE]":
+                pl = line[5:].strip()
+                if pl == "[DONE]":
                     break
                 try:
-                    chunk = json.loads(payload)
+                    chunk = json.loads(pl)
                 except json.JSONDecodeError:
                     continue
-                # OpenAI-compatible stream chunk
                 model_id = chunk.get("model", model_id)
                 if chunk.get("usage"):
                     usage = chunk["usage"]
@@ -157,11 +170,28 @@ def _post_chat(api_key: str, model: str, messages: list[dict],
                         if progress:
                             sys.stderr.write(".")
                             sys.stderr.flush()
+                    # Capture reasoning as a fallback — surfaced via _read_response()
+                    # if content ends up empty (thinking-model failure mode).
+                    rtext = delta.get("reasoning") or delta.get("reasoning_content")
+                    if rtext:
+                        reasoning_parts.append(rtext)
+                        if progress:
+                            sys.stderr.write("·")
+                            sys.stderr.flush()
         if progress:
             sys.stderr.write("\n")
+        content = "".join(content_parts)
+        # Fallback: if the model spent everything on hidden reasoning, surface
+        # the reasoning so the caller at least sees what happened.
+        if not content.strip() and reasoning_parts:
+            content = (
+                "[fallback: model returned only reasoning, content was empty.\n"
+                " Bump max_tokens or set reasoning_effort=minimal.]\n\n"
+                + "".join(reasoning_parts)
+            )
         return {
             "model":   model_id,
-            "choices": [{"message": {"content": "".join(content_parts)}}],
+            "choices": [{"message": {"content": content}}],
             "usage":   usage,
         }
 
