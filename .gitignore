@@ -5,6 +5,11 @@
 __pycache__/
 .venv/
 .vscode/
+
+# Mercury → Kimi dispatch artifacts (temporary spec / response files)
+**/.kimi_spec.md
+**/.kimi_response.md
+
 .env
 .env.local
 .env.development.local
