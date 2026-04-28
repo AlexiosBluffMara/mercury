@@ -1,123 +1,241 @@
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Cortex } from "@/components/fmri-overlay/cortex-overlay";
+import { useEffect, useState, type CSSProperties } from "react";
+import { CortexViewer } from "@/components/cortex-viewer/CortexViewer";
 import type { Colormap } from "@/components/fmri-overlay/colormaps";
+import narr from "@/data/cortex-narrations.json";
 
-// R3F's auto-resize observer doesn't fire inside Mercury's app shell on this
-// build — the canvas stays at the HTML default 300×150.  We pin it every
-// frame to a known-good size + camera aspect, and slowly auto-rotate the
-// brain so it's clearly visible without an OrbitControls dep.
-function PinSizeAndSpin({ width, height }: { width: number; height: number }) {
-  const { gl, camera, scene } = useThree();
-  useEffect(() => {
-    gl.setSize(width, height, true);
-    if (camera instanceof Object && "aspect" in camera) {
-      (camera as THREE_PerspectiveCamera).aspect = width / height;
-      (camera as THREE_PerspectiveCamera).updateProjectionMatrix();
-    }
-  }, [gl, camera, width, height]);
-  useFrame((_, dt) => {
-    // Spin the whole scene about Y so the brain is obviously rotating
-    scene.rotation.y += dt * 0.4;
-  });
-  return null;
-}
-type THREE_PerspectiveCamera = { aspect: number; updateProjectionMatrix: () => void; isPerspectiveCamera: boolean };
+type Tier = "toddler" | "clinician" | "researcher";
 
-const N_VERTS = 20484;
-const N_T     = 100;
+const TIER_LABEL: Record<Tier, string> = {
+  toddler:    "5-year-old",
+  clinician:  "Clinician",
+  researcher: "Researcher",
+};
 
-// Generate a deterministic synthetic BOLD trace shaped like TRIBE v2 output:
-//   shape [100, 20484], z-scored floats. Two slow sinusoids out-of-phase
-//   across the cortex give a pleasing pulse without being noise.
-function buildSyntheticTrace(): Float32Array {
-  const out = new Float32Array(N_T * N_VERTS);
-  for (let t = 0; t < N_T; t++) {
-    const phase = (t / N_T) * Math.PI * 4;
-    for (let v = 0; v < N_VERTS; v++) {
-      const a = Math.sin(v * 0.00073 + phase);
-      const b = Math.cos(v * 0.00031 - phase * 0.6);
-      out[t * N_VERTS + v] = 1.6 * a * b;
-    }
-  }
-  return out;
-}
+const COLORMAPS: Colormap[] = ["rdbu", "viridis", "hot"];
+
+const COLORMAP_BLURBS: Record<Colormap, string> = {
+  rdbu:    "diverging — blue ←→ red around zero. Best for signed BOLD z-scores.",
+  viridis: "sequential — perceptually uniform, color-blind safe. Magnitude only.",
+  hot:     "sequential — black through red to white. Pop-y, good for demos.",
+};
+
+const PANEL: CSSProperties = {
+  background:    "rgba(15, 18, 22, 0.7)",
+  border:        "1px solid #1f2630",
+  borderRadius:  10,
+  padding:       "14px 16px",
+};
+
+const PANEL_TITLE: CSSProperties = {
+  margin:      "0 0 6px",
+  fontSize:    11,
+  letterSpacing: "0.12em",
+  textTransform: "uppercase" as const,
+  color:       "#9aaab8",
+  fontWeight:  600,
+};
+
+const PANEL_BODY: CSSProperties = {
+  margin:    0,
+  fontSize:  13,
+  lineHeight: 1.55,
+  color:     "#d6dde3",
+};
+
+const BUTTON_BASE: CSSProperties = {
+  padding:        "6px 12px",
+  border:         "1px solid #2c3742",
+  borderRadius:   6,
+  background:     "transparent",
+  color:          "#d6dde3",
+  cursor:         "pointer",
+  fontSize:       12,
+  letterSpacing:  "0.04em",
+  transition:     "border-color 120ms, background 120ms",
+};
+
+const BUTTON_ON: CSSProperties = {
+  ...BUTTON_BASE,
+  borderColor: "#5b8def",
+  background:  "rgba(91, 141, 239, 0.14)",
+  color:       "#e7eef5",
+};
 
 export default function CortexOverlayPage() {
-  const trace = useMemo(buildSyntheticTrace, []);
   const [colormap, setColormap] = useState<Colormap>("rdbu");
   const [playing,  setPlaying]  = useState(true);
-  const [time,     setTime]     = useState<number | undefined>(undefined);
+  const [tier,     setTier]     = useState<Tier>("toddler");
+  const [zRange,   setZRange]   = useState(2.5);
 
   useEffect(() => { document.title = "Mercury — Cortex Overlay"; }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: 16, gap: 12 }}>
-      <header>
-        <h1 style={{ margin: 0, fontSize: 20 }}>Cortex Overlay — <code>fmri-overlay</code> skill demo</h1>
-        <p style={{ margin: "4px 0 0", opacity: 0.7, fontSize: 13 }}>
-          Three.js render of a synthetic BOLD trace shaped like TRIBE v2 output
-          ({N_T} timepoints × {N_VERTS} vertices). Real TRIBE output drops in by
-          replacing <code>buildSyntheticTrace()</code> with the API call.
-        </p>
-      </header>
+    <div style={{
+      display:        "grid",
+      gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 380px)",
+      gap:            16,
+      padding:        16,
+      height:         "100%",
+      minHeight:      "calc(100vh - 200px)",
+      overflow:       "auto",
+      color:          "#d6dde3",
+      fontFamily:     "system-ui, -apple-system, Segoe UI, sans-serif",
+    }}>
+      {/* ── Left column: header + viewer + footer ─────────────────────────── */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0, minHeight: 0 }}>
+        <header style={{ flex: "0 0 auto" }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, color: "#f0f4f8" }}>
+            Cortex Overlay
+            <span style={{ marginLeft: 10, fontSize: 13, color: "#7e8b97", fontWeight: 400 }}>
+              <code>fmri-overlay</code> skill · live demo
+            </span>
+          </h1>
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: "#9aaab8", lineHeight: 1.5 }}>
+            {narr.intro}
+          </p>
+        </header>
 
-      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <label>Colormap:</label>
-        {(["rdbu", "viridis", "hot"] as Colormap[]).map(c => (
-          <button
-            key={c}
-            onClick={() => setColormap(c)}
-            style={{
-              padding: "4px 10px",
-              border:  c === colormap ? "1px solid #888" : "1px solid #333",
-              background: c === colormap ? "#1a1a1a" : "transparent",
-              color: "inherit",
-              cursor: "pointer",
-            }}
-          >{c}</button>
-        ))}
-        <span style={{ width: 16 }} />
-        <button
-          onClick={() => setPlaying(p => !p)}
-          style={{ padding: "4px 10px", border: "1px solid #444", background: "transparent", color: "inherit", cursor: "pointer" }}
-        >{playing ? "Pause" : "Play"}</button>
-        <button
-          onClick={() => { setTime(0); setPlaying(true); }}
-          style={{ padding: "4px 10px", border: "1px solid #444", background: "transparent", color: "inherit", cursor: "pointer" }}
-        >Restart</button>
-      </div>
+        <div style={{
+          flex: "1 1 auto",
+          minHeight: 0,
+          position: "relative",
+          borderRadius: 10,
+          overflow: "hidden",
+          border: "1px solid #1f2630",
+          background: "#0a0a0a",
+          boxShadow: "0 0 50px rgba(0,0,0,0.6) inset",
+        }}>
+          <CortexViewer
+            colormap={colormap}
+            playing={playing}
+            range={[-zRange, zRange]}
+            spinRate={10}
+            demo
+          />
+          <div style={{
+            position: "absolute",
+            top: 12, left: 12,
+            padding: "4px 10px",
+            background: "rgba(15,18,22,0.85)",
+            border: "1px solid #1f2630",
+            borderRadius: 999,
+            fontSize: 11,
+            letterSpacing: "0.08em",
+            color: "#9aaab8",
+            pointerEvents: "none",
+          }}>
+            DEMO · synthetic spatial activation · drag to orbit · scroll to zoom
+          </div>
+        </div>
 
-      <div style={{ position: "relative", width: 300, height: 150, border: "1px solid #2a2a2a", borderRadius: 6, overflow: "hidden", background: "#0a0a0a" }}>
-        <Canvas
-          camera={{ position: [0, 0, 4], fov: 35 }}
-          style={{ width: 300, height: 150, display: "block" }}
-          gl={{ antialias: true }}
-          dpr={[1, 2]}
-        >
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[100, 100, 100]} intensity={0.7} />
-          <directionalLight position={[-100, -50, -50]} intensity={0.3} />
-          <Suspense fallback={null}>
-            <Cortex
-              trace={trace}
-              fps={2}
-              colormap={colormap}
-              playing={playing}
-              time={time}
-              meshUrl="/data/fsaverage5_pial.glb"
-              range={[-2.5, 2.5]}
+        {/* Controls strip */}
+        <div style={{
+          flex: "0 0 auto",
+          display: "flex",
+          gap: 16,
+          alignItems: "center",
+          flexWrap: "wrap",
+          padding: "10px 14px",
+          ...PANEL,
+        }}>
+          <ControlGroup label="Colormap">
+            {COLORMAPS.map(c => (
+              <button
+                key={c}
+                onClick={() => setColormap(c)}
+                style={c === colormap ? BUTTON_ON : BUTTON_BASE}
+              >{c}</button>
+            ))}
+          </ControlGroup>
+
+          <ControlGroup label="Playback">
+            <button onClick={() => setPlaying(p => !p)}
+                    style={playing ? BUTTON_BASE : BUTTON_ON}>
+              {playing ? "Pause" : "Play"}
+            </button>
+          </ControlGroup>
+
+          <ControlGroup label={`Range ±${zRange.toFixed(1)}`}>
+            <input
+              type="range"
+              min={0.5} max={4} step={0.1}
+              value={zRange}
+              onChange={(e) => setZRange(Number(e.target.value))}
+              style={{ accentColor: "#5b8def", width: 140 }}
             />
-          </Suspense>
-          <PinSizeAndSpin width={300} height={150} />
-        </Canvas>
+          </ControlGroup>
+
+          <span style={{ marginLeft: "auto", fontSize: 11, color: "#7e8b97" }}>
+            20,484 verts · 100 timepoints · 2 Hz · {COLORMAP_BLURBS[colormap]}
+          </span>
+        </div>
       </div>
 
-      <footer style={{ fontSize: 12, opacity: 0.6 }}>
-        20,484-vertex fsaverage5 mesh · {N_T} timepoints @ 2 Hz · range ±2.5 z ·
-        BOLD scalar packed as a Data3DTexture, sampled in the vertex shader,
-        mapped through a 256-entry RGBA LUT in the fragment shader.
-      </footer>
+      {/* ── Right column: scrollable panels ───────────────────────────────── */}
+      <aside style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        minHeight: 0,
+        overflowY: "auto",
+        paddingRight: 4,
+      }}>
+        <Panel title="Pipeline">{narr.pipeline}</Panel>
+
+        <div style={PANEL}>
+          <h3 style={PANEL_TITLE}>Narration</h3>
+          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+            {(["toddler", "clinician", "researcher"] as Tier[]).map(t => (
+              <button
+                key={t}
+                onClick={() => setTier(t)}
+                style={t === tier ? BUTTON_ON : BUTTON_BASE}
+              >{TIER_LABEL[t]}</button>
+            ))}
+          </div>
+          <p style={{ ...PANEL_BODY, fontStyle: tier === "toddler" ? "italic" : "normal" }}>
+            {narr[tier]}
+          </p>
+          <p style={{ marginTop: 10, fontSize: 11, color: "#7e8b97" }}>
+            Generated by <code>gemma4:26b</code> via local Ollama. Regenerate
+            with <code>node scripts/generate_cortex_text.mjs</code>.
+          </p>
+        </div>
+
+        <Panel title="What is BOLD?">{narr.bold}</Panel>
+        <Panel title="What is TRIBE v2?">{narr.tribe}</Panel>
+        <Panel title="What is fsaverage5?">{narr.fsaverage5}</Panel>
+        <Panel title="Why these colors?">{narr.colormap}</Panel>
+
+        <div style={{ ...PANEL, fontSize: 11, color: "#7e8b97" }}>
+          Page is rendering a synthetic, position-driven activation pattern
+          (no live TRIBE pass). Swap to real TRIBE output by pointing
+          <code> CortexViewer </code> at a backend-served BOLD trace and
+          setting <code>demo={"{false}"}</code>.
+          <br /><br />
+          Gemma is a trademark of Google LLC.
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={PANEL}>
+      <h3 style={PANEL_TITLE}>{title}</h3>
+      <p style={PANEL_BODY}>{children}</p>
+    </div>
+  );
+}
+
+function ControlGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <label style={{ fontSize: 10, letterSpacing: "0.1em", color: "#7e8b97", textTransform: "uppercase" }}>
+        {label}
+      </label>
+      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>{children}</div>
     </div>
   );
 }
