@@ -1,0 +1,61 @@
+// Mercury Tailnet ACLs.
+// Apply via:  tailscale set --policy-file=skills/network/tailnet/acls.hujson
+// Or paste into https://login.tailscale.com/admin/acls
+//
+// Devices:
+//   tag:gpu    — RTX 5090 desktop (canonical Mercury host)
+//   tag:mobile — Pixel 9 Pro Fold (Termux + WhatsApp gateway)
+//   tag:cloud  — GCP Cloud Run failover instance
+//   tag:mac    — Mac Mini M4 (MLX inference)
+
+{
+  "tagOwners": {
+    "tag:gpu":    ["soumitlahiri@philanthropytraders.com"],
+    "tag:mobile": ["soumitlahiri@philanthropytraders.com"],
+    "tag:cloud":  ["soumitlahiri@philanthropytraders.com"],
+    "tag:mac":    ["soumitlahiri@philanthropytraders.com"],
+  },
+
+  "acls": [
+    // Mobile + Mac → Mercury services on the GPU host
+    {
+      "action": "accept",
+      "src":    ["tag:mobile", "tag:mac"],
+      "dst":    [
+        "tag:gpu:8765",   // mercury api
+        "tag:gpu:5173",   // mercury-web (vite dev / static prod)
+        "tag:gpu:8766",   // cortex api (read-only from non-GPU tags)
+      ],
+    },
+
+    // Cloud Run → GPU host (proxied inference for cold-start failover)
+    {
+      "action": "accept",
+      "src":    ["tag:cloud"],
+      "dst":    ["tag:gpu:8765"],
+    },
+
+    // GPU host → mobile (push notifications via Hermes gateway, e.g. Discord/WhatsApp)
+    {
+      "action": "accept",
+      "src":    ["tag:gpu"],
+      "dst":    ["tag:mobile:443"],
+    },
+
+    // Owner can SSH to anything for maintenance
+    {
+      "action": "accept",
+      "src":    ["soumitlahiri@philanthropytraders.com"],
+      "dst":    ["tag:gpu:22", "tag:cloud:22", "tag:mac:22"],
+    },
+  ],
+
+  "ssh": [
+    {
+      "action": "accept",
+      "src":    ["soumitlahiri@philanthropytraders.com"],
+      "dst":    ["tag:gpu", "tag:cloud", "tag:mac"],
+      "users":  ["soumit", "root"],
+    },
+  ],
+}
