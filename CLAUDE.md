@@ -17,23 +17,52 @@ The full architecture and roadmap will live in `PLAN.md` (TODO). For
 upstream Hermes documentation, see `AGENTS.md` and the original `README.md`
 section.
 
-## Two brains
+## Brains
 
-Mercury routes turns between two providers and escalates on demand:
+Mercury routes turns across providers and escalates on demand. The default
+inference surface is now the Nous Portal (`nous-portal` custom provider in
+`~/.mercury/config.yaml`, key in `$NOUS_API_KEY`).
 
-| Brain | Model | Multiplier | Use |
-|-------|-------|-----------|-----|
-| Fulltime | GPT-5 mini (Copilot) | 0 | Default agent loop, planning, tool use |
-| Fulltime | GPT-4o (Copilot) | 0 | Vision when Gemma 4 unavailable |
-| Fulltime | GPT-4.1 (Copilot) | 0 | Backup / consistency mode |
-| Part-time | Gemma 4 E4B (Ollama, `gemma4:e4b`) | local | Memory ops, narration, vision-gating, classification, fast WhatsApp/Discord replies, Cortex narration tier 0–2 |
-| Tier 1 | Sonnet 4.6 (Copilot) | 1 | Hard reasoning escalation |
-| Tier 1 | GPT-5.4 (Copilot) | 1 | Hard reasoning alt |
-| Tier 1 | Gemini 2.5 Pro (Vertex / AI Studio via `google-genai`) | budget | Long-context / multimodal escalation |
+| Role | Model | Provider | Use |
+|---|---|---|---|
+| **Default coder** | `moonshotai/kimi-k2.6` | nous-portal | Long-horizon code-gen, refactors, the `kimi_dispatch.py` pipeline |
+| **Default planner** | `nousresearch/hermes-4-405b` | nous-portal | Agentic planning, tool selection, reasoning escalation |
+| Local memory ops | Gemma 4 E4B (`gemma4:e4b` Ollama) | local | Memory ops, vision-gating, classification, fast WhatsApp/Discord replies |
+| Cortex narration | Gemma 4 26B (`gemma4:26b` Ollama) | local | Cortex narration tiers 0–2 |
+| Vision fallback | GPT-4o (Copilot) | copilot | When Gemma 4 unavailable |
+| Reasoning fallback | Sonnet 4.6 / GPT-5.4 (Copilot) | copilot | Hard reasoning when Hermes 4 / Kimi rate-limited |
+| Long context | Gemini 2.5 Pro (`google-genai`) | gemini | Multi-hundred-K-token escalation |
 
 Routing lives in `mercury/router.py` (TODO). Override slash commands:
-`/brain copilot`, `/brain gemma`, `/brain auto`. No defaults to ≥3x
-multiplier (Opus 4.5/4.6/4.7, GPT-5.5, Opus-Fast).
+`/model nous-portal:moonshotai/kimi-k2.6`, `/brain copilot`, `/brain gemma`,
+`/brain auto`.
+
+## Claude→Kimi orchestration workflow
+
+Outside Mercury proper, the project's *meta-workflow* is:
+
+| Role | Surface | Used for |
+|---|---|---|
+| **Tech lead** | Claude Code (Anthropic Max 5x, $100/mo) | Architecture, decomposition, spec writing, code review, commits |
+| **Senior dev** | Kimi K2.6 via Nous Portal Plus ($20/mo) | Heavy code-gen from Claude-written specs |
+| **Planner** | Hermes 4 405B via Nous Portal | Agentic planning loops inside Mercury |
+| **Local muscle** | Gemma 4 (E4B + 26B + 31B) on the 5090 | Vision, narration, embeddings, Cortex pipeline |
+
+Dispatch helper: [`tools/kimi_dispatch.py`](tools/kimi_dispatch.py).
+
+```bash
+# from any shell, with NOUS_API_KEY set
+python tools/kimi_dispatch.py --task path/to/spec.md > /tmp/response.md
+python tools/kimi_dispatch.py --task path/to/spec.md --planner   # Hermes 4 405B
+python tools/kimi_dispatch.py --task path/to/spec.md --model moonshotai/kimi-k2-thinking
+```
+
+Spec files are markdown; the dispatcher prepends a senior-engineer system
+prompt. Output uses `### FILE: <path>` markers between code blocks so a
+parser (or Claude on review) can split files cleanly.
+
+Round-trip cost on a typical skill build (~3K input + 8K output): ~$0.04.
+$20/mo Plus tier covers ~500 such round-trips.
 
 ## Hard invariants
 
