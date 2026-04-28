@@ -1,0 +1,57 @@
+# Google Cloud Run service spec for Mercury's web UI failover.
+#
+# Deploy:
+#   gcloud builds submit --tag gcr.io/rtk-prod-2026/mercury-web:latest
+#   gcloud run services replace cloudrun.yaml --region us-central1
+#
+# Or one-shot:
+#   gcloud run deploy mercury-web \
+#     --source mercury-web/ \
+#     --region us-central1 \
+#     --allow-unauthenticated \
+#     --memory 512Mi \
+#     --cpu 1
+#
+# Cost expectation (light traffic): well within the Cloud Run free tier
+# (2M requests/mo + 360k vCPU-sec/mo).  This service is the static SPA only;
+# narration falls back to Vertex AI Gemini and TRIBE inference proxies to the
+# RTX 5090 via Cloudflare Tunnel.
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: mercury-web
+  annotations:
+    run.googleapis.com/launch-stage: GA
+    run.googleapis.com/cpu-throttling: "true"
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "10"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 60
+      containers:
+        - image: gcr.io/rtk-prod-2026/mercury-web:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu:    "1"
+              memory: "512Mi"
+          env:
+            - name: VITE_DEPLOY_TARGET
+              value: cloudrun
+            # Gemini API key for narration fallback when local Ollama isn't
+            # reachable.  Stored in Secret Manager, mounted as env.
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gemini-api-key
+                  key:  latest
+            # Where the 5090 host's Mercury API answers (Cloudflare-Tunnel-fronted)
+            - name: MERCURY_GPU_API
+              value: https://brain.redteamkitchen.com
