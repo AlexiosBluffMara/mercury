@@ -54,12 +54,26 @@ gemma4:e4b → "Mercury is live."  ✓
 
 - **SQLite + LanceDB** — 362K messages, 3072-dim Gemini Embedding 2 vectors
 - **Ghost personas** — RAG + era summaries + cross-person temporal echoes
-- **Life era grounding** — 22 eras (per-semester Purdue, HS summers, India childhood) anchoring every memory retrieval to real biographical context
+- **Life era grounding** — 22 eras (per-semester college years, HS summers, India childhood) anchoring every memory retrieval to real biographical context
 - **Voice profiles** — 654 people profiled; 7 focus personas with full emotional arcs
 - **3D visualization** — Three.js / R3F: Timeline Nebula (60K particle field), Relationship Galaxy (135 nodes), Ghost Chat portal
 - **LoRA fine-tune** — Gemma 4 E4B trained on 70K persona-formatted conversation turns
 
 Mercury drives the ghost chat endpoint, orchestrates the embedding pipeline, and serves as the demo agent for the hackathon presentation.
+
+### Kimi Track — Claude→Kimi Orchestration
+
+Mercury also serves as the **Kimi dispatch layer** for the hackathon's Kimi Track:
+
+- Mercury dispatched specs (written by Claude Code) to **Kimi K2.6** via `tools/kimi_dispatch.py`
+- Kimi K2.6 wrote the entire `training/` pipeline: Facebook message parser, dataset cleaner, Gemma 4 fine-tune trainer, Ollama Modelfiles
+- Claude Code reviewed, integrated, and committed
+
+**Ghost-invoke skill:** `/ghost-invoke Callie 2015` — queries any Academy persona directly from the Mercury terminal, streaming memory-grounded responses through the FastAPI SSE endpoint.
+
+**Related repos:**
+- [AlexiosBluffMara/JennyOfOldstones](https://github.com/AlexiosBluffMara/JennyOfOldstones) — The Academy (ghost system + 3D viz)
+- [AlexiosBluffMara/gemma4-pipeline](https://github.com/AlexiosBluffMara/gemma4-pipeline) — Kimi-written Gemma 4 training pipeline
 
 ---
 
