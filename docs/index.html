@@ -9,90 +9,226 @@
 <meta property="og:description" content="One Kimi brain. Six clients. Three nodes. Receipts in the repo.">
 <meta property="og:image" content="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/assets/architecture_v2.png">
 <meta name="twitter:card" content="summary_large_image">
+
+<!-- Free open-source typefaces. Inter for body, Outfit for display, JetBrains Mono for code. All OFL-licensed. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
+  /*
+   * Type system inspired by Apple product pages: tight tracking, generous
+   * whitespace, two display sizes, one body size, one mono.
+   *
+   * Color palette: Illinois State University cardinal as the brand accent
+   * (publicly published color values; logos and wordmarks are NOT used).
+   */
   :root {
-    --bg: #0a0b0f;
-    --bg-elev: #11131a;
-    --fg: #f0f2f6;
-    --muted: #8b91a0;
-    --accent: #82d4ff;
-    --accent-warm: #ffb86b;
-    --panel: #14171f;
-    --border: #1e2230;
-    --border-strong: #2a2f40;
-    --max: 980px;
+    --bg: #0b0b0e;
+    --bg-elev: #14141a;
+    --fg: #f4f4f7;
+    --muted: #8b8d96;
+    --border: #25262e;
+    --border-strong: #353742;
+    --panel: #131419;
+
+    /* ISU cardinal — used as a single-accent brand color */
+    --cardinal: #CE1126;
+    --cardinal-bright: #ee2d3f;
+    --cardinal-deep: #9c0d1d;
+
+    /* Status accents (separate from brand to keep semantics clear) */
+    --positive: #6dd3a3;
+    --warm: #ffb86b;
+
+    --max: 1040px;
+    --radius: 14px;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Inter", "Segoe UI", sans-serif;
-    line-height: 1.55; -webkit-font-smoothing: antialiased; }
-  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent;
-    transition: border-color 0.15s ease; }
-  a:hover { border-bottom-color: var(--accent); }
-  .wrap { max-width: var(--max); margin: 0 auto; padding: 64px 28px 96px; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--fg);
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--cardinal-bright); text-decoration: none; transition: color 0.15s ease; }
+  a:hover { color: #ff5f6e; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 80px 32px 96px; }
 
   /* Hero */
-  header { margin-bottom: 64px; }
-  header .pill { display: inline-block; background: var(--bg-elev); border: 1px solid var(--border);
-    border-radius: 999px; padding: 5px 14px; font-size: 0.8rem; color: var(--accent-warm);
-    margin: 0 6px 16px 0; letter-spacing: 0.02em; }
-  header h1 { font-size: clamp(2.6rem, 6vw, 4.4rem); margin: 8px 0 12px;
-    letter-spacing: -0.025em; line-height: 1.05; font-weight: 700; }
-  header .tag { color: var(--fg); font-size: clamp(1.05rem, 1.6vw, 1.2rem);
-    margin-bottom: 32px; max-width: 640px; }
+  header { margin-bottom: 88px; }
+  header .pills { margin-bottom: 28px; }
+  header .pill {
+    display: inline-block;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin: 0 6px 8px 0;
+    letter-spacing: 0.02em;
+  }
+  header .pill.brand {
+    color: var(--cardinal-bright);
+    border-color: rgba(238, 45, 63, 0.25);
+    background: rgba(238, 45, 63, 0.06);
+  }
+  header h1 {
+    font-family: "Outfit", "Inter", sans-serif;
+    font-size: clamp(2.8rem, 6vw, 4.8rem);
+    font-weight: 700;
+    margin: 12px 0 16px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  header .tag {
+    color: var(--fg);
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    margin-bottom: 36px;
+    max-width: 660px;
+    line-height: 1.55;
+  }
   header .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
-  .cta { display: inline-block; padding: 11px 20px; border-radius: 10px; font-weight: 600;
-    font-size: 0.95rem; text-decoration: none; border: 1px solid transparent;
-    transition: transform 0.1s ease, background 0.15s ease; }
-  .cta:hover { transform: translateY(-1px); border-bottom: 1px solid transparent; }
-  .cta.primary { background: var(--accent); color: #0a0c12; }
-  .cta.primary:hover { background: #6cc6f5; }
-  .cta.ghost { background: transparent; color: var(--fg); border: 1px solid var(--border-strong); }
-  .cta.ghost:hover { background: var(--bg-elev); }
+  .cta {
+    display: inline-block;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  .cta:hover { transform: translateY(-1px); }
+  .cta.primary {
+    background: var(--cardinal);
+    color: #fff;
+  }
+  .cta.primary:hover { background: var(--cardinal-bright); color: #fff; }
+  .cta.ghost {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--border-strong);
+  }
+  .cta.ghost:hover { background: var(--bg-elev); border-color: var(--cardinal-bright); }
 
   /* Sections */
-  section { margin-top: 72px; }
-  section h2 { font-size: 1.45rem; letter-spacing: -0.01em; margin: 0 0 18px;
-    color: var(--fg); font-weight: 600; }
-  section > p { color: var(--muted); max-width: 720px; }
-  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
-    padding: 24px 28px; }
+  section { margin-top: 80px; }
+  section h2 {
+    font-family: "Outfit", "Inter", sans-serif;
+    font-size: 1.65rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0 0 22px;
+  }
+  section h2 .accent { color: var(--cardinal-bright); }
+  section > p { color: var(--muted); max-width: 720px; margin-top: 0; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+  }
 
   /* Receipts grid */
-  .receipts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px; margin-top: 8px; }
-  .receipts .cell { background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
-    padding: 18px 20px; }
-  .receipts .cell .num { font-size: 1.8rem; font-weight: 700; color: var(--accent);
-    letter-spacing: -0.02em; }
-  .receipts .cell .lbl { font-size: 0.78rem; color: var(--muted); text-transform: uppercase;
-    letter-spacing: 0.08em; margin-top: 6px; }
+  .receipts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .receipts .cell {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    transition: border-color 0.15s ease;
+  }
+  .receipts .cell:hover { border-color: var(--cardinal-deep); }
+  .receipts .cell .num {
+    font-family: "Outfit", "Inter", sans-serif;
+    font-size: 1.95rem;
+    font-weight: 700;
+    color: var(--cardinal-bright);
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+  .receipts .cell .lbl {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+    font-weight: 500;
+  }
 
   /* Media */
-  img.full, .video-frame { width: 100%; height: auto; border-radius: 14px;
-    border: 1px solid var(--border); display: block; }
-  .video-frame { aspect-ratio: 16 / 9; background: var(--bg-elev);
-    display: flex; align-items: center; justify-content: center; color: var(--muted); }
-  figcaption { color: var(--muted); margin-top: 10px; font-size: 0.9rem; }
+  img.full {
+    width: 100%; height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    display: block;
+  }
+  figcaption { color: var(--muted); margin-top: 12px; font-size: 0.9rem; }
 
   /* Code */
-  pre { background: #06080d; border: 1px solid var(--border); border-radius: 12px;
-    padding: 18px 20px; overflow-x: auto; font-size: 0.88rem; line-height: 1.6;
-    color: #e0e6ed; }
-  code { font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace; font-size: 0.92em; }
+  pre {
+    background: #06070a;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: #d8dde5;
+  }
+  code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.92em;
+    font-feature-settings: "calt", "ss01", "ss02";
+  }
+  pre code { font-size: inherit; }
 
-  /* Footer */
-  footer { color: var(--muted); margin-top: 80px; padding-top: 28px;
-    border-top: 1px solid var(--border); font-size: 0.88rem; }
+  /* Inline brand bar */
+  .brand-bar {
+    margin-top: 64px; padding-top: 28px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 24px;
+    align-items: center; justify-content: space-between;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .brand-bar strong { color: var(--fg); font-weight: 600; }
+  .brand-bar .swatch {
+    display: inline-block;
+    width: 10px; height: 10px;
+    background: var(--cardinal);
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  footer {
+    color: var(--muted);
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
   footer p { margin: 6px 0; }
 
-  /* Mobile */
-  @media (max-width: 560px) {
-    .wrap { padding: 40px 18px 64px; }
-    header { margin-bottom: 40px; }
-    section { margin-top: 56px; }
-    .panel { padding: 18px 20px; }
-    pre { padding: 14px 16px; }
+  @media (max-width: 600px) {
+    .wrap { padding: 48px 20px 72px; }
+    header { margin-bottom: 56px; }
+    section { margin-top: 64px; }
+    .panel { padding: 22px 24px; }
+    pre { padding: 16px 18px; }
   }
 </style>
 </head>
@@ -100,9 +236,12 @@
 <div class="wrap">
 
 <header>
-  <span class="pill">Nous + Kimi Hackathon — Creative</span>
-  <span class="pill">v0.2.0</span>
-  <h1>Mercury</h1>
+  <div class="pills">
+    <span class="pill brand">Nous + Kimi Hackathon — Creative</span>
+    <span class="pill">v0.2.0</span>
+    <span class="pill">MIT</span>
+  </div>
+  <h1>Mercury.</h1>
   <p class="tag">An open-source AI assistant that runs on your own GPU. Built FOR the Nous Hermes Creative Hackathon, BY Kimi K2.6 via the Nous Portal.</p>
   <div class="ctas">
     <a class="cta primary" href="https://github.com/AlexiosBluffMara/mercury">View source on GitHub</a>
@@ -111,22 +250,23 @@
 </header>
 
 <section>
-  <h2>What it is, in plain English</h2>
+  <h2>What it is</h2>
   <div class="panel">
-    <p>Mercury is a chat-based AI assistant. You talk to it from Discord, iMessage, your terminal, a web page, or email — and it does real work for you instead of just chatting back. It runs on <strong>your own computer</strong>, not someone else's cloud, so your conversations stay private.</p>
-    <p>You can teach it new tricks by dropping a markdown file into a folder. No coding required.</p>
-    <p>The brain that drives it is <strong>Kimi K2.6</strong>, a 2026 open-weight AI model that's especially good at writing code and following long instructions. The body it lives in is <strong>Hermes Agent</strong>, an open-source agent framework from Nous Research. Mercury is the customized version we built on top.</p>
+    <p style="color: var(--fg)">Mercury is a personal AI assistant. It runs on your own computer.</p>
+    <p>You talk to it from any of six places — your terminal, Discord, a web page, iMessage, email, your phone — and the same agent answers, with the same memory, on the same hardware. No round-trips to anyone else's cloud.</p>
+    <p>It comes with four specialist skill domains out of the box: <strong style="color: var(--fg)">Chicago college search</strong>, <strong style="color: var(--fg)">Chicago tax &amp; tenant law</strong>, <strong style="color: var(--fg)">3D web graphics development</strong>, and <strong style="color: var(--fg)">hackathon submission packaging</strong> — the last of which built this page.</p>
+    <p>The brain is <strong style="color: var(--fg)">Kimi K2.6</strong>, an open-weight model from Moonshot AI accessed through the Nous Portal. The body is <strong style="color: var(--fg)">Hermes Agent</strong>, an open-source framework from Nous Research.</p>
   </div>
 </section>
 
 <section>
   <h2>Architecture</h2>
   <img class="full" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/assets/architecture_v2.png" alt="Mercury architecture v2">
-  <p style="color: var(--muted); margin-top: 12px;">Six client surfaces fan into one Hermes Gateway → Kimi K2.6 brain → 4 custom skill domains → 5-source data layer → 3-node infra (Mac dev, 5090 inference, Cloud Run scale).</p>
+  <p>Six client surfaces fan into one Hermes Gateway → Kimi K2.6 brain → 4 custom skill domains → 5-source data layer → 3-node infra (Mac dev, 5090 inference, Cloud Run scale).</p>
 </section>
 
 <section>
-  <h2>Receipts — what $22 of Kimi K2.6 produced</h2>
+  <h2>Receipts <span class="accent">— what $22 of Kimi K2.6 produced</span></h2>
   <div class="receipts">
     <div class="cell"><div class="num">$22.04</div><div class="lbl">Total spend</div></div>
     <div class="cell"><div class="num">1,035</div><div class="lbl">Requests</div></div>
@@ -135,15 +275,15 @@
     <div class="cell"><div class="num">39.5M</div><div class="lbl">Cache reads</div></div>
     <div class="cell"><div class="num">14</div><div class="lbl">Commits in 75 min</div></div>
   </div>
-  <img class="full" style="margin-top: 16px;" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/kimi_proof/06_nous_portal_usage_2026-04-30.png" alt="Nous Portal usage chart">
-  <p style="color: var(--muted); margin-top: 12px;">The Apr 28-29 spike maps 1:1 to a 75-minute burst that built the brain visualizer, the gateway wiring, the four skill domains, and the docs you're reading right now. Per-commit timeline at <a href="https://github.com/AlexiosBluffMara/mercury#kimi-k26-authorship--proof-of-use">github.com/AlexiosBluffMara/mercury</a>.</p>
+  <img class="full" style="margin-top: 20px;" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/kimi_proof/06_nous_portal_usage_2026-04-30.png" alt="Nous Portal usage chart">
+  <p>The Apr 28 – 29 spike maps 1:1 to a 75-minute burst that built the brain visualizer, the gateway wiring, the four skill domains, and the docs you're reading right now. Per-commit timeline at <a href="https://github.com/AlexiosBluffMara/mercury#kimi-k26-authorship--proof-of-use">github.com/AlexiosBluffMara/mercury</a>.</p>
 </section>
 
 <section id="try">
-  <h2>Try it yourself</h2>
+  <h2>Run it yourself</h2>
   <div class="panel">
-    <p><strong>Heads up:</strong> there is no public hosted version of the live agent. Mercury is local-first by design — the AI runs on <em>your</em> GPU, not ours. The architecture diagrams and demo video here are real, but to actually chat with the agent you need to clone, install, and bring your own hardware.</p>
-    <p style="color: var(--muted);">What you need: an NVIDIA GPU with 12 GB+ VRAM, Python 3.11+, Ollama, and ~30 GB of disk space.</p>
+    <p style="color: var(--fg)"><strong>Heads up:</strong> there is no public hosted version of the live agent. Mercury is local-first by design — the AI runs on <em>your</em> GPU, not ours. The architecture diagrams and demo video here are real, but to actually chat with the agent you need to clone, install, and bring your own hardware.</p>
+    <p>What you need: an NVIDIA GPU with 12 GB+ VRAM, Python 3.11+, Ollama, and ~30 GB of disk space.</p>
     <pre><code># 1. Clone Mercury
 git clone https://github.com/AlexiosBluffMara/mercury
 cd mercury
@@ -165,18 +305,19 @@ mercury chat</code></pre>
   </div>
 </section>
 
-<section>
-  <h2>Demo video</h2>
-  <div class="panel">
-    <p>Replace the placeholder below with the YouTube embed once the video is uploaded:</p>
-    <pre><code>&lt;iframe width="100%" height="450" src="https://www.youtube.com/embed/YOUTUBE_ID"
-  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen&gt;&lt;/iframe&gt;</code></pre>
+<div class="brand-bar">
+  <div>
+    <span class="swatch" aria-hidden="true"></span>
+    <strong>Submitted in partial fulfillment</strong> of coursework at Illinois State University.
   </div>
-</section>
+  <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+    v0.2.0-nous-creative · MIT
+  </div>
+</div>
 
 <footer>
-  <p>Mercury is MIT-licensed. Fork of <a href="https://github.com/NousResearch/hermes-agent">NousResearch/hermes-agent</a>. Built by <a href="https://github.com/AlexiosBluffMara">Red Team Kitchen / Alexios Bluff Mara LLC</a>.</p>
-  <p>The receipts page on Nous Portal is at portal.nousresearch.com. The actual session logs are in <code>kimi_proof/04_sessions_snapshot/</code> in the repo.</p>
+  <p>Mercury is a fork of <a href="https://github.com/NousResearch/hermes-agent">NousResearch/hermes-agent</a>. Adapted by <a href="https://github.com/AlexiosBluffMara">Red Team Kitchen / Alexios Bluff Mara LLC</a>.</p>
+  <p>Demo input footage: NASA Artemis II program, public domain (17 U.S.C. § 105). Brand accent color references Illinois State University's published cardinal value; ISU logos and wordmarks are not used.</p>
 </footer>
 
 </div>
