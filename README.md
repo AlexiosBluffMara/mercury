@@ -7,18 +7,22 @@
 > **Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT) by [Red Team Kitchen](https://github.com/AlexiosBluffMara).**
 > Submitted to the **Nous Research + Kimi Hackathon — Creative category** (due May 3, 2026).
 
-## What is this, in 30 seconds?
+## What it is
 
-Mercury is an **AI assistant you talk to from anywhere** — Discord, iMessage, your terminal, a web page, even email — and it does real work for you instead of just chatting back. Think of it like a personal Siri, except:
+Mercury is a personal AI assistant. It runs on your own computer.
 
-- It runs on **your own computer**, not someone else's cloud, so your conversations stay private.
-- You can **teach it new tricks** by dropping a markdown file into a folder. No coding required to add capabilities.
-- It can **see images, hear audio, write code, browse the web, and remember things across days** — not just one conversation at a time.
-- This particular copy of it specializes in four things: **Chicago college search**, **Chicago property tax / tenant questions**, **3D web graphics development**, and **packaging hackathon submissions** (yes — the agent helped build its own submission, which is why you're reading this).
+You talk to it from any of six places — your terminal, Discord, a web page, iMessage, email, your phone — and the same agent answers, with the same memory, on the same hardware. No round-trips to anyone else's cloud.
 
-The brain that drives it is **Kimi K2.6** — an open-weight model released in 2026 that's especially good at writing code and following long instructions. The body it lives in is **Hermes Agent**, an open-source agent framework from Nous Research. Mercury is our customized version of that body.
+It comes with four specialist skill sets out of the box:
 
-Want to actually try it? Skip to **[Try it yourself](#try-it-yourself)** at the bottom.
+- **Chicago college search** — eight public + five private universities, MBA modalities, ROI analysis.
+- **Chicago tax & tenant law** — Cook County property taxes, the Residential Landlord and Tenant Ordinance, courts, legal aid.
+- **3D web graphics development** — React Three Fiber, GLSL shaders, Blender, WebXR.
+- **Hackathon submission packaging** — the skill that built this README.
+
+The brain is **Kimi K2.6**, an open-weight model from Moonshot AI accessed through the Nous Portal. The body is **Hermes Agent**, an open-source framework from Nous Research. Mercury is what we built on top — a multi-domain stack you can fork and bend to your own four problems.
+
+To run it on your hardware, jump to [Try it yourself](#try-it-yourself).
 
 ---
 
