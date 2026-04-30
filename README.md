@@ -7,6 +7,19 @@
 > **Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT) by [Red Team Kitchen](https://github.com/AlexiosBluffMara).**
 > Submitted to the **Nous Research + Kimi Hackathon — Creative category** (due May 3, 2026).
 
+## What is this, in 30 seconds?
+
+Mercury is an **AI assistant you talk to from anywhere** — Discord, iMessage, your terminal, a web page, even email — and it does real work for you instead of just chatting back. Think of it like a personal Siri, except:
+
+- It runs on **your own computer**, not someone else's cloud, so your conversations stay private.
+- You can **teach it new tricks** by dropping a markdown file into a folder. No coding required to add capabilities.
+- It can **see images, hear audio, write code, browse the web, and remember things across days** — not just one conversation at a time.
+- This particular copy of it specializes in four things: **Chicago college search**, **Chicago property tax / tenant questions**, **3D web graphics development**, and **packaging hackathon submissions** (yes — the agent helped build its own submission, which is why you're reading this).
+
+The brain that drives it is **Kimi K2.6** — an open-weight model released in 2026 that's especially good at writing code and following long instructions. The body it lives in is **Hermes Agent**, an open-source agent framework from Nous Research. Mercury is our customized version of that body.
+
+Want to actually try it? Skip to **[Try it yourself](#try-it-yourself)** at the bottom.
+
 ---
 
 ## Architecture
@@ -256,6 +269,64 @@ C:/Users/soumi/JennyOfOldstones/     <- Academy data pipeline + Three.js fronten
 **Nous Research + Kimi Hackathon — Creative** (due May 3, 2026)
 
 Submission: Mercury as the agent powering The Academy ghost personas — a 20-year digital-memory system running entirely on local hardware, using Gemma 4 E4B (multimodal: vision + audio + tools + thinking) and a LoRA fine-tuned persona model for authentic temporal persona simulation.
+
+---
+
+## Try it yourself
+
+> Heads up: Mercury runs the AI on **your own GPU**. There is no public hosted version — partly because hosting a 5090 for the internet is expensive, and partly because the whole point of Mercury is local-first privacy. The architecture diagram and demo video on this page are real, but to actually chat with the agent you need to clone, install, and bring your own hardware.
+
+### What you need
+
+- An NVIDIA GPU with **at least 12 GB of VRAM** (Mercury was built and tested on an RTX 5090; a 4090, 3090, or any 12 GB+ card works for the smallest model).
+- **Python 3.11 or newer** ([download here](https://www.python.org/downloads/)).
+- **Ollama** to run the language models locally ([download here](https://ollama.com/download)).
+- Roughly **30 GB of disk space** for the model weights.
+
+You don't need an API key for anything to get the basic agent running — the default brain is local Gemma 4. If you want to also use Kimi K2.6 (the cloud brain that built this repo), you'll need a Nous Portal account.
+
+### Setup, copy-paste-able
+
+```bash
+# 1. Clone Mercury
+git clone https://github.com/AlexiosBluffMara/mercury
+cd mercury
+
+# 2. Make a Python environment for it
+python -m venv .venv
+# Mac/Linux:
+source .venv/bin/activate
+# Windows:
+.venv\Scripts\activate
+
+# 3. Install Mercury
+pip install -e .
+
+# 4. Pull the local AI models (this takes a while — ~10 GB download)
+ollama pull gemma4:e4b           # the fast everyday brain
+ollama pull embeddinggemma:300m  # for memory and search
+
+# 5. Talk to it
+mercury chat
+```
+
+That's it. Type a question. It thinks on your GPU, replies in your terminal.
+
+### Optional: the Discord / iMessage / WhatsApp surfaces
+
+Mercury can also act as a Discord bot, an iMessage relay, or a WhatsApp bot. Each takes ~5 minutes to wire up — see `mercury setup` for the interactive walkthrough.
+
+### Optional: the brain visualizer (the thing in the demo video)
+
+The 3D brain viewer in the demo lives in a sister project, [Cortex](https://github.com/AlexiosBluffMara/cortex). Mercury talks to it through a skill called `cortex-bridge`. To run that yourself:
+
+```bash
+git clone https://github.com/AlexiosBluffMara/cortex
+cd cortex && pip install -e .
+cortex serve --port 8765   # opens the brain viewer
+```
+
+Then point Mercury at it (`mercury config` → `cortex_url: http://localhost:8765`). The full pipeline (video in → brain prediction → narration out) takes ~6 minutes per scan.
 
 ---
 

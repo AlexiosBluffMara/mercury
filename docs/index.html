@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mercury — Hermes Agent fork built by Kimi K2.6</title>
+<meta name="description" content="A multi-domain Hermes Agent fork running across an RTX 5090, a Mac Mini, and Google Cloud Run. Built FOR the Nous Research + Kimi Hackathon BY Kimi K2.6 via the Nous Portal.">
+<meta property="og:title" content="Mercury — Hermes Agent fork built by Kimi K2.6">
+<meta property="og:description" content="One Kimi brain. Six clients. Three nodes. Receipts in the repo.">
+<meta property="og:image" content="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/assets/architecture_v2.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root {
+    --bg: #0c0e14;
+    --fg: #e7e9ee;
+    --muted: #8b91a0;
+    --accent: #6dd3ff;
+    --accent-warm: #ffb86b;
+    --panel: #141826;
+    --border: #232737;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Inter", sans-serif;
+    line-height: 1.55; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed transparent; }
+  a:hover { border-bottom-color: var(--accent); }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+  header h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); margin: 0 0 8px; letter-spacing: -0.02em; }
+  header .tag { color: var(--muted); font-size: 1.05rem; margin-bottom: 32px; }
+  header .pill { display: inline-block; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 12px; font-size: 0.85rem; color: var(--accent-warm);
+    margin-right: 6px; }
+  section { margin-top: 48px; }
+  section h2 { font-size: 1.4rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border);
+    padding-bottom: 8px; margin-bottom: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+  pre { background: #0a0c12; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; font-size: 0.9rem; line-height: 1.5; }
+  code { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  .receipts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-top: 16px; }
+  .receipts .cell { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; }
+  .receipts .cell .num { font-size: 1.6rem; font-weight: 600; color: var(--accent); }
+  .receipts .cell .lbl { font-size: 0.85rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.05em; margin-top: 4px; }
+  img.full { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); }
+  footer { color: var(--muted); margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border);
+    font-size: 0.9rem; }
+  .cta { display: inline-block; background: var(--accent); color: #0a0c12; font-weight: 600;
+    padding: 10px 18px; border-radius: 10px; text-decoration: none; }
+  .cta:hover { background: #5dc4ee; border-bottom: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="pill">Nous + Kimi Hackathon — Creative</span>
+  <span class="pill">v0.2.0</span>
+  <h1>Mercury</h1>
+  <p class="tag">An open-source AI assistant that runs on your own GPU. Built FOR the Nous Hermes Creative Hackathon, BY Kimi K2.6 via the Nous Portal.</p>
+  <p>
+    <a class="cta" href="https://github.com/AlexiosBluffMara/mercury">View source</a>
+    &nbsp;<a href="#try">Try it yourself</a>
+  </p>
+</header>
+
+<section>
+  <h2>What it is, in plain English</h2>
+  <div class="panel">
+    <p>Mercury is a chat-based AI assistant. You talk to it from Discord, iMessage, your terminal, a web page, or email — and it does real work for you instead of just chatting back. It runs on <strong>your own computer</strong>, not someone else's cloud, so your conversations stay private.</p>
+    <p>You can teach it new tricks by dropping a markdown file into a folder. No coding required.</p>
+    <p>The brain that drives it is <strong>Kimi K2.6</strong>, a 2026 open-weight AI model that's especially good at writing code and following long instructions. The body it lives in is <strong>Hermes Agent</strong>, an open-source agent framework from Nous Research. Mercury is the customized version we built on top.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Architecture</h2>
+  <img class="full" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/assets/architecture_v2.png" alt="Mercury architecture v2">
+  <p style="color: var(--muted); margin-top: 12px;">Six client surfaces fan into one Hermes Gateway → Kimi K2.6 brain → 4 custom skill domains → 5-source data layer → 3-node infra (Mac dev, 5090 inference, Cloud Run scale).</p>
+</section>
+
+<section>
+  <h2>Receipts — what $22 of Kimi K2.6 produced</h2>
+  <div class="receipts">
+    <div class="cell"><div class="num">$22.04</div><div class="lbl">Total spend</div></div>
+    <div class="cell"><div class="num">1,035</div><div class="lbl">Requests</div></div>
+    <div class="cell"><div class="num">57M</div><div class="lbl">Input tokens</div></div>
+    <div class="cell"><div class="num">564K</div><div class="lbl">Output tokens</div></div>
+    <div class="cell"><div class="num">39.5M</div><div class="lbl">Cache reads</div></div>
+    <div class="cell"><div class="num">14</div><div class="lbl">Commits in 75 min</div></div>
+  </div>
+  <img class="full" style="margin-top: 16px;" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/kimi_proof/06_nous_portal_usage_2026-04-30.png" alt="Nous Portal usage chart">
+  <p style="color: var(--muted); margin-top: 12px;">The Apr 28-29 spike maps 1:1 to a 75-minute burst that built the brain visualizer, the gateway wiring, the four skill domains, and the docs you're reading right now. Per-commit timeline at <a href="https://github.com/AlexiosBluffMara/mercury#kimi-k26-authorship--proof-of-use">github.com/AlexiosBluffMara/mercury</a>.</p>
+</section>
+
+<section id="try">
+  <h2>Try it yourself</h2>
+  <div class="panel">
+    <p><strong>Heads up:</strong> there is no public hosted version of the live agent. Mercury is local-first by design — the AI runs on <em>your</em> GPU, not ours. The architecture diagrams and demo video here are real, but to actually chat with the agent you need to clone, install, and bring your own hardware.</p>
+    <p style="color: var(--muted);">What you need: an NVIDIA GPU with 12 GB+ VRAM, Python 3.11+, Ollama, and ~30 GB of disk space.</p>
+    <pre><code># 1. Clone Mercury
+git clone https://github.com/AlexiosBluffMara/mercury
+cd mercury
+
+# 2. Make a Python environment for it
+python -m venv .venv
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
+
+# 3. Install Mercury
+pip install -e .
+
+# 4. Pull the local AI models (~10 GB download)
+ollama pull gemma4:e4b
+ollama pull embeddinggemma:300m
+
+# 5. Talk to it
+mercury chat</code></pre>
+    <p>That's it. Type a question. It thinks on your GPU, replies in your terminal.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Demo video</h2>
+  <div class="panel">
+    <p>Replace the placeholder below with the YouTube embed once the video is uploaded:</p>
+    <pre><code>&lt;iframe width="100%" height="450" src="https://www.youtube.com/embed/YOUTUBE_ID"
+  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen&gt;&lt;/iframe&gt;</code></pre>
+  </div>
+</section>
+
+<footer>
+  <p>Mercury is MIT-licensed. Fork of <a href="https://github.com/NousResearch/hermes-agent">NousResearch/hermes-agent</a>. Built by <a href="https://github.com/AlexiosBluffMara">Red Team Kitchen / Alexios Bluff Mara LLC</a>.</p>
+  <p>The receipts page on Nous Portal is at portal.nousresearch.com. The actual session logs are in <code>kimi_proof/04_sessions_snapshot/</code> in the repo.</p>
+</footer>
+
+</div>
+</body>
+</html>
