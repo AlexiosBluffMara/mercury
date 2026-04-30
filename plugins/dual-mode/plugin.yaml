@@ -1,0 +1,49 @@
+name: dual-mode
+version: 0.1.0
+description: |
+  Two-pass response system. The fast pass replies in <1s with gemma4:e4b
+  (thinking off) so the user sees something immediately. A second deep pass
+  with gemma4:26b (thinking on) runs asynchronously and edits the original
+  message in place when it finishes — Discord supports this natively.
+
+  Trigger conditions (any one fires the deep pass):
+    - the user's message is longer than `deep_trigger_chars` (default 280)
+    - the message contains `/deep`, `/think`, or `?expand` markers
+    - the fast reply included any tool call (search/code/grounding)
+
+  On WhatsApp where bot-message editing is restricted, the deep pass posts
+  as a follow-up reply with a "(refined)" prefix.
+
+triggers:
+  - on_user_message
+  - on_skill_request
+
+config:
+  fast:
+    model: gemma4:e4b
+    provider: custom:ollama-local
+    thinking: false
+    temperature: 0.6
+    max_tokens: 600
+    timeout_s: 12
+  deep:
+    model: gemma4:26b
+    provider: custom:ollama-local
+    thinking: true
+    temperature: 0.4
+    max_tokens: 2000
+    timeout_s: 90
+    deep_trigger_chars: 280
+    deep_trigger_phrases: ["/deep", "/think", "?expand", "explain in detail"]
+    edit_strategy:
+      discord:  replace_in_place      # uses message.edit()
+      whatsapp: follow_up              # new message with "(refined)" prefix
+      telegram: replace_in_place
+      slack:    replace_in_place
+      cli:      append_below           # show "─── refined ───" then the deep reply
+
+permissions:
+  - read_message
+  - send_message
+  - edit_message
+  - call_provider

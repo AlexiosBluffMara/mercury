@@ -1,0 +1,48 @@
+model:
+  default: moonshotai/kimi-k2.6
+  provider: nous-portal
+  # Aliases mapped via runtime resolution: address with --model when needed.
+  # planner = hermes-4-405b   (agentic reasoning, tool selection)
+  # coder   = kimi-k2.6       (long-horizon coding, default)
+  # local   = embeddinggemma:300m via local Ollama  (free, on-device)
+
+# Custom OpenAI-compatible providers. The built-in `nous` provider is OAuth-only;
+# `nous-portal` here uses the Nous Portal API key directly via NOUS_API_KEY env var.
+custom_providers:
+  - name: nous-portal
+    base_url: https://inference-api.nousresearch.com/v1
+    key_env: NOUS_API_KEY
+    api_mode: chat_completions
+
+# MCP servers — give the agent loop tools beyond Mercury's built-in 65.
+# Tools auto-namespace as `mcp_<server>_<tool>` and merge into the registry
+# on agent boot.  Each server runs as a child process under the gateway.
+mcp_servers:
+  playwright:
+    command: "npx"
+    args: ["-y", "@playwright/mcp@latest"]
+  context7:
+    command: "npx"
+    args: ["-y", "@upstash/context7-mcp"]
+  workspace:
+    command: "gws"
+    args: ["mcp"]
+  notion:
+    command: "npx"
+    args: ["-y", "@suekou/mcp-notion-server"]
+    env:
+      NOTION_TOKEN: "${NOTION_TOKEN}"
+  filesystem:
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "D:/mercury"
+      - "D:/cortex"
+      - "C:/Users/soumi/Documents"
+      - "C:/Users/soumi/.mercury/vault"
+  cloudflare:
+    command: "npx"
+    args: ["-y", "@cloudflare/mcp-server-cloudflare"]
+    env:
+      CLOUDFLARE_API_TOKEN: "${CLOUDFLARE_API_TOKEN}"

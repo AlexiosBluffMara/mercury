@@ -1,0 +1,14 @@
+bafa5fde | 2026-04-29 18:10:26 -0500 | docs: add Academy hackathon submission section + Kimi K2.6 integration
+8626b2be | 2026-04-29 17:21:58 -0500 | docs(README): rewrite for hackathon submission — local Ollama + Academy personas
+c8d0a36f | 2026-04-28 10:01:19 -0500 | feat(cloudrun): mercury-web failover spec + bundle narration JSON
+50423c0d | 2026-04-28 09:59:47 -0500 | feat(mercury-web/cortex): vanilla three.js viewer + Gemma narration panels
+ddc0ce83 | 2026-04-28 09:44:37 -0500 | feat(mercury-web): /cortex page wires fmri-overlay into the dashboard
+585232e1 | 2026-04-28 09:18:30 -0500 | feat(skills/fmri-overlay): R3F implementation + dispatcher default flip
+74e7bc18 | 2026-04-28 09:11:26 -0500 | fix(tools/kimi-dispatch): suppress thinking + fallback to reasoning
+684f674d | 2026-04-28 09:08:11 -0500 | docs(skills/tailnet): Pixel 9 Pro Fold onboarding guide
+7a64cde1 | 2026-04-28 09:07:53 -0500 | fix(tools/kimi-dispatch): SSE streaming + 600s timeout
+d810e6d7 | 2026-04-28 09:06:28 -0500 | chore(gitignore): ignore Kimi dispatch artifacts
+cae58eaf | 2026-04-28 09:05:41 -0500 | docs(nous): .env.example Mercury section + BENCHMARKS.md
+80038805 | 2026-04-28 09:00:41 -0500 | docs(nous): submission writeup for Nous Creative Hackathon (May 3 2026)
+62a4edd3 | 2026-04-28 09:00:33 -0500 | feat(skills): fmri-overlay, tailnet, discord-bot for the Nous submission
+982794c2 | 2026-04-28 08:45:05 -0500 | feat(skills): brain-viz creative skill + Kimi dispatch helper

@@ -1,0 +1,3800 @@
+# Kimi-tagged Mercury commits (full diffs)
+# Generated 2026-04-30T08:13:12-05:00
+# Filter: --grep='kimi|moonshot|k2\.6' (case-insensitive) on D:/mercury main branch
+
+================================================================
+bafa5fde2e0012d9cb1d80988c4b9f41887aa70a
+Soumit Lahiri <soumitlahiri@philanthropytraders.com>
+2026-04-29 18:10:26 -0500
+
+docs: add Academy hackathon submission section + Kimi K2.6 integration
+
+
+
+ README.md | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+================================================================
+585232e1781000e1f3f77d2bbc14268346092f6b
+Soumit Lahiri <soumitlahiri@philanthropytraders.com>
+2026-04-28 09:18:30 -0500
+
+feat(skills/fmri-overlay): R3F implementation + dispatcher default flip
+
+Four files implement the fmri-overlay skill end-to-end:
+
+- colormaps.ts          5-stop linear-interpolated rdbu/viridis/hot LUTs
+- shaders.ts            WebGL2 vertex + fragment shaders for the 3D BOLD
+                        sample lookup and LUT mapping
+- cortex-overlay.tsx    React Three Fiber <Cortex> component — loads the
+                        fsaverage5 GLB, builds a Data3DTexture from the
+                        trace, mounts a ShaderMaterial, ticks uTime each
+                        frame, hot-swaps colormap and range without
+                        rebuilding the material, disposes on unmount
+- cortex-overlay.test.tsx  vitest checks for LUT length, color endpoints,
+                        alpha=255 invariant, monotonic interpolation
+
+tools/kimi_dispatch.py: switch DEFAULT_MODEL_CODER to moonshotai/kimi-k2
+(non-thinking) instead of kimi-k2.6.  Verified on this stack: K2.6 burns
+the token budget on hidden chain-of-thought (~/usr/bin/bash.025-0.029 wasted, 0-byte
+content) regardless of reasoning_effort setting; K2 returns clean code at
+~/usr/bin/bash.0065 per 6000-token spec.  Override via --model when you really want
+K2.6's 256K context.
+
+
+ skills/creative/fmri-overlay/colormaps.ts          |  64 +++++++++
+ .../creative/fmri-overlay/cortex-overlay.test.tsx  |  36 +++++
+ skills/creative/fmri-overlay/cortex-overlay.tsx    | 145 +++++++++++++++++++++
+ skills/creative/fmri-overlay/shaders.ts            |  42 ++++++
+ tools/kimi_dispatch.py                             |   8 +-
+ 5 files changed, 294 insertions(+), 1 deletion(-)
+
+================================================================
+74e7bc189036e0d8e20d7293a5b6f8158b9a3112
+Soumit Lahiri <soumitlahiri@philanthropytraders.com>
+2026-04-28 09:11:26 -0500
+
+fix(tools/kimi-dispatch): suppress thinking + fallback to reasoning
+
+Kimi K2.6 is a reasoning model.  Without effort control, it spent the
+entire 6000-token budget on hidden chain-of-thought and returned empty
+content (~$0.029 wasted on a no-op generation).  Two fixes:
+
+- Pass reasoning_effort='low' (and the nested reasoning.effort form for
+  routers that prefer that shape) so the model commits most tokens to the
+  actual answer.
+
+- In the SSE parser, also capture delta.reasoning / delta.reasoning_content
+  alongside delta.content.  If content ends up empty after streaming, the
+  reasoning text is surfaced with a clear warning so the caller can see
+  what happened instead of staring at a 0-byte file.
+
+
+ tools/kimi_dispatch.py | 50 ++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 40 insertions(+), 10 deletions(-)
+
+================================================================
+7a64cde1f631c5fff408326f9aa76b030de08621
+Soumit Lahiri <soumitlahiri@philanthropytraders.com>
+2026-04-28 09:07:53 -0500
+
+fix(tools/kimi-dispatch): SSE streaming + 600s timeout
+
+Earlier non-streaming dispatch hit Python's 300s SSL read timeout on a
+~6000-token Kimi K2.6 generation through Nous Portal. Two changes:
+
+- Switch to OpenAI-compatible SSE streaming. Halves wall-clock for long
+  outputs (no buffering on the server side) and lets us print progress
+  dots to stderr during generation.
+
+- Bump urlopen timeout to 600s as a safety margin.
+
+The function still returns the same non-streaming shape, so callers
+don't need to know the stream happened. Pass stream=False to revert
+per-call.
+
+
+ tools/kimi_dispatch.py | 53 ++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 49 insertions(+), 4 deletions(-)
+
+================================================================
+d810e6d71a1d84c94ae79c5e368eaba4bd9ea15b
+Soumit Lahiri <soumitlahiri@philanthropytraders.com>
+2026-04-28 09:06:28 -0500
+
+chore(gitignore): ignore Kimi dispatch artifacts
+
+tools/kimi_dispatch.py writes .kimi_spec.md / .kimi_response.md alongside
+the file under construction. These are temporary handoff artifacts and
+shouldn't be committed.
+
+
+ .gitignore | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+================================================================
+cae58eafbc4a96ed5d4a24dc3c37b6364bb4c5a2
+Soumit Lahiri <soumitlahiri@philanthropytraders.com>
+2026-04-28 09:05:41 -0500
+
+docs(nous): .env.example Mercury section + BENCHMARKS.md
+
+.env.example: add a Nous-Portal-first preamble at the top documenting the
+NOUS_API_KEY env var and the ~/.mercury/config.yaml block users need.  The
+upstream Hermes documentation below stays untouched.
+
+BENCHMARKS.md: measured numbers across the four-brain stack — Mercury CLI
+cold start (<1s), Kimi K2.6 dispatch round-trip (~3.2s, $0.0015), local
+Gemma 4 throughput, brain-pipeline end-to-end (~5–7min for 50s of video,
+TRIBE v2-bound), fmri-overlay frame times (<1ms), and the model-comparison
+matrix that justifies why Kimi is the default coder + Hermes 4 the planner.
+
+
+ .env.example  |  20 +++++++++
+ BENCHMARKS.md | 131 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 151 insertions(+)
+
+================================================================
+982794c20df9d0eee260f70e206115114c0b9dfa
+Soumit Lahiri <soumitlahiri@philanthropytraders.com>
+2026-04-28 08:45:05 -0500
+
+feat(skills): brain-viz creative skill + Kimi dispatch helper
+
+The brain-viz skill is the centerpiece for the Nous Research Hermes Agent
+Creative Hackathon (May 3, 2026). It composes cortex-bridge (TRIBE v2 BOLD
+prediction) + three-js-component (R3F viewer) + three-tier Gemma narration
+into one user-facing capability: video → 3D cortex with explanation, in one
+URL.
+
+The skill itself is declarative — the implementation already exists across
+existing skills and Cortex's webapp. SKILL.md is the composition contract.
+
+tools/kimi_dispatch.py is the Claude→Kimi handoff helper used in the new
+meta-workflow (Claude as tech lead, Kimi K2.6 as senior dev, Hermes 4 405B
+as planner, local Gemma 4 as muscle). Reads NOUS_API_KEY from env or
+Windows registry, posts directly to inference-api.nousresearch.com/v1, and
+returns content with ### FILE: markers so the orchestrator can split it.
+
+CLAUDE.md updated to reflect the new defaults: nous-portal/kimi-k2.6 as
+the primary inference path, Hermes 4 405B as the planner, with the
+existing Copilot / Gemini / Gemma 4 stack relegated to fallbacks.
+
+
+ CLAUDE.md                          |  57 +++++++---
+ skills/creative/brain-viz/SKILL.md | 211 +++++++++++++++++++++++++++++++++++++
+ tools/kimi_dispatch.py             | 182 ++++++++++++++++++++++++++++++++
+ 3 files changed, 436 insertions(+), 14 deletions(-)
+
+================================================================
+facea845594a5c1dd9472843a49cfb0d5d83ec60
+Ash Rowan Vale 🌿 <ash@users.noreply.github.com>
+2026-04-25 05:25:09 -0700
+
+fix(auxiliary): retry without temperature when any provider rejects it
+
+Universal reactive fix for 'HTTP 400: Unsupported parameter: temperature'
+across all providers/models — not just Codex Responses.
+
+The same backend can accept temperature for some models and reject it for
+others (e.g. gpt-5.4 accepts but gpt-5.5 rejects on the same OpenAI
+endpoint; similar patterns on Copilot, OpenRouter reasoning routes, and
+Anthropic Opus 4.7+ via OAI-compat). An allow/deny-list by model name does
+not scale.
+
+call_llm / async_call_llm now detect the concrete 'unsupported parameter:
+temperature' 400 and transparently retry once without temperature. Kimi's
+server-managed omission and Opus 4.7+'s proactive strip stay in place —
+this is the safety net for everything else.
+
+Changes:
+- agent/auxiliary_client.py: add _is_unsupported_temperature_error helper;
+  wire into both sync and async call_llm paths before the existing
+  max_tokens/payment/auth retry ladder
+- tests/agent/test_unsupported_temperature_retry.py: 19 tests covering
+  detector phrasings, sync + async retry, no-retry-without-temperature,
+  and non-temperature 400s not triggering the retry
+
+Builds on PR #15620 (codex_responses fallback) which stripped temperature
+up front for that one api_mode. This PR closes the gap for every other
+provider/model combo via reactive retry.
+
+Credit: retry approach and detector originate from @BlueBirdBack's PR #15578.
+
+Co-authored-by: BlueBirdBack <BlueBirdBack@users.noreply.github.com>
+
+
+ agent/auxiliary_client.py                         |  79 +++++++-
+ tests/agent/test_unsupported_temperature_retry.py | 237 ++++++++++++++++++++++
+ 2 files changed, 315 insertions(+), 1 deletion(-)
+
+================================================================
+d58b305adfdb5697c0ff268696040b0505d40892
+Teknium <teknium1@gmail.com>
+2026-04-24 16:08:22 -0700
+
+refactor(deepseek-reasoning): consolidate detection into helpers + regression tests
+
+Extracts _needs_kimi_tool_reasoning() for symmetry with the existing
+_needs_deepseek_tool_reasoning() helper, so _copy_reasoning_content_for_api
+uses the same detection logic as _build_assistant_message. Future changes
+to either provider's signals now only touch one function.
+
+Adds tests/run_agent/test_deepseek_reasoning_content_echo.py covering:
+- All 3 DeepSeek detection signals (provider, model, host)
+- Poisoned history replay (empty string fallback)
+- Plain assistant turns NOT padded
+- Explicit reasoning_content preserved
+- Reasoning field promoted to reasoning_content
+- Existing Kimi/Moonshot detection intact
+- Non-thinking providers left alone
+
+21 tests, all pass.
+
+
+ run_agent.py                                       |  40 ++--
+ .../test_deepseek_reasoning_content_echo.py        | 213 +++++++++++++++++++++
+ 2 files changed, 238 insertions(+), 15 deletions(-)
+
+================================================================
+93a2d6b307674fc9975538cd7a2f903068211c95
+chen1749144759 <chenzeshi@live.com>
+2026-04-25 05:55:15 +0800
+
+fix: add DeepSeek reasoning_content echo for tool-call messages
+
+DeepSeek V4 thinking mode requires reasoning_content on every
+assistant message that includes tool_calls. When this field is
+missing from persisted history, replaying the session causes
+HTTP 400: 'The reasoning_content in the thinking mode must be
+passed back to the API.'
+
+Two-part fix (refs #15250):
+
+1. _copy_reasoning_content_for_api: Merge the Kimi-only and
+   DeepSeek detection into a single needs_tool_reasoning_echo
+   check. This handles already-poisoned persisted sessions by
+   injecting an empty reasoning_content on replay.
+
+2. _build_assistant_message: Store reasoning_content='' on new
+   DeepSeek tool-call messages at creation time, preventing
+   future session poisoning at the source.
+
+Additional fix:
+3. _handle_max_iterations: Add missing call to
+   _copy_reasoning_content_for_api in the max-iterations flush
+   path (previously only main loop and flush_memories had it).
+
+Detection covers:
+- provider == 'deepseek'
+- model name containing 'deepseek' (case-insensitive)
+- base URL matching api.deepseek.com (for custom provider)
+
+
+ run_agent.py | 33 ++++++++++++++++++++++++++++++---
+ 1 file changed, 30 insertions(+), 3 deletions(-)
+
+================================================================
+7c3e5706d8968a6741b68c93574238c19368a345
+bsgdigital <bsgdigital@users.noreply.github.com>
+2026-04-24 07:24:47 -0700
+
+fix(bedrock): Bedrock-aware _rebuild_anthropic_client helper on interrupt
+
+Three interrupt-recovery sites in run_agent.py rebuilt self._anthropic_client
+with build_anthropic_client(self._anthropic_api_key, ...) unconditionally.
+When provider=bedrock + api_mode=anthropic_messages (AnthropicBedrock SDK
+path), self._anthropic_api_key is the sentinel 'aws-sdk' — build_anthropic_client
+doesn't accept that and the rebuild either crashed or produced a non-functional
+client.
+
+Extract a _rebuild_anthropic_client() helper that dispatches to
+build_anthropic_bedrock_client(region) when provider='bedrock', falling back
+to build_anthropic_client() for native Anthropic and other anthropic_messages
+providers (MiniMax, Kimi, Alibaba, etc.). Three inline rebuild sites now call
+the helper.
+
+Partial salvage of #14680 by @bsgdigital — only the _rebuild_anthropic_client
+helper. The normalize_model_name Bedrock-prefix piece was subsumed by #14664,
+and the aux client aws_sdk branch was subsumed by #14770 (both in the same
+salvage PR as this commit).
+
+
+ run_agent.py | 44 +++++++++++++++++++++++---------------------
+ 1 file changed, 23 insertions(+), 21 deletions(-)
+
+================================================================
+1eb29e6452bb5e8f03fbc58c15c20f094fd5b0a1
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-24 04:58:46 -0700
+
+fix(opencode): derive api_mode from target model, not stale config default (#15106)
+
+/model kimi-k2.6 on opencode-zen (or glm-5.1 on opencode-go) returned OpenCode's
+website 404 HTML page when the user's persisted model.default was a Claude or
+MiniMax model. The switched-to chat_completions request hit
+https://opencode.ai/zen (or /zen/go) with no /v1 suffix.
+
+Root cause: resolve_runtime_provider() computed api_mode from
+model_cfg.get('default') instead of the model being requested. With a Claude
+default, it resolved api_mode=anthropic_messages, stripped /v1 from base_url
+(required for the Anthropic SDK), then switch_model()'s opencode_model_api_mode
+override flipped api_mode back to chat_completions without restoring /v1.
+
+Fix: thread an optional target_model kwarg through resolve_runtime_provider
+and _resolve_runtime_from_pool_entry. When the caller is performing an explicit
+mid-session model switch (i.e. switch_model()), the target model drives both
+api_mode selection and the conditional /v1 strip. Other callers (CLI init,
+gateway init, cron, ACP, aux client, delegate, account_usage, tui_gateway) pass
+nothing and preserve the existing config-default behavior.
+
+Regression tests added in test_model_switch_opencode_anthropic.py use the REAL
+resolver (not a mock) to guard the exact Quentin-repro scenario. Existing tests
+that mocked resolve_runtime_provider with 'lambda requested:' had their mock
+signatures widened to '**kwargs' to accept the new kwarg.
+
+ hermes_cli/model_switch.py                         |  10 +-
+ hermes_cli/runtime_provider.py                     |  29 ++++-
+ .../test_model_switch_custom_providers.py          |   2 +-
+ .../test_model_switch_opencode_anthropic.py        | 123 +++++++++++++++++++++
+ tests/hermes_cli/test_ollama_cloud_auth.py         |   4 +-
+ 5 files changed, 160 insertions(+), 8 deletions(-)
+
+================================================================
+e26c4f0e343536d0b39f7fda076d6bc11e210863
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-23 16:11:57 -0700
+
+fix(kimi,mcp): Moonshot schema sanitizer + MCP schema robustness (#14805)
+
+Fixes a broader class of 'tools.function.parameters is not a valid
+moonshot flavored json schema' errors on Nous / OpenRouter aggregators
+routing to moonshotai/kimi-k2.6 with MCP tools loaded.
+
+## Moonshot sanitizer (agent/moonshot_schema.py, new)
+
+Model-name-routed (not base-URL-routed) so Nous / OpenRouter users are
+covered alongside api.moonshot.ai.  Applied in
+ChatCompletionsTransport.build_kwargs when is_moonshot_model(model).
+
+Two repairs:
+1. Fill missing 'type' on every property / items / anyOf-child schema
+   node (structural walk — only schema-position dicts are touched, not
+   container maps like properties/$defs).
+2. Strip 'type' at anyOf parents; Moonshot rejects it.
+
+## MCP normalizer hardened (tools/mcp_tool.py)
+
+Draft-07 $ref rewrite from PR #14802 now also does:
+- coerce missing / null 'type' on object-shaped nodes (salvages #4897)
+- prune 'required' arrays to names that exist in 'properties'
+  (salvages #4651; Gemini 400s on dangling required)
+- apply recursively, not just top-level
+
+These repairs are provider-agnostic so the same MCP schema is valid on
+OpenAI, Anthropic, Gemini, and Moonshot in one pass.
+
+## Crash fix: safe getattr for Tool.inputSchema
+
+_convert_mcp_schema now uses getattr(t, 'inputSchema', None) so MCP
+servers whose Tool objects omit the attribute entirely no longer abort
+registration (salvages #3882).
+
+## Validation
+
+- tests/agent/test_moonshot_schema.py: 27 new tests (model detection,
+  missing-type fill, anyOf-parent strip, non-mutation, real-world MCP
+  shape)
+- tests/tools/test_mcp_tool.py: 7 new tests (missing / null type,
+  required pruning, nested repair, safe getattr)
+- tests/agent/transports/test_chat_completions.py: 2 new integration
+  tests (Moonshot route sanitizes, non-Moonshot route doesn't)
+- Targeted suite: 49 passed
+- E2E via execute_code with a realistic MCP tool carrying all three
+
+================================================================
+b61e6c6145f29c82557d474653d191d0b4b2924b
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-23 12:08:18 +0530
+
+feat: add provider modules + wire transport single-path
+
+Cycle 2 PR 1 (#14418). Introduces providers/ package with ProviderProfile
+ABC and auto-discovery registry, then wires ChatCompletionsTransport to
+delegate to profiles via a clean single-path method.
+
+Provider profiles (8 providers):
+- nvidia: default_max_tokens=16384
+- kimi + kimi-cn: OMIT_TEMPERATURE, thinking + top-level reasoning_effort
+- openrouter: provider_preferences, full reasoning_config passthrough
+- nous: product tags, reasoning with Nous-specific disabled omission
+- deepseek: base_url + env_vars
+- qwen-oauth: vl_high_resolution extra_body, metadata top-level api_kwargs
+
+Transport integration:
+- _build_kwargs_from_profile() replaces the entire legacy flag-based
+  assembly when provider_profile param is passed
+- Single path: no dual-execution, no overwrites, no legacy fallthrough
+- build_api_kwargs_extras() returns (extra_body, top_level) tuple to
+  handle Kimi's top-level reasoning_effort vs OpenRouter's extra_body
+
+Auth types: api_key | oauth_device_code | oauth_external | copilot | aws
+(expanded from the lossy 'oauth' to match real Hermes auth modes).
+
+64 new tests:
+- 30 profile unit tests (registry, all 8 profiles, auth types)
+- 19 transport parity tests (pin legacy flag-based behavior)
+- 15 profile wiring tests (verify profile path = legacy path)
+
+
+ agent/transports/chat_completions.py      | 114 +++++++++++-
+ providers/__init__.py                     |  61 +++++++
+ providers/base.py                         |  75 ++++++++
+ providers/deepseek.py                     |  13 ++
+ providers/kimi.py                         |  68 +++++++
+ providers/nous.py                         |  40 ++++
+ providers/nvidia.py                       |  14 ++
+ providers/openrouter.py                   |  39 ++++
+ providers/qwen.py                         |  70 +++++++
+ pyproject.toml                            |   2 +-
+ run_agent.py                              |  34 +++-
+ tests/providers/__init__.py               |   0
+ tests/providers/test_e2e_wiring.py        |  87 +++++++++
+ tests/providers/test_profile_wiring.py    | 293 ++++++++++++++++++++++++++++++
+ tests/providers/test_provider_profiles.py | 203 +++++++++++++++++++++
+ tests/providers/test_transport_parity.py  | 250 +++++++++++++++++++++++++
+
+================================================================
+39fcf1d12712f5526ebddc9f9ebb075795af73ba
+David VV <david.vv@icloud.com>
+2026-04-23 03:05:12 -0700
+
+fix(model_switch): group custom_providers by endpoint in /model picker (#9210)
+
+Multiple custom_providers entries sharing the same base_url + api_key
+are now grouped into a single picker row. A local Ollama host with
+per-model display names ("Ollama — GLM 5.1", "Ollama — Qwen3-coder",
+"Ollama — Kimi K2", "Ollama — MiniMax M2.7") previously produced four
+near-duplicate picker rows that differed only by suffix; now it appears
+as one "Ollama" row with four models.
+
+Key changes:
+- Grouping key changed from slug-by-name to (base_url, api_key). Names
+  frequently differ per model while the endpoint stays the same.
+- When the grouped endpoint matches current_base_url, the row's slug is
+  set to current_provider so picker-driven switches route through the
+  live credential pipeline (no re-resolution needed).
+- Per-model suffix is stripped from the display name ("Ollama — X" →
+  "Ollama") via em-dash / " - " separators.
+- Two groups with different api_keys at the same base_url (or otherwise
+  colliding on cleaned name) are disambiguated with a numeric suffix
+  (custom:openai, custom:openai-2) so both stay visible.
+- current_base_url parameter plumbed through both gateway call sites.
+
+Existing #8216, #11499, #13509 regressions covered (dict/list shapes
+of models:, section-3/section-4 dedup, normalized list-format entries).
+
+Salvaged from @davidvv's PR #9210 — the underlying code had diverged
+~1400 commits since that PR was opened, so this is a reconstruction of
+the same approach on current main rather than a clean cherry-pick.
+Authorship preserved via --author on this commit.
+
+Closes #9210
+
+
+ gateway/run.py                                     |   2 +
+ hermes_cli/model_switch.py                         | 107 ++++++++++-----
+ .../test_model_switch_custom_providers.py          | 145 +++++++++++++++++++++
+ 3 files changed, 225 insertions(+), 29 deletions(-)
+
+================================================================
+9eb543cafe4d19e041a49eb1b67d5fd5990c8ff4
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-22 17:33:42 -0700
+
+feat(/model): merge models.dev entries for lesser-loved providers (#14221)
+
+New and newer models from models.dev now surface automatically in
+/model (both hermes model CLI and the gateway Telegram/Discord picker)
+for a curated set of secondary providers — no Hermes release required
+when the registry publishes a new model.
+
+Primary user-visible fix: on OpenCode Go, typing '/model mimo-v2.5-pro'
+no longer silently fuzzy-corrects to 'mimo-v2-pro'. The exact match
+against the merged models.dev catalog wins.
+
+Scope (opt-in frozenset _MODELS_DEV_PREFERRED in hermes_cli/models.py):
+  opencode-go, opencode-zen, deepseek, kilocode, fireworks, mistral,
+  togetherai, cohere, perplexity, groq, nvidia, huggingface, zai,
+  gemini, google.
+
+Explicitly NOT merged:
+  - openrouter and nous (never): curated list is already a hand-picked
+    subset / Portal is source of truth.
+  - xai, xiaomi, minimax, minimax-cn, kimi-coding, kimi-coding-cn,
+    alibaba, qwen-oauth (per-project decision to keep curated-only).
+  - providers with dedicated live-endpoint paths (copilot, anthropic,
+    ai-gateway, ollama-cloud, custom, stepfun, openai-codex) — those
+    paths already handle freshness themselves.
+
+Changes:
+  - hermes_cli/models.py: add _MODELS_DEV_PREFERRED + _merge_with_models_dev
+    helper. provider_model_ids() branches on the set at its curated-fallback
+    return. Merge is models.dev-first, curated-only extras appended,
+    case-insensitive dedup, graceful fallback when models.dev is offline.
+  - hermes_cli/model_switch.py: list_authenticated_providers() calls the
+    same merge in both its code paths (PROVIDER_TO_MODELS_DEV loop +
+    HERMES_OVERLAYS loop). Picker AND validation-fallback both see
+    fresh entries.
+  - tests/hermes_cli/test_models_dev_preferred_merge.py (new): 13 tests —
+    merge-helper unit tests (empty/raise/order/dedup), opencode-go/zen
+    behavior, openrouter+nous explicitly guarded from merge.
+  - tests/hermes_cli/test_opencode_go_in_model_list.py: converted from
+    snapshot-style assertion to a behavior-based floor check, so it
+    doesn't break when models.dev publishes additional opencode-go
+    entries.
+
+Addresses a report from @pfanis via Telegram: newer Xiaomi variants
+on OpenCode Go weren't appearing in the /model picker, and /model
+was silently routing requests for new variants to older ones.
+
+
+================================================================
+8aaefec231576b1fde5f4a202e194f09bafd261b
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-22 22:41:38 +0530
+
+fix: follow-up for salvaged PR #8952
+
+- Rename provider_contracts.py -> volcengine_byteplus.py for explicitness
+- Consolidate duplicate host-to-provider mappings: provider_for_base_url()
+  now uses the canonical _URL_TO_PROVIDER from model_metadata.py instead of
+  maintaining a separate 20-entry dict
+- Add volcengine/byteplus to runtime_provider.py model-dependent base URL
+  resolution (kimi-style special case) so manually-edited configs resolve
+  the coding-plan base URL correctly
+- Remove volcengine/byteplus from _API_KEY_PROVIDER_AUX_MODELS — the
+  main-model-first design in _resolve_auto() handles these providers
+  already; entries were dead code in the normal flow
+- Add VOLCENGINE_API_KEY and BYTEPLUS_API_KEY to OPTIONAL_ENV_VARS in
+  config.py so they appear in hermes setup
+- Update docs: environment-variables.md, fallback-providers.md,
+  configuration.md
+
+
+ agent/auxiliary_client.py                          |  3 --
+ agent/model_metadata.py                            |  2 +-
+ hermes_cli/auth.py                                 |  2 +-
+ hermes_cli/config.py                               | 14 ++++++++
+ hermes_cli/main.py                                 |  2 +-
+ hermes_cli/models.py                               | 37 +++++++---------------
+ hermes_cli/providers.py                            |  2 +-
+ hermes_cli/runtime_provider.py                     |  2 +-
+ ...rovider_contracts.py => volcengine_byteplus.py} |  5 ---
+ scripts/release.py                                 |  1 +
+ tests/agent/test_auxiliary_client.py               |  7 ++--
+ website/docs/reference/environment-variables.md    |  2 ++
+ website/docs/user-guide/configuration.md           |  2 +-
+ .../docs/user-guide/features/fallback-providers.md |  2 ++
+ 14 files changed, 40 insertions(+), 43 deletions(-)
+
+================================================================
+04e039f687b84aba07919f55b8597d263dd58435
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-22 18:46:21 +0530
+
+fix: Kimi /coding thinking block survival + empty reasoning_content + block ordering
+
+Follow-up to the cherry-picked PR #13897 fix. Three issues found:
+
+1. CRITICAL: The thinking block synthesised from reasoning_content was
+   immediately stripped by the third-party signature management code
+   (Kimi is classified as _is_third_party_anthropic_endpoint). Added a
+   Kimi-specific carve-out that preserves unsigned thinking blocks while
+   still stripping Anthropic-signed blocks Kimi can't validate.
+
+2. Empty-string reasoning_content was silently dropped because the
+   truthiness check ('if reasoning_content and ...') evaluates to False
+   for ''. Changed to 'isinstance(reasoning_content, str)' so the
+   tier-3 fallback from _copy_reasoning_content_for_api (which injects
+   '' for Kimi tool-call messages with no reasoning) actually produces
+   a thinking block.
+
+3. The thinking block was appended AFTER tool_use blocks. Anthropic
+   protocol requires thinking -> text -> tool_use ordering. Changed to
+   blocks.insert(0, ...) to prepend.
+
+
+ agent/anthropic_adapter.py | 47 +++++++++++++++++++++++++++++++++++++++++-----
+ scripts/release.py         |  1 +
+ 2 files changed, 43 insertions(+), 5 deletions(-)
+
+================================================================
+2efb0eea211ae214019dac64be5b81002b942483
+Jerome <jerome@clawwork.ai>
+2026-04-22 15:18:49 +0800
+
+fix(anthropic_adapter): preserve reasoning_content on assistant tool-call messages for Kimi /coding
+
+Fixes NousResearch/hermes-agent#13848
+
+Kimi's /coding endpoint speaks the Anthropic Messages protocol but has its
+own thinking semantics: when thinking is enabled, Kimi validates message
+history and requires every prior assistant tool-call message to carry
+OpenAI-style reasoning_content.
+
+The Anthropic path never populated that field, and
+convert_messages_to_anthropic strips all Anthropic thinking blocks on
+third-party endpoints — so the request failed with HTTP 400:
+  "thinking is enabled but reasoning_content is missing in assistant
+tool call message at index N"
+
+Now, when an assistant message contains tool_calls and a
+reasoning_content string, we append a {"type": "thinking", ...} block
+to the Anthropic content so Kimi can validate the history.  This only
+affects assistant messages with tool_calls + reasoning_content; plain
+text assistant messages are unchanged.
+
+
+ agent/anthropic_adapter.py | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+================================================================
+a7d78d3bfd811d2713c837bf29ca8031ba538409
+helix4u <4317663+helix4u@users.noreply.github.com>
+2026-04-21 23:40:31 -0600
+
+fix: preserve reasoning_content on Kimi replay
+
+
+
+ gateway/run.py                    |  1 +
+ gateway/session.py                |  5 +++
+ hermes_state.py                   | 22 +++++++--
+ run_agent.py                      | 41 +++++++++++++----
+ tests/gateway/test_session.py     |  3 ++
+ tests/run_agent/test_run_agent.py | 93 +++++++++++++++++++++++++++++++++++++++
+ tests/test_hermes_state.py        | 38 ++++++++++++++--
+ 7 files changed, 187 insertions(+), 16 deletions(-)
+
+================================================================
+410f33a728bbe97b4853e6f411c8a1d835d7de9c
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-21 21:19:14 -0700
+
+fix(kimi): don't send Anthropic thinking to api.kimi.com/coding (#13826)
+
+Kimi's /coding endpoint speaks the Anthropic Messages protocol but has
+its own thinking semantics: when thinking.enabled is sent, Kimi validates
+the history and requires every prior assistant tool-call message to carry
+OpenAI-style reasoning_content. The Anthropic path never populates that
+field, and convert_messages_to_anthropic strips Anthropic thinking blocks
+on third-party endpoints — so after one tool-calling turn the next request
+fails with:
+
+  HTTP 400: thinking is enabled but reasoning_content is missing in
+  assistant tool call message at index N
+
+Kimi on chat_completions handles thinking via extra_body in
+ChatCompletionsTransport (#13503). On the Anthropic route, drop the
+parameter entirely and let Kimi drive reasoning server-side.
+
+build_anthropic_kwargs now gates the reasoning_config -> thinking block
+on not _is_kimi_coding_endpoint(base_url).
+
+Tests: 8 new parametric tests cover /coding, /coding/v1, /coding/anthropic,
+/coding/ (trailing slash), explicit disabled, other third-party endpoints
+still getting thinking (MiniMax), native Anthropic unaffected, and the
+non-/coding Kimi root route.
+
+ agent/anthropic_adapter.py                         |  16 ++-
+ tests/agent/test_kimi_coding_anthropic_thinking.py | 115 +++++++++++++++++++++
+ 2 files changed, 130 insertions(+), 1 deletion(-)
+
+================================================================
+83d86ce3442d688282c182ac282610c067e65056
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-21 20:48:20 -0700
+
+feat: add ChatCompletionsTransport + wire all default paths
+
+Third concrete transport — handles the default 'chat_completions' api_mode used
+by ~16 OpenAI-compatible providers (OpenRouter, Nous, NVIDIA, Qwen, Ollama,
+DeepSeek, xAI, Kimi, custom, etc.). Wires build_kwargs + validate_response to
+production paths.
+
+Based on PR #13447 by @kshitijk4poor, with fixes:
+- Preserve tool_call.extra_content (Gemini thought_signature) via
+  ToolCall.provider_data — the original shim stripped it, causing 400 errors
+  on multi-turn Gemini 3 thinking requests.
+- Preserve reasoning_content distinctly from reasoning (DeepSeek/Moonshot) so
+  the thinking-prefill retry check (_has_structured) still triggers.
+- Port Kimi/Moonshot quirks (32000 max_tokens, top-level reasoning_effort,
+  extra_body.thinking) that landed on main after the original PR was opened.
+- Keep _qwen_prepare_chat_messages_inplace alive and call it through the
+  transport when sanitization already deepcopied (avoids a second deepcopy).
+- Skip the back-compat SimpleNamespace shim in the main normalize loop — for
+  chat_completions, response.choices[0].message is already the right shape
+  with .content/.tool_calls/.reasoning/.reasoning_content/.reasoning_details
+  and per-tool-call .extra_content from the OpenAI SDK.
+
+run_agent.py: -239 lines in _build_api_kwargs default branch extracted to the
+transport. build_kwargs now owns: codex-field sanitization, Qwen portal prep,
+developer role swap, provider preferences, max_tokens resolution (ephemeral >
+user > NVIDIA 16384 > Qwen 65536 > Kimi 32000 > anthropic_max_output), Kimi
+reasoning_effort + extra_body.thinking, OpenRouter/Nous/GitHub reasoning,
+Nous product attribution tags, Ollama num_ctx, custom-provider think=false,
+Qwen vl_high_resolution_images, request_overrides.
+
+39 new transport tests (8 build_kwargs, 5 Kimi, 4 validate, 4 normalize
+including extra_content regression, 3 cache stats, 3 basic). Tests/run_agent/
+targeted suite passes (885/885 + 15 skipped; the 1 remaining failure is the
+test_concurrent_interrupt flake present on origin/main).
+
+
+ agent/transports/__init__.py                    |   4 +
+ agent/transports/chat_completions.py            | 387 ++++++++++++++++++++++++
+ run_agent.py                                    | 330 ++++++--------------
+ tests/agent/transports/test_chat_completions.py | 349 +++++++++++++++++++++
+ 4 files changed, 831 insertions(+), 239 deletions(-)
+
+================================================================
+b2ba351380001ba5766764700dfd570dbd843a2c
+Teknium <teknium1@gmail.com>
+2026-04-21 19:42:33 -0700
+
+fix(kimi): reconcile sk-kimi- routing with Anthropic SDK URL semantics
+
+Follow-ups after salvaging xiaoqiang243's kimi-for-coding patches:
+
+- KIMI_CODE_BASE_URL: drop trailing /v1 (was /coding/v1).
+  The /coding endpoint speaks Anthropic Messages, and the Anthropic SDK
+  appends /v1/messages internally. /coding/v1 + SDK suffix produced
+  /coding/v1/v1/messages (a 404). /coding + SDK suffix now yields
+  /coding/v1/messages correctly.
+- kimi-coding ProviderConfig: keep legacy default api.moonshot.ai/v1 so
+  non-sk-kimi- moonshot keys still authenticate. sk-kimi- keys are
+  already redirected to api.kimi.com/coding via _resolve_kimi_base_url.
+- doctor.py: update Kimi UA to claude-code/0.1.0 (was KimiCLI/1.30.0)
+  and rewrite /coding base URLs to /coding/v1 for the /models health
+  check (Anthropic surface has no /models).
+- test_kimi_env_vars: accept KIMI_CODING_API_KEY as a secondary env var.
+
+E2E verified:
+  sk-kimi-<key>  → https://api.kimi.com/coding/v1/messages (Anthropic)
+  sk-<legacy>    → https://api.moonshot.ai/v1/chat/completions (OpenAI)
+  UA: claude-code/0.1.0, x-api-key: <sk-kimi-*>
+
+
+ hermes_cli/auth.py                         | 17 +++++++++++++----
+ hermes_cli/doctor.py                       | 12 ++++++++----
+ tests/hermes_cli/test_api_key_providers.py |  6 +++++-
+ 3 files changed, 26 insertions(+), 9 deletions(-)
+
+================================================================
+6caf8bd994b53a3cd5f0390fbad41b9abfef276f
+王强 <wangqiang@wangqiangdeMac-mini.local>
+2026-04-18 23:01:53 +0800
+
+fix: Enhance Kimi Coding API mode detection and User-Agent
+
+
+
+ hermes_cli/model_switch.py |  1 +
+ hermes_cli/providers.py    | 12 ++++++++++++
+ run_agent.py               |  4 ++--
+ 3 files changed, 15 insertions(+), 2 deletions(-)
+
+================================================================
+2a026eb76279f84cc48f00c44002d4b95da950eb
+王强 <wangqiang@wangqiangdeMac-mini.local>
+2026-04-18 22:55:36 +0800
+
+fix: Update Kimi Coding API endpoint and User-Agent
+
+
+
+ agent/auxiliary_client.py | 10 +++++-----
+ hermes_cli/auth.py        |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+================================================================
+46d680125e3d29af439491ed9a0b03b8e4559653
+王强 <wangqiang@wangqiangdeMac-mini.local>
+2026-04-18 17:23:12 +0800
+
+fix(kimi-coding): set anthropic_messages api_mode for /coding endpoint
+
+
+
+ tools/delegate_tool.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+================================================================
+bad5471409a53bbc0d764176b62b7acf321c43ef
+王强 <wangqiang@wangqiangdeMac-mini.local>
+2026-04-18 08:09:41 +0800
+
+fix(kimi-coding): add KIMI_CODING_API_KEY fallback + api_mode detection for /coding endpoint
+
+
+
+ hermes_cli/auth.py             | 2 +-
+ hermes_cli/runtime_provider.py | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+================================================================
+fd403854b9c88e52bcd08ed1585b70826608c9b3
+王强 <wangqiang@wangqiangdeMac-mini.local>
+2026-04-18 08:01:14 +0800
+
+fix: auto-detect anthropic_messages mode for Kimi /coding/v1 endpoints
+
+
+
+ hermes_cli/runtime_provider.py | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+================================================================
+de181dfd22faeef0ae5402eff5ab8488f02b0ebf
+王强 <wangqiang@wangqiangdeMac-mini.local>
+2026-04-14 21:00:30 +0800
+
+fix: add User-Agent claude-code/0.1.0 for Kimi /coding endpoint
+
+- Add _is_kimi_coding_endpoint() to detect Kimi coding API
+- Place Kimi check BEFORE _requires_bearer_auth to ensure User-Agent header is set
+- Without this header, Kimi returns 403 on /coding/v1/messages
+- Fixes kimi-2.5, kimi-for-coding, kimi-k2.6-code-preview all returning 403
+
+
+ agent/anthropic_adapter.py | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+================================================================
+5504ee8de8a2ad4fc444ee4d4a9ed7f95bff578a
+brooklyn! <brooklyn.bb.nicholson@gmail.com>
+2026-04-21 18:12:59 -0500
+
+Merge pull request #13715 from NousResearch/bb/tui-markdown-tilde-subscript
+
+fix(tui): don't swallow Kimi/Qwen ~! ~? kaomoji as subscript spans
+
+ ui-tui/src/__tests__/markdown.test.ts | 30 ++++++++++++++++++++++++++++++
+ ui-tui/src/components/markdown.tsx    | 11 +++++++++--
+ 2 files changed, 39 insertions(+), 2 deletions(-)
+
+================================================================
+43eb1153e9c280beaa26081490a8dc9103c250a0
+Brooklyn Nicholson <brooklyn.bb.nicholson@gmail.com>
+2026-04-21 17:34:48 -0500
+
+fix(tui): don't swallow Kimi/Qwen ~! ~? kaomoji as subscript spans
+
+The inline markdown regex had `~([^~\s][^~]*?)~` for Pandoc-style subscript
+(H~2~O, CO~2~). On models that decorate prose with kaomoji like `thing ~!`
+and `cool ~?` — Kimi especially — the opener `~!` paired with the next
+stray `~` on the line and dim-formatted everything between them with a
+leading `_` character, mangling markdown output.
+
+Tighten the pattern to short alphanumeric-only content (`~[A-Za-z0-9]{1,8}~`)
+since real subscript never contains punctuation, spaces, or long runs.
+Same tightening applied to stripInlineMarkup so width measurement stays
+consistent. Classic CLI was unaffected because it renders these literally.
+
+
+ ui-tui/src/__tests__/markdown.test.ts | 30 ++++++++++++++++++++++++++++++
+ ui-tui/src/components/markdown.tsx    | 11 +++++++++--
+ 2 files changed, 39 insertions(+), 2 deletions(-)
+
+================================================================
+432772dbdf63eae379b76b3811c51284c36bb817
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-21 06:42:32 -0700
+
+fix(cache): surface cache-hit telemetry for all providers, not just Anthropic-wire (#13543)
+
+The 💾 Cache footer was gated on `self._use_prompt_caching`, which is
+only True for Anthropic marker injection (native Anthropic, OpenRouter
+Claude, Anthropic-wire gateways, Qwen on OpenCode/Alibaba). Providers
+with automatic server-side prefix caching — OpenAI, Kimi, DeepSeek,
+Qwen on OpenRouter — return `prompt_tokens_details.cached_tokens` too,
+but users couldn't see their cache % because the display path never
+fired for them. Result: people couldn't tell their cache was working or
+broken without grepping agent.log.
+
+`canonical_usage` from `normalize_usage()` already unifies all three
+API shapes (Anthropic / Codex Responses / OpenAI chat completions) into
+`cache_read_tokens` and `cache_write_tokens`. Drop the gate and read
+from there — now the footer fires whenever the provider reported any
+cached or written tokens, regardless of whether hermes injected markers.
+
+Also removes duplicated branch-per-API-shape extraction code.
+
+ run_agent.py | 35 ++++++++++++++++++++---------------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
+
+================================================================
+5e0eed470fe8c4d8a4e6bd1f66365acf2a1f3e5d
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-21 06:40:58 -0700
+
+fix(cache): enable prompt caching for Qwen on OpenCode/OpenCode-Go/Alibaba (#13528)
+
+Qwen models on OpenCode, OpenCode Go, and direct DashScope accept
+Anthropic-style cache_control markers on OpenAI-wire chat completions,
+but hermes only injected markers for Claude-named models. Result: zero
+cache hits on every turn, full prompt re-billed — a community user
+reported burning through their OpenCode Go subscription on Qwen3.6.
+
+Extend _anthropic_prompt_cache_policy to return (True, False) — envelope
+layout, not native — for the Alibaba provider family when the model name
+contains 'qwen'. Envelope layout places markers on inner content blocks
+(matching pi-mono's 'alibaba' cacheControlFormat) and correctly skips
+top-level markers on tool-role messages (which OpenCode rejects).
+
+Non-Qwen models on these providers (GLM, Kimi) keep their existing
+behaviour — they have automatic server-side caching and don't need
+client markers.
+
+Upstream reference: pi-mono #3392 / #3393 documented this contract for
+opencode-go Qwen models.
+
+Adds 7 regression tests covering Qwen3.5/3.6/coder on each affected
+provider plus negative cases for GLM/Kimi/OpenRouter-Qwen.
+
+ run_agent.py                                       | 27 +++++++-
+ .../test_anthropic_prompt_cache_policy.py          | 80 ++++++++++++++++++++++
+ 2 files changed, 106 insertions(+), 1 deletion(-)
+
+================================================================
+063bc3c1e2e76c7d46bad6f9ef3f6244bd50efc4
+Kian Meng <xjtumj@gmail.com>
+2026-04-20 19:46:24 +0000
+
+fix(kimi): send max_tokens, reasoning_effort, and thinking for Kimi/Moonshot
+
+Kimi/Moonshot endpoints require explicit parameters that Hermes was not
+sending, causing 'Response truncated due to output length limit' errors
+and inconsistent reasoning behavior.
+
+Root cause analysis against Kimi CLI source (MoonshotAI/kimi-cli,
+packages/kosong/src/kosong/chat_provider/kimi.py):
+
+1. max_tokens: Kimi's API defaults to a very low value when omitted.
+   Reasoning tokens share the output budget — the model exhausts it on
+   thinking alone.  Send 32000, matching Kimi CLI's generate() default.
+
+2. reasoning_effort: Kimi CLI sends this as a top-level parameter (not
+   inside extra_body).  Hermes was not sending it at all because
+   _supports_reasoning_extra_body() returns False for non-OpenRouter
+   endpoints.
+
+3. extra_body.thinking: Kimi CLI uses with_thinking() which sets
+   extra_body.thinking={"type":"enabled"} alongside reasoning_effort.
+   This is a separate control from the OpenAI-style reasoning extra_body
+   that Hermes sends for OpenRouter/GitHub.  Without it, the Kimi gateway
+   may not activate reasoning mode correctly.
+
+Covers api.kimi.com (Kimi Code) and api.moonshot.ai/cn (Moonshot).
+
+Tests: 6 new test cases for max_tokens, reasoning_effort, and
+extra_body.thinking under various configs.
+
+
+ run_agent.py                      | 46 +++++++++++++++++++++++
+ tests/run_agent/test_run_agent.py | 78 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 124 insertions(+)
+
+================================================================
+4fea1769d2968a3c9ab2557c9839db0b85e2aba3
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-21 01:56:55 -0700
+
+feat(opencode-go): add Kimi K2.6 and Qwen3.5/3.6 Plus to curated catalog (#13429)
+
+OpenCode Go's published model list (opencode.ai/docs/go) includes kimi-k2.6,
+qwen3.5-plus, and qwen3.6-plus, but Hermes' curated lists didn't carry them.
+When the live /models probe fails during `hermes model`, users fell back to
+the stale curated list and had to type newer models via 'Enter custom model
+name'.
+
+Adds kimi-k2.6 (now first in the Go list), qwen3.6-plus, and qwen3.5-plus
+to both the model picker (hermes_cli/models.py) and setup defaults
+(hermes_cli/setup.py). All routed through the existing opencode-go
+chat_completions path — no api_mode changes needed.
+
+ hermes_cli/models.py                               | 3 +++
+ hermes_cli/setup.py                                | 2 +-
+ tests/hermes_cli/test_opencode_go_in_model_list.py | 2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
+
+================================================================
+b341b19fff3518e7ea48ba3ac8bedaf7fe07fb54
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-21 01:34:50 -0700
+
+fix(auth): hermes auth remove sticks for shell-exported env vars (#13418)
+
+Removing an env-seeded credential only cleared ~/.hermes/.env and the
+current process's os.environ, leaving shell-exported vars (shell profile,
+systemd EnvironmentFile, launchd plist) to resurrect the entry on the
+next load_pool() call.  This matched the pre-#11485 codex behaviour.
+
+Now we suppress env:<VAR> in auth.json on remove, gate _seed_from_env()
+behind is_source_suppressed(), clear env:* suppressions on auth add,
+and print a diagnostic pointing at the shell when the var lives there.
+
+Applies to every env:* seeded credential (xai, deepseek, moonshot, zai,
+nvidia, openrouter, anthropic, etc.), not just xai.
+
+Reported by @teknium1 from community user 'Artificial Brain' — couldn't
+remove their xAI key via hermes auth remove.
+
+ agent/credential_pool.py               |  14 +++
+ hermes_cli/auth_commands.py            |  62 +++++++++++-
+ tests/hermes_cli/test_auth_commands.py | 174 +++++++++++++++++++++++++++++++++
+ 3 files changed, 248 insertions(+), 2 deletions(-)
+
+================================================================
+62cbeb63678e75f0975e936ad2a88c7913468176
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-20 23:20:33 -0700
+
+test: stop testing mutable data — convert change-detectors to invariants (#13363)
+
+Catalog snapshots, config version literals, and enumeration counts are data
+that changes as designed. Tests that assert on those values add no
+behavioral coverage — they just break CI on every routine update and cost
+engineering time to 'fix.'
+
+Replace with invariants where one exists, delete where none does.
+
+Deleted (pure snapshots):
+- TestMinimaxModelCatalog (3 tests): 'MiniMax-M2.7 in models' et al
+- TestGeminiModelCatalog: 'gemini-2.5-pro in models', 'gemini-3.x in models'
+- test_browser_camofox_state::test_config_version_matches_current_schema
+  (docstring literally said it would break on unrelated bumps)
+
+Relaxed (keep plumbing check, drop snapshot):
+- Xiaomi / Arcee / Kimi moonshot / Kimi coding / HuggingFace static lists:
+  now assert 'provider exists and has >= 1 entry' instead of specific names
+- HuggingFace main/models.py consistency test: drop 'len >= 6' floor
+
+Dynamicized (follow source, not a literal):
+- 3x test_config.py migration tests: raw['_config_version'] ==
+  DEFAULT_CONFIG['_config_version'] instead of hardcoded 21
+
+Fixed stale tests against intentional behavior changes:
+- test_insights::test_gateway_format_hides_cost: name matches new behavior
+  (no dollar figures); remove contradicting '$' in text assertion
+- test_config::prefers_api_then_url_then_base_url: flipped per PR #9332;
+  rename + update to base_url > url > api
+- test_anthropic_adapter: relax assert_called_once() (xdist-flaky) to
+  assert called — contract is 'credential flowed through'
+- test_interrupt_propagation: add provider/model/_base_url to bare-agent
+  fixture so the stale-timeout code path resolves
+
+Fixed stale integration tests against opt-in plugin gate:
+- transform_tool_result + transform_terminal_output: write plugins.enabled
+  allow-list to config.yaml and reset the plugin manager singleton
+
+Source fix (real consistency invariant):
+- agent/model_metadata.py: add moonshotai/Kimi-K2.6 context length
+  (262144, same as K2.5). test_model_metadata_has_context_lengths was
+  correctly catching the gap.
+
+Policy:
+- AGENTS.md Testing section: new subsection 'Don't write change-detector
+  tests' with do/don't examples. Reviewers should reject catalog-snapshot
+
+================================================================
+b4edf9e6be50edb1d348b24791c9131a6fc041c6
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-20 22:21:21 -0700
+
+refactor(ai-gateway): single source of truth for model catalog (#13304)
+
+Delete the stale literal `_PROVIDER_MODELS["ai-gateway"]` (gpt-5,
+gemini-2.5-pro, claude-4.5 — outdated the moment PR #13223 landed with
+its curated `AI_GATEWAY_MODELS` snapshot) and derive it from
+`AI_GATEWAY_MODELS` instead, so the picker tuples and the bare-id
+fallback catalog stay in sync automatically. Also fixes
+`get_default_model_for_provider('ai-gateway')` to return kimi-k2.6
+(the curated recommendation) instead of claude-opus-4.6.
+
+ hermes_cli/models.py                       | 24 ++++++++----------------
+ tests/hermes_cli/test_ai_gateway_models.py | 14 +++++++-------
+ 2 files changed, 15 insertions(+), 23 deletions(-)
+
+================================================================
+dbb7e00e7eb51bc614f6cd1bb6b53716af9072b5
+Teknium <teknium1@gmail.com>
+2026-04-20 21:17:28 -0700
+
+fix: sweep remaining provider-URL substring checks across codebase
+
+Completes the hostname-hardening sweep — every substring check against a
+provider host in live-routing code is now hostname-based. This closes the
+same false-positive class for OpenRouter, GitHub Copilot, Kimi, Qwen,
+ChatGPT/Codex, Bedrock, GitHub Models, Vercel AI Gateway, Nous, Z.AI,
+Moonshot, Arcee, and MiniMax that the original PR closed for OpenAI, xAI,
+and Anthropic.
+
+New helper:
+- utils.base_url_host_matches(base_url, domain) — safe counterpart to
+  'domain in base_url'. Accepts hostname equality and subdomain matches;
+  rejects path segments, host suffixes, and prefix collisions.
+
+Call sites converted (real-code only; tests, optional-skills, red-teaming
+scripts untouched):
+
+run_agent.py (10 sites):
+- AIAgent.__init__ Bedrock branch, ChatGPT/Codex branch (also path check)
+- header cascade for openrouter / copilot / kimi / qwen / chatgpt
+- interleaved-thinking trigger (openrouter + claude)
+- _is_openrouter_url(), _is_qwen_portal()
+- is_native_anthropic check
+- github-models-vs-copilot detection (3 sites)
+- reasoning-capable route gate (nousresearch, vercel, github)
+- codex-backend detection in API kwargs build
+- fallback api_mode Bedrock detection
+
+agent/auxiliary_client.py (7 sites):
+- extra-headers cascades in 4 distinct client-construction paths
+  (resolve custom, resolve auto, OpenRouter-fallback-to-custom,
+  _async_client_from_sync, resolve_provider_client explicit-custom,
+  resolve_auto_with_codex)
+- _is_openrouter_client() base_url sniff
+
+agent/usage_pricing.py:
+- resolve_billing_route openrouter branch
+
+agent/model_metadata.py:
+- _is_openrouter_base_url(), Bedrock context-length lookup
+
+hermes_cli/providers.py:
+- determine_api_mode Bedrock heuristic
+
+hermes_cli/runtime_provider.py:
+- _is_openrouter_url flag for API-key preference (issues #420, #560)
+
+================================================================
+f81c0394d06785a006d65d0a903b01d5b455e55d
+jerilynzheng <zheng.jerilyn@gmail.com>
+2026-04-20 15:47:05 -0700
+
+fix: correct AI_GATEWAY_MODELS slugs to match Vercel's catalog
+
+The original list was copied from OpenRouter conventions and didn't
+match what Vercel actually hosts. Verified against the live
+/v1/models endpoint (266 models):
+
+- qwen/qwen3.6-plus → alibaba/qwen3.6-plus (Vercel hosts Qwen under alibaba/)
+- z-ai/glm-5.1 → zai/glm-5.1 (no hyphen)
+- x-ai/grok-4.20 → xai/grok-4.20-reasoning (no hyphen, picks reasoning variant)
+- google/gemini-3-flash-preview → google/gemini-3-flash (no -preview suffix)
+- moonshotai/kimi-k2.5 → moonshotai/kimi-k2.6 (newest available)
+
+
+ hermes_cli/models.py | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+================================================================
+5bb2d11b079b1a1fb1a3d480536cf3ae8ed2a3d6
+jerilynzheng <zheng.jerilyn@gmail.com>
+2026-04-20 00:18:51 -0700
+
+feat: auto-promote free Moonshot models to top of ai-gateway picker
+
+When the live Vercel AI Gateway catalog exposes a Moonshot model with
+zero input AND output pricing, it's promoted to position #1 as the
+recommended default — even if the exact ID isn't in the curated
+AI_GATEWAY_MODELS list. This enables dynamic discovery of new free
+Moonshot variants without requiring a PR to update curation.
+
+Paid Moonshot models are unaffected; falls back to the normal curated
+recommended tag when no free Moonshot is live.
+
+
+ hermes_cli/models.py                       | 20 +++++++++++++++++--
+ tests/hermes_cli/test_ai_gateway_models.py | 32 ++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+), 2 deletions(-)
+
+================================================================
+7004374404f80aa07d8fbff950d12dd28f495cb7
+jerilynzheng <zheng.jerilyn@gmail.com>
+2026-04-19 23:05:14 -0700
+
+feat: curated picker with live pricing for ai-gateway provider
+
+- Curated AI_GATEWAY_MODELS list in hermes_cli/models.py (OSS first,
+  kimi-k2.5 as recommended default).
+- fetch_ai_gateway_models() filters the curated list against the live
+  /v1/models catalog; falls back to the snapshot on network failure.
+- fetch_ai_gateway_pricing() translates Vercel's input/output field
+  names to the prompt/completion shape the shared picker expects;
+  carries input_cache_read / input_cache_write through unchanged.
+- get_pricing_for_provider() now handles ai-gateway.
+- _model_flow_ai_gateway() provides a guided URL prompt when no key
+  is set and a pricing-column picker; routes ai-gateway to it instead
+  of the generic api-key flow.
+
+
+ hermes_cli/main.py                         |  61 +++++++++++-
+ hermes_cli/models.py                       | 148 ++++++++++++++++++++++++++++-
+ tests/hermes_cli/test_ai_gateway_models.py | 129 +++++++++++++++++++++++++
+ 3 files changed, 335 insertions(+), 3 deletions(-)
+
+================================================================
+cc1afef4f3f90e643ba99985c11fd4bc4e6d54c0
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-20 12:49:16 -0700
+
+feat: add moonshotai/Kimi-K2.6 to HuggingFace provider models (#13169)
+
+
+
+ hermes_cli/models.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+================================================================
+3cba81ebed0d86fedd56913ab341f2d93d539f49
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-20 12:23:05 -0700
+
+fix(kimi): omit temperature entirely for Kimi/Moonshot models (#13157)
+
+Kimi's gateway selects the correct temperature server-side based on the
+active mode (thinking -> 1.0, non-thinking -> 0.6).  Sending any
+temperature value — even the previously "correct" one — conflicts with
+gateway-managed defaults.
+
+Replaces the old approach of forcing specific temperature values (0.6
+for non-thinking, 1.0 for thinking) with an OMIT_TEMPERATURE sentinel
+that tells all call sites to strip the temperature key from API kwargs
+entirely.
+
+Changes:
+- agent/auxiliary_client.py: OMIT_TEMPERATURE sentinel, _is_kimi_model()
+  prefix check (covers all kimi-* models), _fixed_temperature_for_model()
+  returns sentinel for kimi models.  _build_call_kwargs() strips temp.
+- run_agent.py: _build_api_kwargs, flush_memories, and summary generation
+  paths all handle the sentinel by popping/omitting temperature.
+- trajectory_compressor.py: _effective_temperature_for_model returns None
+  for kimi (sentinel mapped), direct client calls use kwargs dict to
+  conditionally include temperature.
+- mini_swe_runner.py: same sentinel handling via wrapper function.
+- 6 test files updated: all 'forces temperature X' assertions replaced
+  with 'temperature not in kwargs' assertions.
+
+Net: -76 lines (171 added, 247 removed).
+Inspired by PR #13137 (@kshitijk4poor).
+
+ agent/auxiliary_client.py                 |  98 +++++-------------
+ mini_swe_runner.py                        |  13 ++-
+ run_agent.py                              |  37 +++++--
+ tests/agent/test_auxiliary_client.py      | 160 ++++++++----------------------
+ tests/run_agent/test_provider_parity.py   |  10 +-
+ tests/run_agent/test_run_agent.py         |  16 +--
+ tests/test_mini_swe_runner.py             |  13 ++-
+ tests/test_trajectory_compressor.py       |  15 +--
+ tests/test_trajectory_compressor_async.py |  16 +--
+ trajectory_compressor.py                  |  40 +++++---
+ 10 files changed, 171 insertions(+), 247 deletions(-)
+
+================================================================
+6d58ec75eee9918c23d468813dd5f50f2c0c2f11
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-20 11:56:56 -0700
+
+feat: add kimi-k2.6 to kimi-coding, kimi-coding-cn, and moonshot providers (#13152)
+
+Add kimi-k2.6 as the top model in kimi-coding, kimi-coding-cn, and
+moonshot static provider lists (models.py, setup.py, main.py).
+kimi-k2.5 retained alongside it.
+
+ hermes_cli/main.py   | 3 ++-
+ hermes_cli/models.py | 3 +++
+ hermes_cli/setup.py  | 4 ++--
+ 3 files changed, 7 insertions(+), 3 deletions(-)
+
+================================================================
+d587d62ebab935a86dd6b103552726f77e719a28
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-20 11:49:54 -0700
+
+feat: replace kimi-k2.5 with kimi-k2.6 on OpenRouter and Nous Portal (#13148)
+
+* feat(security): URL query param + userinfo + form body redaction
+
+Port from nearai/ironclaw#2529.
+
+Hermes already has broad value-shape coverage in agent/redact.py
+(30+ vendor prefixes, JWTs, DB connstrs, etc.) but missed three
+key-name-based patterns that catch opaque tokens without recognizable
+prefixes:
+
+1. URL query params - OAuth callback codes (?code=...),
+   access_token, refresh_token, signature, etc. These are opaque and
+   won't match any prefix regex. Now redacted by parameter NAME.
+
+2. URL userinfo (https://user:pass@host) - for non-DB schemes. DB
+   schemes were already handled by _DB_CONNSTR_RE.
+
+3. Form-urlencoded body (k=v pairs joined by ampersands) -
+   conservative, only triggers on clean pure-form inputs with no
+   other text.
+
+Sensitive key allowlist matches ironclaw's (exact case-insensitive,
+NOT substring - so token_count and session_id pass through).
+
+Tests: +20 new test cases across 3 test classes. All 75 redact tests
+pass; gateway/test_pii_redaction and tools/test_browser_secret_exfil
+also green.
+
+Known pre-existing limitation: _ENV_ASSIGN_RE greedy match swallows
+whole all-caps ENV-style names + trailing text when followed by
+another assignment. Left untouched here (out of scope); URL query
+redaction handles the lowercase case.
+
+* feat: replace kimi-k2.5 with kimi-k2.6 on OpenRouter and Nous Portal
+
+Update model catalogs for OpenRouter (fallback snapshot), Nous Portal,
+and NVIDIA NIM to reference moonshotai/kimi-k2.6.  Add kimi-k2.6 to
+the fixed-temperature frozenset in auxiliary_client.py so the 0.6
+contract is enforced on aggregator routings.
+
+Native Moonshot provider lists (kimi-coding, kimi-coding-cn, moonshot,
+opencode-zen, opencode-go) are unchanged — those use Moonshot's own
+model IDs which are unaffected.
+
+ agent/auxiliary_client.py  |   1 +
+
+================================================================
+ed201cce9cd98fe83433e38ea93fbf13bb069862
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-20 23:53:24 +0530
+
+fix(kimi): drop client-side temperature overrides for Kimi/Moonshot models
+
+The Kimi gateway selects the correct temperature server-side based on the
+active mode (thinking on → 1.0, thinking off → 0.6).  Client-side clamping
+is no longer needed and would conflict if the gateway changes its defaults.
+
+Removed:
+- _FIXED_TEMPERATURE_MODELS, _KIMI_INSTANT_MODELS, _KIMI_THINKING_MODELS,
+  _KIMI_PUBLIC_API_OVERRIDES maps from auxiliary_client.py
+- All Kimi-specific branches in _fixed_temperature_for_model() — the
+  function now always returns None (kept for future non-Kimi contracts)
+
+Callers already guard with 'if fixed_temperature is not None:' so the
+change is transparent — temperature is simply omitted from API calls,
+letting the Kimi gateway use its own defaults.
+
+Updated tests across 5 files to verify temperature is NOT forced.
+
+
+ agent/auxiliary_client.py                 |  77 ++-------------
+ run_agent.py                              |   4 +-
+ tests/agent/test_auxiliary_client.py      | 153 +++++++-----------------------
+ tests/run_agent/test_provider_parity.py   |  10 +-
+ tests/run_agent/test_run_agent.py         |  16 ++--
+ tests/test_mini_swe_runner.py             |  14 ++-
+ tests/test_trajectory_compressor.py       |  18 ++--
+ tests/test_trajectory_compressor_async.py |  18 ++--
+ 8 files changed, 94 insertions(+), 216 deletions(-)
+
+================================================================
+93f9db59b22e2c2cb0f94f8fb0d30a350acc343b
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-20 02:33:28 -0700
+
+fix(doctor): update config validation for current auth.py API
+
+Follow-up for #3171 cherry-pick — the contributor's validation block
+called get_provider_credentials() which doesn't exist on current main.
+Replaces it with get_auth_status() limited to API-key providers in
+PROVIDER_REGISTRY so providers without a registry entry (openrouter,
+anthropic, custom) don't trigger false 'not authenticated' failures.
+Also runs the provider name through resolve_provider() so aliases like
+'glm'/'moonshot' validate correctly.
+
+Adds StefanIsMe to AUTHOR_MAP.
+
+
+ hermes_cli/doctor.py | 37 ++++++++++++++++++++++---------------
+ scripts/release.py   |  1 +
+ 2 files changed, 23 insertions(+), 15 deletions(-)
+
+================================================================
+088bf9057fc879a49dd0d9fc1e2a0047a8f2aa09
+Saurabh <skmishra1991@gmail.com>
+2026-04-04 11:14:53 +0530
+
+fix: vision tool respects auxiliary.vision.temperature from config (#4661)
+
+The vision tool hardcoded temperature=0.1, ignoring the user's
+config.yaml setting. This broke providers like Kimi/Moonshot that
+require temperature=1 for vision models. Now reads temperature
+from auxiliary.vision.temperature, falling back to 0.1.
+
+
+ tools/vision_tools.py | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+================================================================
+e485bc60cd9de56077a0bd219e1a4c5a95d3c956
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-20 12:49:31 +0530
+
+test(kimi): cover api.moonshot.cn direct-call regressions\n\n- add run_agent coverage for the Moonshot China endpoint\n- add sync/async trajectory compressor coverage for api.moonshot.cn
+
+
+
+ tests/run_agent/test_run_agent.py         | 10 ++++++++++
+ tests/test_trajectory_compressor.py       | 24 ++++++++++++++++++++++++
+ tests/test_trajectory_compressor_async.py | 29 +++++++++++++++++++++++++++++
+ 3 files changed, 63 insertions(+)
+
+================================================================
+9b60ffc47fa1ae675a497260a1905540fff771fc
+kagura-agent <kagura.chen28@gmail.com>
+2026-04-20 11:46:19 +0800
+
+fix: include api.moonshot.cn in public API temperature override (#12745)
+
+kimi-k2.5 on api.moonshot.cn/v1 rejects temperature=0.6 with HTTP 400, same
+as api.moonshot.ai. The public API check now matches both domains.
+
+
+ agent/auxiliary_client.py            | 2 +-
+ tests/agent/test_auxiliary_client.py | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+================================================================
+65a31ee0d54484b9b65e2bf1ea3fd182ccadb6ab
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-19 22:43:09 -0700
+
+fix(anthropic): complete third-party Anthropic-compatible provider support (#12846)
+
+Third-party gateways that speak the native Anthropic protocol (MiniMax,
+Zhipu GLM, Alibaba DashScope, Kimi, LiteLLM proxies) now work end-to-end
+with the same feature set as direct api.anthropic.com callers.  Synthesizes
+eight stale community PRs into one consolidated change.
+
+Five fixes:
+
+- URL detection: consolidate three inline `endswith("/anthropic")`
+  checks in runtime_provider.py into the shared _detect_api_mode_for_url
+  helper.  Third-party /anthropic endpoints now auto-resolve to
+  api_mode=anthropic_messages via one code path instead of three.
+
+- OAuth leak-guard: all five sites that assign `_is_anthropic_oauth`
+  (__init__, switch_model, _try_refresh_anthropic_client_credentials,
+  _swap_credential, _try_activate_fallback) now gate on
+  `provider == "anthropic"` so a stale ANTHROPIC_TOKEN never trips
+  Claude-Code identity injection on third-party endpoints.  Previously
+  only 2 of 5 sites were guarded.
+
+- Prompt caching: new method `_anthropic_prompt_cache_policy()` returns
+  `(should_cache, use_native_layout)` per endpoint.  Replaces three
+  inline conditions and the `native_anthropic=(api_mode=='anthropic_messages')`
+  call-site flag.  Native Anthropic and third-party Anthropic gateways
+  both get the native cache_control layout; OpenRouter gets envelope
+  layout.  Layout is persisted in `_primary_runtime` so fallback
+  restoration preserves the per-endpoint choice.
+
+- Auxiliary client: `_try_custom_endpoint` honors
+  `api_mode=anthropic_messages` and builds `AnthropicAuxiliaryClient`
+  instead of silently downgrading to an OpenAI-wire client.  Degrades
+  gracefully to OpenAI-wire when the anthropic SDK isn't installed.
+
+- Config hygiene: `_update_config_for_provider` (hermes_cli/auth.py)
+  clears stale `api_key`/`api_mode` when switching to a built-in
+  provider, so a previous MiniMax custom endpoint's credentials can't
+  leak into a later OpenRouter session.
+
+- Truncation continuation: length-continuation and tool-call-truncation
+  retry now cover `anthropic_messages` in addition to `chat_completions`
+  and `bedrock_converse`.  Reuses the existing `_build_assistant_message`
+  path via `normalize_anthropic_response()` so the interim message
+  shape is byte-identical to the non-truncated path.
+
+Tests: 6 new files, 42 test cases.  Targeted run + tests/run_agent,
+
+================================================================
+c9b833feb3536a12bc84cbf7f945119fcb76296c
+Teknium <teknium1@gmail.com>
+2026-04-19 18:28:38 -0700
+
+fix(ci): unblock test suite + cut ~2s of dead Z.AI probes from every AIAgent
+
+CI on main had 7 failing tests. Five were stale test fixtures; one (agent
+cache spillover timeout) was covering up a real perf regression in
+AIAgent construction.
+
+The perf bug: every AIAgent.__init__ calls _check_compression_model_feasibility
+→ resolve_provider_client('auto') → _resolve_api_key_provider which
+iterates PROVIDER_REGISTRY.  When it hits 'zai', it unconditionally calls
+resolve_api_key_provider_credentials → _resolve_zai_base_url → probes 8
+Z.AI endpoints with an empty Bearer token (all 401s), ~2s of pure latency
+per agent, even when the user has never touched Z.AI.  Landed in
+9e844160 (PR for credential-pool Z.AI auto-detect) — the short-circuit
+when api_key is empty was missing.  _resolve_kimi_base_url had the same
+shape; fixed too.
+
+Test fixes:
+- tests/gateway/test_voice_command.py: _make_adapter helpers were missing
+  self._voice_locks (added in PR #12644, 7 call sites — all updated).
+- tests/test_toolsets.py: test_hermes_platforms_share_core_tools asserted
+  equality, but hermes-discord has discord_server (DISCORD_BOT_TOKEN-gated,
+  discord-only by design).  Switched to subset check.
+- tests/run_agent/test_streaming.py: test_tool_name_not_duplicated_when_resent_per_chunk
+  missing api_key/base_url — classic pitfall (PR #11619 fixed 16 of
+  these; this one slipped through on a later commit).
+- tests/tools/test_discord_tool.py: TestConfigAllowlist caplog assertions
+  fail in parallel runs because AIAgent(quiet_mode=True) globally sets
+  logging.getLogger('tools').setLevel(ERROR) and xdist workers are
+  persistent.  Autouse fixture resets the 'tools' and
+  'tools.discord_tool' levels per test.
+
+Validation:
+  tests/cron + voice + agent_cache + streaming + toolsets + command_guards
+  + discord_tool: 550/550 pass
+  tests/hermes_cli + tests/gateway: 5713/5713 pass
+  AIAgent construction without Z.AI creds: 2.2s → 0.24s (9x)
+
+
+ hermes_cli/auth.py                  | 11 +++++++++++
+ tests/gateway/test_voice_command.py |  7 +++++++
+ tests/run_agent/test_streaming.py   |  2 ++
+ tests/test_toolsets.py              | 18 ++++++++++++++----
+ tests/tools/test_discord_tool.py    | 22 ++++++++++++++++++++++
+ 5 files changed, 56 insertions(+), 4 deletions(-)
+
+================================================================
+50d6799389a36671751954cb0008a2a3cfd0b322
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-20 01:35:42 +0530
+
+fix: propagate kimi base-url temperature overrides
+
+Follow up salvaged PR #12668 by threading base_url through the
+remaining direct-call sites so kimi-k2.5 uses temperature=1.0 on
+api.moonshot.ai and keeps 0.6 on api.kimi.com/coding. Add focused
+regression tests for run_agent, trajectory_compressor, and
+mini_swe_runner.
+
+
+ mini_swe_runner.py                        | 12 +++++++++---
+ run_agent.py                              |  6 +++---
+ tests/run_agent/test_run_agent.py         | 20 ++++++++++++++++++++
+ tests/test_mini_swe_runner.py             | 27 +++++++++++++++++++++++++++
+ tests/test_trajectory_compressor.py       | 24 ++++++++++++++++++++++++
+ tests/test_trajectory_compressor_async.py | 28 ++++++++++++++++++++++++++++
+ trajectory_compressor.py                  | 10 ++++++++--
+ 7 files changed, 119 insertions(+), 8 deletions(-)
+
+================================================================
+6f79b8f01daff60dd75450b8139fb4d03e83eaf2
+taeng0204 <taeng02@icloud.com>
+2026-04-20 04:18:49 +0900
+
+fix(kimi): route temperature override by base_url — kimi-k2.5 needs 1.0 on api.moonshot.ai
+
+Follow-up to #12144.  That PR standardized the kimi-k2.* temperature lock
+against the Coding Plan endpoint (api.kimi.com/coding/v1) docs, where
+non-thinking models require 0.6.  Verified empirically against Moonshot
+(April 2026) that the public chat endpoint (api.moonshot.ai/v1) has a
+different contract for kimi-k2.5: it only accepts temperature=1, and rejects
+0.6 with:
+
+    HTTP 400 "invalid temperature: only 1 is allowed for this model"
+
+Users hit the public endpoint when KIMI_API_KEY is a legacy sk-* key (the
+sk-kimi-* prefix routes to Coding Plan — see hermes_cli/auth.py).  So for
+Coding Plan subscribers the fix from #12144 is correct, but for public-API
+users it reintroduces the exact 400 reported in #9125.
+
+Reproduction on api.moonshot.ai/v1 + kimi-k2.5:
+  temperature=1.0 → 200 OK
+  temperature=0.6 → 400 "only 1 is allowed"     ← #12144 default
+  temperature=None → 200 OK
+
+Other kimi-k2.* models are unaffected empirically — turbo-preview accepts
+0.6 and thinking-turbo accepts 1.0 on both endpoints — so only kimi-k2.5
+diverges.
+
+Fix: thread the client's actual base_url through _build_call_kwargs (the
+parameter already existed but callers passed config-level resolved_base_url;
+for auto-detected routes that was often empty).  _fixed_temperature_for_model
+now checks api.moonshot.ai first via an explicit _KIMI_PUBLIC_API_OVERRIDES
+map, then falls back to the Coding Plan defaults.  Tests parametrize over
+endpoint + model to lock both contracts.
+
+Closes #9125.
+
+
+ agent/auxiliary_client.py            | 57 ++++++++++++++++++++----
+ tests/agent/test_auxiliary_client.py | 86 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 135 insertions(+), 8 deletions(-)
+
+================================================================
+023208b17a5f6fb96881176c83621b1a16af177e
+zrc <zhurongcheng@rcrai.com>
+2026-04-19 20:00:03 +0800
+
+fix(agent): respect HTTP_PROXY/HTTPS_PROXY when using custom httpx transport
+
+When creating httpx.Client with a custom transport for TCP keepalive,
+proxy environment variables (HTTP_PROXY, HTTPS_PROXY) were ignored because
+httpx only auto-reads them when transport=None.
+
+Add _get_proxy_from_env() to explicitly read proxy settings and pass them
+to httpx.Client, ensuring providers like kimi-coding-cn work correctly
+when behind a proxy.
+
+Fixes connection errors when HTTP_PROXY/HTTPS_PROXY are set.
+
+
+ run_agent.py | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+================================================================
+9489d1577db1b05e869b9d842ccdec3197f1954b
+Teknium <teknium1@gmail.com>
+2026-04-18 19:17:52 -0700
+
+fix(agent): strip unterminated <think> blocks from visible content
+
+Providers served via NIM (MiniMax M2.7, some Moonshot/DeepSeek proxies) sometimes drop the closing </think> tag, leaving raw reasoning in the assistant's content field.  _strip_think_blocks()'s closed-pair regex is non-greedy so it only matches complete blocks — any orphan <think>...EOF survived the stripper and leaked to users (#8878, #9568, #10408).
+
+Adds an unterminated-tag pass that fires when an open reasoning tag sits at a block boundary (start of text or after a newline) with no matching close.  Everything from that tag to end of string is stripped.  The block-boundary check mirrors gateway/stream_consumer.py's filter so models that mention <think> in prose are not over-stripped.
+
+Also makes the closed-pair regexes consistently case-insensitive so <THINK>...</THINK> and <Thinking>...</Thinking> are handled uniformly — previously the mixed-case open tag would bypass the closed-pair pass and be caught by the unterminated-tag pass, taking trailing visible content with it.
+
+6 new regression tests in TestStripThinkBlocks covering: unterminated <think>, unterminated <thought>, multi-line unterminated, line-start orphan with preserved prefix, prose-mention non-regression, mixed-case closed pairs.
+
+The implementation is inspired by @luinbytes's PR #10408 report of the NIM/MiniMax symptom.  This commit does not include the 💭/🧠 emoji regexes from that PR — those glyphs are Hermes CLI display decorations, not model content markers.
+
+
+ run_agent.py                      | 46 ++++++++++++++++++++++++++++-----
+ tests/run_agent/test_run_agent.py | 54 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 93 insertions(+), 7 deletions(-)
+
+================================================================
+4aa52590d8f5551c89a9eea3aab06eca497086db
+Brooklyn Nicholson <brooklyn.bb.nicholson@gmail.com>
+2026-04-18 17:22:23 -0500
+
+fix(tui): disambiguate /model picker rows when provider display names collide
+
+If the gateway returns two providers that resolve to the same display name
+(e.g. `kimi-coding` and `kimi-coding-cn` both → "Kimi For Coding"), the
+picker now appends the slug so users can tell them apart, in both the
+provider list and the selected-provider header. No-op when names are
+already unique.
+
+Refs #10526 — the Python backend dedupe from #10599 skips one alias, but
+user-defined providers, canonical overlays, and future regressions can
+still surface as indistinguishable rows in the picker. This is a
+client-side safety net on top of that.
+
+
+ ui-tui/src/__tests__/providers.test.ts | 62 ++++++++++++++++++++++++++++++++++
+ ui-tui/src/components/modelPicker.tsx  |  8 +++--
+ ui-tui/src/domain/providers.ts         | 17 ++++++++++
+ 3 files changed, 84 insertions(+), 3 deletions(-)
+
+================================================================
+c14b3b58806e7abd01d9ee01e4ff218c01590cd0
+kshitij <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-18 09:35:51 -0700
+
+fix(kimi): force fixed temperature on kimi-k2.* models (k2.5, thinking, turbo) (#12144)
+
+* fix(kimi): force fixed temperature on kimi-k2.* models (k2.5, thinking, turbo)
+
+The prior override only matched the literal model name "kimi-for-coding",
+but Moonshot's coding endpoint is hit with real model IDs such as
+`kimi-k2.5`, `kimi-k2-turbo-preview`, `kimi-k2-thinking`, etc.  Those
+requests bypassed the override and kept the caller's temperature, so
+Moonshot returns HTTP 400 "invalid temperature: only 0.6 is allowed for
+this model" (or 1.0 for thinking variants).
+
+Match the whole kimi-k2.* family:
+  * kimi-k2-thinking / kimi-k2-thinking-turbo -> 1.0 (thinking mode)
+  * all other kimi-k2.* -> 0.6 (non-thinking / instant mode)
+
+Also accept an optional vendor prefix (e.g. `moonshotai/kimi-k2.5`) so
+aggregator routings are covered.
+
+* refactor(kimi): whitelist-match kimi coding models instead of prefix
+
+Addresses review feedback on PR #12144.
+
+- Replace `startswith("kimi-k2")` with explicit frozensets sourced from
+  Moonshot's kimi-for-coding model list.  The prefix match would have also
+  clamped `kimi-k2-instruct` / `kimi-k2-instruct-0905`, which are the
+  separate non-coding K2 family with variable temperature (recommended 0.6
+  but not enforced — see huggingface.co/moonshotai/Kimi-K2-Instruct).
+- Confirmed via platform.kimi.ai docs that all five coding models
+  (k2.5, k2-turbo-preview, k2-0905-preview, k2-thinking, k2-thinking-turbo)
+  share the fixed-temperature lock, so the preview-model mapping is no
+  longer an assumption.
+- Drop the fragile `"thinking" in bare` substring test for a set lookup.
+- Log a debug line on each override so operators can see when Hermes
+  silently rewrites temperature.
+- Update class docstring.  Extend the negative test to parametrize over
+  kimi-k2-instruct, Kimi-K2-Instruct-0905, and a hypothetical future
+  kimi-k2-experimental name — all must keep the caller's temperature.
+
+ agent/auxiliary_client.py            | 41 +++++++++++++++++++++++++--
+ tests/agent/test_auxiliary_client.py | 54 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 90 insertions(+), 5 deletions(-)
+
+================================================================
+148459716ccf2f72b9d24a38966771649f26d012
+helix4u <4317663+helix4u@users.noreply.github.com>
+2026-04-17 20:39:24 -0600
+
+fix(kimi): cover remaining fixed-temperature bypasses
+
+
+
+ mini_swe_runner.py                        | 26 ++++++++++++++++++++------
+ tests/test_mini_swe_runner.py             | 28 ++++++++++++++++++++++++++++
+ tests/test_trajectory_compressor.py       | 23 +++++++++++++++++++++++
+ tests/test_trajectory_compressor_async.py | 28 ++++++++++++++++++++++++++++
+ tests/tools/test_approval.py              | 18 +++++++++++++++++-
+ tools/approval.py                         | 13 ++++---------
+ trajectory_compressor.py                  | 29 +++++++++++++++++++++++++----
+ 7 files changed, 145 insertions(+), 20 deletions(-)
+
+================================================================
+016ae5c334cf07fd53b6518085ee0b4ebd6da6e7
+helix4u <4317663+helix4u@users.noreply.github.com>
+2026-04-17 19:22:03 -0600
+
+fix(kimi): force 0.6 on main chat path
+
+
+
+ run_agent.py                            | 21 +++++++++++++++++++++
+ tests/run_agent/test_provider_parity.py | 13 +++++++++++++
+ 2 files changed, 34 insertions(+)
+
+================================================================
+0a8318780179ec4ff2438fe3171bebeba25d56c7
+Teknium <teknium1@gmail.com>
+2026-04-17 15:33:31 -0700
+
+refactor(kimi): use _fixed_temperature_for_model helper in flush_memories
+
+Replace the hardcoded 'kimi-for-coding' string check with the helper
+from auxiliary_client so there is one source of truth for the list of
+models with fixed-temperature contracts. Adding a new entry to
+_FIXED_TEMPERATURE_MODELS now automatically covers flush_memories too.
+
+
+ run_agent.py | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+================================================================
+2b60478fc2f9b0cd8a41efbe237da1465d26a43c
+helix4u <4317663+helix4u@users.noreply.github.com>
+2026-04-17 16:17:15 -0600
+
+fix(kimi): force kimi-for-coding temperature to 0.6
+
+
+
+ agent/auxiliary_client.py            | 15 ++++++
+ run_agent.py                         |  7 +--
+ tests/agent/test_auxiliary_client.py | 89 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 108 insertions(+), 3 deletions(-)
+
+================================================================
+2ff1ef6ae6b5776258c4667fa93176b35d7a8b39
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-17 13:30:47 -0700
+
+fix(surrogates): sanitize reasoning/reasoning_content/reasoning_details fields (#11628)
+
+Byte-level reasoning models (xiaomi/mimo-v2-pro, kimi, glm) can emit lone
+surrogates in reasoning output. The proactive sanitizer walked content/
+name/tool_calls but not extra fields like reasoning or the nested
+reasoning_details array. Surrogates in those fields survived the
+proactive pass, crashed json.dumps() in the OpenAI SDK, and the recovery
+block's _sanitize_messages_surrogates(messages) call also didn't check
+those fields — so 'found' was False, no retry happened, and after 3
+attempts the user saw:
+
+  API call failed after 3 retries. 'utf-8' codec can't encode characters
+  in position N-M: surrogates not allowed
+
+Changes:
+- _sanitize_messages_surrogates: walk any extra string fields (reasoning,
+  reasoning_content, etc.) and recurse into nested dict/list values
+  (reasoning_details). Mirrors _sanitize_messages_non_ascii coverage
+  added in PR #10537.
+- _sanitize_structure_surrogates: new recursive walker, mirror of
+  _sanitize_structure_non_ascii but for surrogate recovery.
+- UnicodeEncodeError recovery block: also sanitize api_messages,
+  api_kwargs, and prefill_messages (not just the canonical messages
+  list — the API-copy carries reasoning_content transformed from
+  reasoning and that's what the SDK actually serializes). Always
+  retry on detected surrogate errors, not only when we found
+  something to strip — gate on error type per PR #10537's pattern.
+
+Tests: extended tests/cli/test_surrogate_sanitization.py with
+coverage for reasoning, reasoning_content, reasoning_details (flat
+and deeply nested), structure walker, and an integration case that
+reproduces the exact api_messages shape that was crashing.
+
+ run_agent.py                             | 105 ++++++++++++++++--
+ tests/cli/test_surrogate_sanitization.py | 184 ++++++++++++++++++++++++++++++-
+ 2 files changed, 281 insertions(+), 8 deletions(-)
+
+================================================================
+d0e1388ca928f984877a2a576b67cf0bdf362096
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-17 12:32:03 -0700
+
+fix(tests): make AIAgent constructor calls self-contained (#11755)
+
+* fix(tests): make AIAgent constructor calls self-contained (no env leakage)
+
+Tests in tests/run_agent/ were constructing AIAgent() without passing
+both api_key and base_url, then relying on leaked state from other
+tests in the same xdist worker (or process-level env vars) to keep
+provider resolution happy. Under hermetic conftest + pytest-split,
+that state is gone and the tests fail with 'No LLM provider configured'.
+
+Fix: pass both api_key and base_url explicitly on 47 AIAgent()
+construction sites across 13 files. AIAgent.__init__ with both set
+takes the direct-construction path (line 960 in run_agent.py) and
+skips the resolver entirely.
+
+One call site (test_none_base_url_passed_as_none) left alone — that
+test asserts behavior for base_url=None specifically.
+
+This is a prerequisite for any future matrix-split or stricter
+isolation work, and lands cleanly on its own.
+
+Validation:
+- tests/run_agent/ full: 760 passed, 0 failed (local)
+- Previously relied on cross-test pollution; now self-contained
+
+* fix(tests): update opencode-go model order assertion to match kimi-k2.5-first
+
+commit 78a74bb promoted kimi-k2.5 to first position in model suggestion
+lists but didn't update this test, which has been failing on main since.
+Reorder expected list to match the new canonical order.
+
+ tests/hermes_cli/test_opencode_go_in_model_list.py |  2 +-
+ tests/run_agent/test_1630_context_overflow_loop.py |  1 +
+ tests/run_agent/test_413_compression.py            |  1 +
+ tests/run_agent/test_860_dedup.py                  |  6 +++
+ tests/run_agent/test_compression_persistence.py    |  2 +
+ .../test_create_openai_client_kwargs_isolation.py  |  2 +
+ tests/run_agent/test_create_openai_client_reuse.py |  2 +
+ tests/run_agent/test_fallback_model.py             |  1 +
+ tests/run_agent/test_plugin_context_engine_init.py |  2 +
+ tests/run_agent/test_provider_fallback.py          |  1 +
+ tests/run_agent/test_provider_parity.py            |  3 ++
+ tests/run_agent/test_run_agent.py                  | 15 ++++++-
+ tests/run_agent/test_streaming.py                  | 48 ++++++++++++++++++++++
+ tests/run_agent/test_token_persistence_non_cli.py  |  1 +
+ 14 files changed, 85 insertions(+), 2 deletions(-)
+
+================================================================
+78a74bb09764deb12f4847eed9305a75d0f36659
+kshitij <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-17 12:05:22 -0700
+
+feat: promote kimi-k2.5 to first position in all model suggestion lists (#11745)
+
+Move moonshotai/kimi-k2.5 to position #1 in every model picker list:
+- OPENROUTER_MODELS (with 'recommended' tag)
+- _PROVIDER_MODELS: nous, kimi-coding, opencode-zen, opencode-go, alibaba, huggingface
+- _model_flow_kimi() Coding Plan model list in main.py
+
+kimi-coding-cn and moonshot lists already had kimi-k2.5 first.
+
+ hermes_cli/main.py   |  4 ++--
+ hermes_cli/models.py | 16 ++++++++--------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+
+================================================================
+ab33ce1c860d7e290d5c3af522c7db55e11541a3
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-16 19:41:41 -0700
+
+fix(opencode): strip /v1 from base_url on mid-session /model switch to Anthropic-routed models (#11286)
+
+PR #4918 fixed the double-/v1 bug at fresh agent init by stripping the
+trailing /v1 from OpenCode base URLs when api_mode is anthropic_messages
+(so the Anthropic SDK's own /v1/messages doesn't land on /v1/v1/messages).
+The same logic was missing from the /model mid-session switch path.
+
+Repro: start a session on opencode-go with GLM-5 (or any chat_completions
+model), then `/model minimax-m2.7`. switch_model() correctly sets
+api_mode=anthropic_messages via opencode_model_api_mode(), but base_url
+passes through as https://opencode.ai/zen/go/v1. The Anthropic SDK then
+POSTs to https://opencode.ai/zen/go/v1/v1/messages, which returns the
+OpenCode website 404 HTML page (title 'Not Found | opencode').
+
+Same bug affects `/model claude-sonnet-4-6` on opencode-zen.
+
+Verified upstream: POST /v1/messages returns clean JSON 401 with x-api-key
+auth (route works), while POST /v1/v1/messages returns the exact HTML 404
+users reported.
+
+Fix mirrors runtime_provider.resolve_runtime_provider:
+- hermes_cli/model_switch.py::switch_model() strips /v1 after the OpenCode
+  api_mode override when the resolved mode is anthropic_messages.
+- run_agent.py::AIAgent.switch_model() applies the same strip as
+  defense-in-depth, so any direct caller can't reintroduce the double-/v1.
+
+Tests: 9 new regression tests in tests/hermes_cli/test_model_switch_opencode_anthropic.py
+covering minimax on opencode-go, claude on opencode-zen, chat_completions
+(GLM/Kimi/Gemini) keeping /v1 intact, codex_responses (GPT) keeping /v1
+intact, trailing-slash handling, and the agent-level defense-in-depth.
+
+ hermes_cli/model_switch.py                         |  16 ++
+ run_agent.py                                       |  14 ++
+ .../test_model_switch_opencode_anthropic.py        | 252 +++++++++++++++++++++
+ 3 files changed, 282 insertions(+)
+
+================================================================
+ff5bf0d6c8634cd91d0d06c44e0e3a7254072f5a
+kshitijk4poor <kshitijk4poor@users.noreply.github.com>
+2026-04-15 20:01:29 -0700
+
+fix(tests): resolve CI test failures — pool auto-seeding, stale assertions, mock isolation
+
+Salvaged from PR #10643 by kshitijk4poor, updated for current main.
+
+Root causes fixed:
+1. Telegram xdist mock pollution — new tests/gateway/conftest.py with shared
+   mock that runs at collection time (prevents ChatType=None caching)
+2. VIRTUAL_ENV env var leak — monkeypatch.delenv in _detect_venv_dir tests
+3. Copilot base_url missing — add fallback in _resolve_runtime_from_pool_entry
+4. Stale vision model assertion — zai now uses glm-5v-turbo
+5. Reasoning item id intentionally stripped — assert 'id' not in (store=False)
+6. Context length warning unreachable — pass base_url to AIAgent in test
+7. Kimi provider label updated — 'Kimi / Kimi Coding Plan' matches models.py
+8. Google Workspace calendar tests — rewritten for current production code,
+   properly mock subprocess on api_module, removed stale +agenda assertions
+9. Credential pool auto-seeding — mock _select_pool_entry / _resolve_auto /
+   _import_codex_cli_tokens to prevent real credentials from leaking into tests
+
+
+ hermes_cli/runtime_provider.py                     |  1 +
+ tests/agent/test_auxiliary_client.py               | 23 +++++---
+ .../agent/test_auxiliary_named_custom_providers.py |  2 +-
+ tests/agent/test_credential_pool.py                |  5 ++
+ tests/gateway/conftest.py                          | 66 ++++++++++++++++++++++
+ tests/hermes_cli/test_gateway_service.py           |  4 ++
+ tests/hermes_cli/test_model_validation.py          |  2 +-
+ .../test_invalid_context_length_warning.py         |  3 +
+ tests/run_agent/test_provider_parity.py            |  5 +-
+ tests/skills/test_google_workspace_api.py          | 49 +++++++++-------
+ 10 files changed, 130 insertions(+), 30 deletions(-)
+
+================================================================
+b750c720cdd3a0c04d5c5fe4829ddb0ba577d85a
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-15 17:34:15 -0700
+
+fix: three CLI quality-of-life fixes (#10468, #10230, #10526, #9545) (#10599)
+
+Three independent fixes batched together:
+
+1. hermes auth add crashes on non-interactive stdin (#10468)
+   input() for the label prompt was called without checking isatty().
+   In scripted/CI environments this raised EOFError. Fix: check
+   sys.stdin.isatty() and fall back to the computed default label.
+
+2. Subcommand help prints twice (#10230)
+   'hermes dashboard -h' printed help text twice because the
+   SystemExit(0) from argparse was caught by the fallback retry
+   logic, which re-parsed and printed help again. Fix: re-raise
+   SystemExit with code 0 (help/version) immediately.
+
+3. Duplicate entries in /model picker (#10526, #9545)
+   - Kimi showed 2x because kimi-coding and kimi-coding-cn both
+     mapped to the same models.dev ID. Fix: track seen mdev_ids
+     and skip aliases.
+   - Providers could show 2-3x from case-variant slugs across the
+     four loading paths. Fix: normalize all seen_slugs membership
+     checks and insertions to lowercase.
+
+Closes #10468, #10230, #10526, #9545
+
+ hermes_cli/auth_commands.py |  6 +++++-
+ hermes_cli/main.py          |  7 ++++++-
+ hermes_cli/model_switch.py  | 27 +++++++++++++++++----------
+ 3 files changed, 28 insertions(+), 12 deletions(-)
+
+================================================================
+23f1fa22af4cf94b6d6cb5bafa1326e1b58c9557
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-15 14:54:30 -0700
+
+fix(kimi): include kimi-coding-cn in Kimi base URL resolution (#10534)
+
+Route kimi-coding-cn through _resolve_kimi_base_url() in both
+get_api_key_provider_status() and resolve_api_key_provider_credentials()
+so CN users with sk-kimi- prefixed keys get auto-detected to the Kimi
+Coding Plan endpoint, matching the existing behavior for kimi-coding.
+
+Also update the kimi-coding display label to accurately reflect the
+dual-endpoint setup (Kimi Coding Plan + Moonshot API).
+
+Salvaged from PR #10525 by kkikione999.
+
+ hermes_cli/auth.py   | 4 ++--
+ hermes_cli/models.py | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+================================================================
+70611879deaa5d0fea46a58c05b17c2f62a12f97
+shijianzhi <shijianzhi@shijianzhideMacBook-Pro.local>
+2026-04-14 22:56:36 +0800
+
+fix(cli): fix doctor checks for Kimi China credentials
+
+
+
+ hermes_cli/doctor.py            |  3 ++-
+ tests/hermes_cli/test_doctor.py | 51 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+), 1 deletion(-)
+
+================================================================
+ec9bf9e378b7f78b7187ce2412ad880d20aa6e95
+Ubuntu <Cos_Admin@PTG-COS.lodluvup4uaudnm3ycd14giyug.xx.internal.cloudapp.net>
+2026-04-12 00:19:32 +0000
+
+feat(model-picker): group custom_providers by name into a single row per provider
+
+The /model picker currently renders one row per ``custom_providers``
+entry. When several entries share the same provider name (e.g. four
+``ollama-cloud`` entries for ``qwen3-coder``, ``glm-5.1``, ``kimi-k2``,
+``minimax-m2.7``), users see four separate "Ollama Cloud" rows in the
+picker, which is confusing UX — there is only one Ollama Cloud
+provider, so there should be one row containing four models.
+
+This PR groups ``custom_providers`` entries that share the same provider
+name into a single picker row while keeping entries with distinct names
+as separate rows. So:
+
+* Four entries named ``Ollama Cloud`` → one "Ollama Cloud" row with
+  four models inside.
+* One entry named ``Ollama Cloud`` and one named ``Moonshot`` → two
+  separate rows, one model each.
+
+Implementation
+--------------
+Replaces the single-pass loop in ``list_authenticated_providers()`` with
+a two-pass approach:
+
+1. First pass: build an ``OrderedDict`` keyed by ``custom_provider_slug(name)``,
+   accumulating ``models`` per group while preserving discovery order.
+2. Second pass: iterate the groups and append one result row per group,
+   skipping any slug that already appeared in an earlier provider source
+   (the existing ``seen_slugs`` guard).
+
+Insertion order is preserved via ``OrderedDict``, so providers and
+their models still appear in the order the user listed them in
+``custom_providers``. No new dependencies.
+
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+
+
+ hermes_cli/model_switch.py | 35 +++++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
+
+================================================================
+0e60a9dc25ae32241339286a85ab69f949e3f24b
+Teknium <teknium1@gmail.com>
+2026-04-13 11:16:09 -0700
+
+fix: add kimi-coding-cn to remaining provider touchpoints
+
+Follow-up for salvaged PR #7637. Adds kimi-coding-cn to:
+- model_normalize.py (prefix strip)
+- providers.py (models.dev mapping)
+- runtime_provider.py (credential resolution)
+- setup.py (model list + setup label)
+- doctor.py (health check)
+- trajectory_compressor.py (URL detection)
+- models_dev.py (registry mapping)
+- integrations/providers.md (docs)
+
+
+ agent/models_dev.py                    |  1 +
+ hermes_cli/doctor.py                   |  1 +
+ hermes_cli/model_normalize.py          |  1 +
+ hermes_cli/providers.py                |  1 +
+ hermes_cli/runtime_provider.py         |  2 +-
+ hermes_cli/setup.py                    |  2 ++
+ trajectory_compressor.py               |  2 +-
+ website/docs/integrations/providers.md | 13 +++++++++----
+ 8 files changed, 17 insertions(+), 6 deletions(-)
+
+================================================================
+2b3aa362423b17630995601f332268774f8bb6fb
+hcshen0111 <shenhaocheng19990111@gmail.com>
+2026-04-13 11:13:09 -0700
+
+feat(providers): add kimi-coding-cn provider for mainland China users
+
+Cherry-picked from PR #7637 by hcshen0111.
+Adds kimi-coding-cn provider with dedicated KIMI_CN_API_KEY env var
+and api.moonshot.cn/v1 endpoint for China-region Moonshot users.
+
+
+ .env.example                                    |  1 +
+ agent/auxiliary_client.py                       |  3 +++
+ agent/model_metadata.py                         |  5 +++--
+ hermes_cli/auth.py                              |  8 ++++++++
+ hermes_cli/config.py                            | 10 ++++++++++
+ hermes_cli/main.py                              |  6 ++++--
+ hermes_cli/models.py                            | 11 ++++++++++-
+ website/docs/getting-started/quickstart.md      |  1 +
+ website/docs/reference/environment-variables.md |  3 ++-
+ website/docs/user-guide/configuration.md        |  2 +-
+ 10 files changed, 43 insertions(+), 7 deletions(-)
+
+================================================================
+1cec910b6a064d4e4821930be5cfaaf6145a2afd
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-11 19:43:58 -0700
+
+fix: improve context compaction to prevent model answering stale questions (#8107)
+
+After compression, models (especially Kimi 2.5) would sometimes respond
+to questions from the summary instead of the latest user message. This
+happened ~30% of the time on Telegram.
+
+Root cause: the summary's 'Next Steps' section read as active instructions,
+and the SUMMARY_PREFIX didn't explicitly tell the model to ignore questions
+in the summary. When the summary merged into the first tail message, there
+was no clear separator between historical context and the actual user message.
+
+Changes inspired by competitor analysis (Claude Code, OpenCode, Codex):
+
+1. SUMMARY_PREFIX rewritten with explicit 'Do NOT answer questions from
+   this summary — respond ONLY to the latest user message AFTER it'
+
+2. Summarizer preamble (shared by both prompts) adds:
+   - 'Do NOT respond to any questions' (from OpenCode's approach)
+   - 'Different assistant' framing (from Codex) to create psychological
+     distance between summary content and active conversation
+
+3. New summary sections:
+   - '## Resolved Questions' — tracks already-answered questions with
+     their answers, preventing re-answering (from Claude Code's
+     'Pending user asks' pattern)
+   - '## Pending User Asks' — explicitly marks unanswered questions
+   - '## Remaining Work' replaces '## Next Steps' — passive framing
+     avoids reading as active instructions
+
+4. merge-summary-into-tail path now inserts a clear separator:
+   '--- END OF CONTEXT SUMMARY — respond to the message below ---'
+
+5. Iterative update prompt now instructs: 'Move answered questions to
+   Resolved Questions' to maintain the resolved/pending distinction
+   across multiple compactions.
+
+ agent/context_compressor.py | 132 ++++++++++++++++++++++++--------------------
+ 1 file changed, 72 insertions(+), 60 deletions(-)
+
+================================================================
+496e378b10272714deb91dad250324cea0568f0a
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-10 14:46:57 -0700
+
+fix: resolve overlay provider slug mismatch in /model picker (#7373)
+
+HERMES_OVERLAYS keys use models.dev IDs (e.g. 'github-copilot') but
+_PROVIDER_MODELS curated lists and config.yaml use Hermes provider IDs
+('copilot'). list_authenticated_providers() Section 2 was using the
+overlay key directly for model lookups and is_current checks, causing:
+- 0 models shown for copilot, kimi, kilo, opencode, vercel
+- is_current never matching the config provider
+
+Fix: build reverse mapping from PROVIDER_TO_MODELS_DEV to translate
+overlay keys to Hermes slugs before curated list lookup and result
+construction. Also adds 'kimi-for-coding' alias in auth.py so the
+picker's returned slug resolves correctly in resolve_provider().
+
+Fixes #5223. Based on work by HearthCore (#6492) and linxule (#6287).
+
+Co-authored-by: HearthCore <HearthCore@users.noreply.github.com>
+Co-authored-by: linxule <linxule@users.noreply.github.com>
+
+ hermes_cli/auth.py                               |  2 +-
+ hermes_cli/model_switch.py                       | 41 +++++++++---
+ tests/hermes_cli/test_overlay_slug_resolution.py | 83 ++++++++++++++++++++++++
+ 3 files changed, 115 insertions(+), 11 deletions(-)
+
+================================================================
+116d79508cea36ae2670b7494d65e4fce7c3b280
+Teknium <teknium1@gmail.com>
+2026-04-10 13:41:12 -0700
+
+fix: resolve overlay provider slug mismatch in /model picker
+
+HERMES_OVERLAYS keys use models.dev IDs (e.g. 'github-copilot') but
+_PROVIDER_MODELS curated lists and config.yaml use Hermes provider IDs
+('copilot'). list_authenticated_providers() Section 2 was using the
+overlay key directly for model lookups and is_current checks, causing:
+- 0 models shown for copilot, kimi, kilo, opencode, vercel
+- is_current never matching the config provider
+
+Fix: build reverse mapping from PROVIDER_TO_MODELS_DEV to translate
+overlay keys to Hermes slugs before curated list lookup and result
+construction. Also adds 'kimi-for-coding' alias in auth.py so the
+picker's returned slug resolves correctly in resolve_provider().
+
+Fixes #5223. Based on work by HearthCore (#6492) and linxule (#6287).
+
+Co-authored-by: HearthCore <HearthCore@users.noreply.github.com>
+Co-authored-by: linxule <linxule@users.noreply.github.com>
+
+
+ hermes_cli/auth.py                               |  2 +-
+ hermes_cli/model_switch.py                       | 41 +++++++++---
+ tests/hermes_cli/test_overlay_slug_resolution.py | 83 ++++++++++++++++++++++++
+ 3 files changed, 115 insertions(+), 11 deletions(-)
+
+================================================================
+5a1cce53e4b255d9fd2c9b667f33e448f18419d5
+xwp <xiewanpeng@hypercurvature.com>
+2026-04-10 15:16:18 +0800
+
+fix(auxiliary): skip anthropic in fallback chain when not explicitly configured
+
+_resolve_api_key_provider() now checks is_provider_explicitly_configured
+before calling _try_anthropic().  Previously, any auxiliary fallback
+(e.g. when kimi-coding key was invalid) would silently discover and use
+Claude Code OAuth tokens — consuming the user's Claude Max subscription
+without their knowledge.
+
+This is the auxiliary-client counterpart of the setup-wizard gate in
+PR #4210.
+
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+
+
+ agent/auxiliary_client.py            |  9 ++++++++
+ tests/agent/test_auxiliary_client.py | 42 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+)
+
+================================================================
+8e5f06ceac85f1f63c43d49f29f493e3d9d92582
+xwp <xiewanpeng@hypercurvature.com>
+2026-04-10 15:16:18 +0800
+
+fix(auxiliary): skip anthropic in fallback chain when not explicitly configured
+
+_resolve_api_key_provider() now checks is_provider_explicitly_configured
+before calling _try_anthropic().  Previously, any auxiliary fallback
+(e.g. when kimi-coding key was invalid) would silently discover and use
+Claude Code OAuth tokens — consuming the user's Claude Max subscription
+without their knowledge.
+
+This is the auxiliary-client counterpart of the setup-wizard gate in
+PR #4210.
+
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+
+
+ agent/auxiliary_client.py            |  9 ++++++++
+ tests/agent/test_auxiliary_client.py | 42 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+)
+
+================================================================
+9431f82afffc01efce774ebe23b832eb5981d612
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-10 09:40:12 +0530
+
+fix: update Kimi Coding User-Agent to KimiCLI/1.30.0
+
+The hardcoded User-Agent 'KimiCLI/1.3' is outdated — Kimi CLI is now at
+v1.30.0. The stale version string causes intermittent 403 errors from
+Kimi's coding endpoint ('only available for Coding Agents').
+
+Update all 8 occurrences across run_agent.py, auxiliary_client.py, and
+doctor.py to 'KimiCLI/1.30.0' to match the current official Kimi CLI.
+
+
+ agent/auxiliary_client.py | 10 +++++-----
+ hermes_cli/doctor.py      |  2 +-
+ run_agent.py              |  4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+================================================================
+5628412d987c5dc10753289d21fef29c28914285
+kshitijk4poor <82637225+kshitijk4poor@users.noreply.github.com>
+2026-04-10 09:40:12 +0530
+
+fix: update Kimi Coding User-Agent to KimiCLI/1.30.0
+
+The hardcoded User-Agent 'KimiCLI/1.3' is outdated — Kimi CLI is now at
+v1.30.0. The stale version string causes intermittent 403 errors from
+Kimi's coding endpoint ('only available for Coding Agents').
+
+Update all 8 occurrences across run_agent.py, auxiliary_client.py, and
+doctor.py to 'KimiCLI/1.30.0' to match the current official Kimi CLI.
+
+
+ agent/auxiliary_client.py | 10 +++++-----
+ hermes_cli/doctor.py      |  2 +-
+ run_agent.py              |  4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+================================================================
+110cdd573a4e106614d7ab5b69d8e8e06459afb9
+Yang Zhi <yangzhi.see@gmail.com>
+2026-04-07 17:50:42 +0800
+
+fix(auxiliary_client): inject KimiCLI User-Agent for custom endpoint sync clients
+
+When  is explicitly set to ,
+the custom-endpoint path in  creates a plain
+client without provider-specific headers. This means sync vision calls (e.g.
+) use the generic  User-Agent and get rejected by
+Kimi's coding endpoint with a 403:
+
+    'Kimi For Coding is currently only available for Coding Agents such as Kimi CLI...'
+
+The async converter  already injects , and the
+auto-detected API-key provider path also injects it, but the explicit custom
+endpoint shortcut was missing it entirely.
+
+This patch adds the same  injection to the custom endpoint
+branch, and updates all existing Kimi header sites to  for
+consistency.
+
+Fixes <issue number to be filled in>
+
+
+ agent/auxiliary_client.py | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+================================================================
+4d1b98807016ba7d5c573c00477626863083f48d
+Yang Zhi <yangzhi.see@gmail.com>
+2026-04-07 01:18:07 +0800
+
+fix(credential_pool): use _resolve_kimi_base_url when seeding kimi-coding pool
+
+The credential pool seeder (_seed_from_env) hardcoded the base URL
+for API-key providers without running provider-specific auto-detection.
+For kimi-coding, this caused sk-kimi- prefixed keys to be seeded with
+the legacy api.moonshot.ai/v1 endpoint instead of api.kimi.com/coding/v1,
+resulting in HTTP 401 on the first request.
+
+Import and call _resolve_kimi_base_url for kimi-coding so the pool
+uses the correct endpoint based on the key prefix, matching the
+runtime credential resolver behavior.
+
+Also fix a comment: sk-kimi- keys are issued by kimi.com/code,
+not platform.kimi.ai.
+
+Fixes #5561
+
+
+ agent/credential_pool.py | 6 +++++-
+ hermes_cli/auth.py       | 2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+================================================================
+019c11d07e082acf401cfc7f008757df0cd98a05
+Yang Zhi <yangzhi.see@gmail.com>
+2026-04-08 16:18:07 +0800
+
+fix(fallback): preserve provider-specific headers when activating fallback
+
+When _try_activate_fallback() swaps to a new provider (e.g.
+kimi-coding), resolve_provider_client() correctly injects
+provider-specific default_headers (like KimiCLI User-Agent) into the
+returned OpenAI client. However, _client_kwargs was saved with only
+api_key and base_url, dropping those headers.
+
+Every subsequent API call rebuilds the client from _client_kwargs via
+_create_request_openai_client(), producing a bare OpenAI client without
+the required headers. Kimi Coding rejects this with 403; Copilot would
+lose its auth headers similarly.
+
+This patch reads _custom_headers from the fallback client (where the
+OpenAI SDK stores the default_headers kwarg) and includes them in
+_client_kwargs so any client rebuild preserves provider-specific headers.
+
+Fixes #6075
+
+
+ run_agent.py | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+================================================================
+42b3303f2652a7bc819651abd04d2567a911b664
+Yang Zhi <yangzhi.see@gmail.com>
+2026-04-07 17:50:42 +0800
+
+fix(auxiliary_client): inject KimiCLI User-Agent for custom endpoint sync clients
+
+When  is explicitly set to ,
+the custom-endpoint path in  creates a plain
+client without provider-specific headers. This means sync vision calls (e.g.
+) use the generic  User-Agent and get rejected by
+Kimi's coding endpoint with a 403:
+
+    'Kimi For Coding is currently only available for Coding Agents such as Kimi CLI...'
+
+The async converter  already injects , and the
+auto-detected API-key provider path also injects it, but the explicit custom
+endpoint shortcut was missing it entirely.
+
+This patch adds the same  injection to the custom endpoint
+branch, and updates all existing Kimi header sites to  for
+consistency.
+
+Fixes <issue number to be filled in>
+
+
+ agent/auxiliary_client.py | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+================================================================
+9050c43856fa7f116c0ccf317691a66fd22331d9
+Yang Zhi <yangzhi.see@gmail.com>
+2026-04-07 01:18:07 +0800
+
+fix(credential_pool): use _resolve_kimi_base_url when seeding kimi-coding pool
+
+The credential pool seeder (_seed_from_env) hardcoded the base URL
+for API-key providers without running provider-specific auto-detection.
+For kimi-coding, this caused sk-kimi- prefixed keys to be seeded with
+the legacy api.moonshot.ai/v1 endpoint instead of api.kimi.com/coding/v1,
+resulting in HTTP 401 on the first request.
+
+Import and call _resolve_kimi_base_url for kimi-coding so the pool
+uses the correct endpoint based on the key prefix, matching the
+runtime credential resolver behavior.
+
+Also fix a comment: sk-kimi- keys are issued by kimi.com/code,
+not platform.kimi.ai.
+
+Fixes #5561
+
+
+ agent/credential_pool.py | 6 +++++-
+ hermes_cli/auth.py       | 2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+================================================================
+21d5ac910683602e125801a609d54ba4639bca5f
+Yang Zhi <yangzhi.see@gmail.com>
+2026-04-08 16:18:07 +0800
+
+fix(fallback): preserve provider-specific headers when activating fallback
+
+When _try_activate_fallback() swaps to a new provider (e.g.
+kimi-coding), resolve_provider_client() correctly injects
+provider-specific default_headers (like KimiCLI User-Agent) into the
+returned OpenAI client. However, _client_kwargs was saved with only
+api_key and base_url, dropping those headers.
+
+Every subsequent API call rebuilds the client from _client_kwargs via
+_create_request_openai_client(), producing a bare OpenAI client without
+the required headers. Kimi Coding rejects this with 403; Copilot would
+lose its auth headers similarly.
+
+This patch reads _custom_headers from the fallback client (where the
+OpenAI SDK stores the default_headers kwarg) and includes them in
+_client_kwargs so any client rebuild preserves provider-specific headers.
+
+Fixes #6075
+
+
+ run_agent.py | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+================================================================
+1e36185b70f5f115aaf595dae9cfbd75f0d22045
+Teknium <teknium1@gmail.com>
+2026-04-06 17:14:06 -0700
+
+fix(auth): kimi-coding pool base_url seeding + PKCE endpoint fallback
+
+1. credential_pool._seed_from_env() now calls _resolve_kimi_base_url()
+   for kimi-coding provider, matching the runtime resolver logic.
+   Previously, sk-kimi- prefixed keys were seeded with the default
+   moonshot.ai URL, causing 401 on first request. Fixes #5561.
+
+2. Hermes-native PKCE OAuth login (run_hermes_oauth_login_pure) now
+   tries platform.claude.com first with console.anthropic.com fallback,
+   consistent with refresh_anthropic_oauth_pure(). The old _OAUTH_TOKEN_URL
+   constant hardcoded console.anthropic.com only.
+
+
+ agent/anthropic_adapter.py | 40 +++++++++++++++++++++++++++-------------
+ agent/credential_pool.py   |  6 +++++-
+ 2 files changed, 32 insertions(+), 14 deletions(-)
+
+================================================================
+9e844160f9b6e6485abe4294cb1962d7ef7813e3
+Yang Zhi <yangzhi.see@gmail.com>
+2026-04-07 00:52:29 +0800
+
+fix(credential_pool): auto-detect Z.AI endpoint via probe and cache
+
+The credential pool seeder and runtime credential resolver hardcoded
+api.z.ai/api/paas/v4 for all Z.AI keys.  Keys on the Coding Plan (or CN
+endpoint) would hit the wrong endpoint, causing 401/429 errors on the
+first request even though a working endpoint exists.
+
+Add _resolve_zai_base_url() that:
+- Respects GLM_BASE_URL env var (no probe when explicitly set)
+- Probes all candidate endpoints (global, cn, coding-global, coding-cn)
+  via detect_zai_endpoint() to find one that returns HTTP 200
+- Caches the detected endpoint in provider state (auth.json) keyed on
+  a SHA-256 hash of the API key so subsequent starts skip the probe
+- Falls back to the default URL if all probes fail
+
+Wire into both _seed_from_env() in the credential pool and
+resolve_api_key_provider_credentials() in the runtime resolver,
+matching the pattern from the kimi-coding fix (PR #5566).
+
+Fixes the same class of bug as #5561 but for the zai provider.
+
+
+ agent/credential_pool.py        |  3 +++
+ hermes_cli/auth.py              | 43 ++++++++++++++++++++++++++++++++++
+ tests/test_api_key_providers.py | 52 ++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 97 insertions(+), 1 deletion(-)
+
+================================================================
+f77be22c6506b54c73bd1cc1e624a95edb2d17eb
+ClintonEmok <clintonneemok11@gmail.com>
+2026-04-06 12:07:39 +0200
+
+Fix #5211: Preserve dots in OpenCode Go model names
+
+OpenCode Go model names with dots (minimax-m2.7, glm-4.5, kimi-k2.5)
+were being mangled to hyphens (minimax-m2-7), causing HTTP 401 errors.
+
+Two code paths were affected:
+1. model_normalize.py: opencode-go was incorrectly in DOT_TO_HYPHEN_PROVIDERS
+2. run_agent.py: _anthropic_preserve_dots() did not check for opencode-go
+
+Fix:
+- Remove opencode-go from _DOT_TO_HYPHEN_PROVIDERS (dots are correct for Go)
+- Add opencode-go to _anthropic_preserve_dots() provider check
+- Add opencode.ai/zen/go to base_url fallback check
+- Add regression tests in tests/test_model_normalize.py
+
+Co-authored-by: jacob3712 <jacob3712@users.noreply.github.com>
+
+
+ hermes_cli/model_normalize.py |   4 +-
+ run_agent.py                  |   8 +--
+ tests/test_model_normalize.py | 116 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 123 insertions(+), 5 deletions(-)
+
+================================================================
+225d7be1402467441c40f63b3b443674dfe62c69
+ClintonEmok <clintonneemok11@gmail.com>
+2026-04-06 12:07:39 +0200
+
+Fix #5211: Preserve dots in OpenCode Go model names
+
+OpenCode Go model names with dots (minimax-m2.7, glm-4.5, kimi-k2.5)
+were being mangled to hyphens (minimax-m2-7), causing HTTP 401 errors.
+
+Two code paths were affected:
+1. model_normalize.py: opencode-go was incorrectly in DOT_TO_HYPHEN_PROVIDERS
+2. run_agent.py: _anthropic_preserve_dots() did not check for opencode-go
+
+Fix:
+- Remove opencode-go from _DOT_TO_HYPHEN_PROVIDERS (dots are correct for Go)
+- Add opencode-go to _anthropic_preserve_dots() provider check
+- Add opencode.ai/zen/go to base_url fallback check
+- Add regression tests in tests/test_model_normalize.py
+
+Co-authored-by: jacob3712 <jacob3712@users.noreply.github.com>
+
+
+ hermes_cli/model_normalize.py |   4 +-
+ run_agent.py                  |   8 +--
+ tests/test_model_normalize.py | 116 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 123 insertions(+), 5 deletions(-)
+
+================================================================
+77a2aad7715b2673f082d0198878ba5ec65993ab
+Teknium <teknium1@gmail.com>
+2026-04-03 23:30:19 -0700
+
+docs: fix stale references across 8 doc pages
+
+Audit found 24+ discrepancies between docs and code. Fixed:
+
+HIGH severity:
+- Remove honcho toolset from tools-reference, toolsets-reference, and tools.md
+  (converted to memory provider plugin, not a built-in toolset)
+- Add note that Honcho is available via plugin
+
+MEDIUM severity:
+- Add hermes memory command family to cli-commands.md (setup/status/off)
+- Add --clone-all, --clone-from to profile create in cli-commands.md
+- Add --max-turns option to hermes chat in cli-commands.md
+- Add /btw slash command to slash-commands.md
+- Fix profile show example output (remove nonexistent disk usage,
+  add .env and SOUL.md status lines)
+- Add missing hermes-webhook toolset to toolsets-reference.md
+- Add 5 missing providers to fallback-providers.md table
+- Add 7 missing providers to providers.md fallback list
+- Fix outdated model examples: glm-4-plus→glm-5, moonshot-v1-auto→kimi-for-coding
+
+
+ website/docs/integrations/providers.md             |  8 ++++----
+ website/docs/reference/cli-commands.md             | 22 ++++++++++++++++++++--
+ website/docs/reference/profile-commands.md         | 16 +++++++++-------
+ website/docs/reference/slash-commands.md           |  1 +
+ website/docs/reference/tools-reference.md          | 11 +++--------
+ website/docs/reference/toolsets-reference.md       |  6 +++---
+ .../docs/user-guide/features/fallback-providers.md |  5 +++++
+ website/docs/user-guide/features/tools.md          | 10 +++++++---
+ 8 files changed, 52 insertions(+), 27 deletions(-)
+
+================================================================
+28a073edc63ac569c056830e3905831a92ddbf1c
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-04-02 09:36:24 -0700
+
+fix: repair OpenCode model routing and selection (#4508)
+
+OpenCode Zen and Go are mixed-API-surface providers — different models
+behind them use different API surfaces (GPT on Zen uses codex_responses,
+Claude on Zen uses anthropic_messages, MiniMax on Go uses
+anthropic_messages, GLM/Kimi on Go use chat_completions).
+
+Changes:
+- Add normalize_opencode_model_id() and opencode_model_api_mode() to
+  models.py for model ID normalization and API surface routing
+- Add _provider_supports_explicit_api_mode() to runtime_provider.py
+  to prevent stale api_mode from leaking across provider switches
+- Wire opencode routing into all three api_mode resolution paths:
+  pool entry, api_key provider, and explicit runtime
+- Add api_mode field to ModelSwitchResult for propagation through the
+  switch pipeline
+- Consolidate _PROVIDER_MODELS from main.py into models.py (single
+  source of truth, eliminates duplicate dict)
+- Add opencode normalization to setup wizard and model picker flows
+- Add opencode block to _normalize_model_for_provider in CLI
+- Add opencode-zen/go fallback model lists to setup.py
+
+Tests: 160 targeted tests pass (26 new tests covering normalization,
+api_mode routing per provider/model, persistence, and setup wizard
+normalization).
+
+Based on PR #3017 by SaM13997.
+
+Co-authored-by: SaM13997 <139419381+SaM13997@users.noreply.github.com>
+
+ cli.py                                    |  22 +++++++
+ hermes_cli/auth.py                        |   4 ++
+ hermes_cli/main.py                        |  96 +++++-----------------------
+ hermes_cli/model_switch.py                |  12 ++++
+ hermes_cli/models.py                      |  53 ++++++++++++++++
+ hermes_cli/runtime_provider.py            |  34 ++++++++--
+ hermes_cli/setup.py                       |  17 +++++
+ tests/hermes_cli/test_model_validation.py |  24 +++++++
+ tests/hermes_cli/test_models.py           |   9 ++-
+ tests/test_codex_models.py                |  16 +++++
+ tests/test_model_provider_persistence.py  |  47 ++++++++++++++
+ tests/test_runtime_provider_resolution.py | 100 ++++++++++++++++++++++++++++++
+ tests/test_setup_model_selection.py       |  31 +++++++++
+ 13 files changed, 381 insertions(+), 84 deletions(-)
+
+================================================================
+11efa75bb9ea201da3e9be61ef99e7f231196f07
+SaM13997 <139419381+SaM13997@users.noreply.github.com>
+2026-04-01 16:35:47 -0700
+
+fix: repair OpenCode model routing and selection
+
+OpenCode Zen and Go are mixed-API-surface providers — different models
+behind them use different API surfaces (GPT on Zen uses codex_responses,
+Claude on Zen uses anthropic_messages, MiniMax on Go uses
+anthropic_messages, GLM/Kimi on Go use chat_completions).
+
+Changes:
+- Add normalize_opencode_model_id() and opencode_model_api_mode() to
+  models.py for model ID normalization and API surface routing
+- Add _provider_supports_explicit_api_mode() to runtime_provider.py
+  to prevent stale api_mode from leaking across provider switches
+- Wire opencode routing into all three api_mode resolution paths:
+  pool entry, api_key provider, and explicit runtime
+- Add api_mode field to ModelSwitchResult for propagation through the
+  switch pipeline
+- Consolidate _PROVIDER_MODELS from main.py into models.py (single
+  source of truth, eliminates duplicate dict)
+- Add opencode normalization to setup wizard and model picker flows
+- Add opencode block to _normalize_model_for_provider in CLI
+- Add opencode-zen/go fallback model lists to setup.py
+
+Tests: 160 targeted tests pass (26 new tests covering normalization,
+api_mode routing per provider/model, persistence, and setup wizard
+normalization).
+
+Based on PR #3017 by SaM13997.
+
+
+ cli.py                                    |  22 +++++++
+ hermes_cli/auth.py                        |   4 ++
+ hermes_cli/main.py                        |  96 +++++-----------------------
+ hermes_cli/model_switch.py                |  12 ++++
+ hermes_cli/models.py                      |  53 ++++++++++++++++
+ hermes_cli/runtime_provider.py            |  34 ++++++++--
+ hermes_cli/setup.py                       |  17 +++++
+ tests/hermes_cli/test_model_validation.py |  24 +++++++
+ tests/hermes_cli/test_models.py           |   9 ++-
+ tests/test_codex_models.py                |  16 +++++
+ tests/test_model_provider_persistence.py  |  47 ++++++++++++++
+ tests/test_runtime_provider_resolution.py | 100 ++++++++++++++++++++++++++++++
+ tests/test_setup_model_selection.py       |  31 +++++++++
+ 13 files changed, 381 insertions(+), 84 deletions(-)
+
+================================================================
+0240baa357522654026e4aa04c716d209f79b704
+arasovic <me@arasmehmet.com>
+2026-03-31 19:42:44 +0300
+
+fix: strip orphaned think/reasoning tags from user-facing responses
+
+Some models (e.g. Kimi K2.5 on Alibaba OpenAI-compatible endpoint)
+emit reasoning text followed by a closing </think> without a matching
+opening <think> tag.  The existing paired-tag regexes in
+_strip_think_blocks() cannot match these orphaned tags, so </think>
+leaks into user-facing responses on all platforms.
+
+Add a catch-all regex that strips any remaining opening or closing
+think/thinking/reasoning/REASONING_SCRATCHPAD tags after the existing
+paired-block removal pass.
+
+Closes #4285
+
+
+ run_agent.py            |  1 +
+ tests/test_run_agent.py | 21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
+
+================================================================
+981e14001c98bcb1ca66df323ba5f56ebee996e8
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-29 20:44:39 -0700
+
+fix: clear api_mode on provider switch instead of hardcoding chat_completions (#3857)
+
+PR #3726 fixed stale codex_responses persisting when switching providers
+by hardcoding api_mode=chat_completions in 5 model flows. This broke
+MiniMax, MiniMax-CN, and Alibaba which use /anthropic endpoints that
+need anthropic_messages — the hardcoded value overrides the URL-based
+auto-detection in runtime_provider.py.
+
+Fix: pop api_mode from config in the 3 URL-dependent flows (custom
+endpoint, Kimi, api_key_provider) instead of hardcoding. The runtime
+resolver already correctly auto-detects api_mode from the base_url
+suffix (/anthropic -> anthropic_messages, else chat_completions).
+
+OpenRouter and Copilot ACP flows keep the explicit value since their
+api_mode is always known.
+
+Reported by stefan171.
+
+ hermes_cli/main.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+================================================================
+909de72426a5b26fef5b0cd05fdd54f727d3c675
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-29 08:07:11 -0700
+
+fix: set api_mode when switching providers via hermes model (#3726)
+
+When switching providers via 'hermes model', the previous provider's
+api_mode persisted in config.yaml. Switching from Copilot
+(codex_responses) to a chat_completions provider like Z.AI would send
+requests to the wrong endpoint (404).
+
+Set api_mode = chat_completions in the 4 provider flows that were
+missing it: OpenRouter, custom endpoint, Kimi, and api_key_provider.
+
+Co-authored-by: Nour Eddine Hamaidi <HenkDz@users.noreply.github.com>
+
+ hermes_cli/main.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+================================================================
+09796b183b50f03bd55da308ec7b677aff985abe
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-27 22:10:10 -0700
+
+fix: alibaba provider default endpoint and model list (#3484)
+
+- Change default inference_base_url from dashscope-intl Anthropic-compat
+  endpoint to coding-intl OpenAI-compat /v1 endpoint. The old Anthropic
+  endpoint 404'd when used with the OpenAI SDK (which appends
+  /chat/completions to a /apps/anthropic base URL).
+
+- Update curated model list: remove models unavailable on coding-intl
+  (qwen3-max, qwen-plus-latest, qwen3.5-flash, qwen-vl-max), add
+  third-party models available on the platform (glm-5, glm-4.7,
+  kimi-k2.5, MiniMax-M2.5).
+
+- URL-based api_mode auto-detection still works: overriding
+  DASHSCOPE_BASE_URL to an /apps/anthropic endpoint automatically
+  switches to anthropic_messages mode.
+
+- Update provider description and env var descriptions to reflect the
+  coding-intl multi-provider platform.
+
+- Update tests to match new default URL and test the anthropic override
+  path instead.
+
+ hermes_cli/auth.py                        |  2 +-
+ hermes_cli/config.py                      |  4 ++--
+ hermes_cli/main.py                        |  2 +-
+ hermes_cli/models.py                      | 14 ++++++++++----
+ tests/test_runtime_provider_resolution.py | 18 +++++++++---------
+ 5 files changed, 23 insertions(+), 17 deletions(-)
+
+================================================================
+ab09f6b568a64ded77cb7693e7f0670feeb9d3dd
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-27 13:54:46 -0700
+
+feat: curate HF model picker with OpenRouter analogues (#3440)
+
+Show only agentic models that map to OpenRouter defaults:
+
+  Qwen/Qwen3.5-397B-A17B          ↔ qwen/qwen3.5-plus
+  Qwen/Qwen3.5-35B-A3B            ↔ qwen/qwen3.5-35b-a3b
+  deepseek-ai/DeepSeek-V3.2       ↔ deepseek/deepseek-chat
+  moonshotai/Kimi-K2.5             ↔ moonshotai/kimi-k2.5
+  MiniMaxAI/MiniMax-M2.5           ↔ minimax/minimax-m2.5
+  zai-org/GLM-5                    ↔ z-ai/glm-5
+  XiaomiMiMo/MiMo-V2-Flash         ↔ xiaomi/mimo-v2-pro
+  moonshotai/Kimi-K2-Thinking      ↔ moonshotai/kimi-k2-thinking
+
+Users can still pick any HF model via Enter custom model name.
+
+ agent/model_metadata.py         | 12 +---------
+ hermes_cli/main.py              | 49 +++++++++++++++++++----------------------
+ hermes_cli/models.py            | 19 ++++------------
+ tests/test_api_key_providers.py |  4 ++--
+ 4 files changed, 30 insertions(+), 54 deletions(-)
+
+================================================================
+fa98080b7d68c0bfe66186fcf794ea8eeb3431ff
+Teknium <teknium1@gmail.com>
+2026-03-27 13:00:21 -0700
+
+feat: curate HF model picker with OpenRouter analogues
+
+Show only agentic models that map to OpenRouter defaults:
+
+  Qwen/Qwen3.5-397B-A17B          ↔ qwen/qwen3.5-plus
+  Qwen/Qwen3.5-35B-A3B            ↔ qwen/qwen3.5-35b-a3b
+  deepseek-ai/DeepSeek-V3.2       ↔ deepseek/deepseek-chat
+  moonshotai/Kimi-K2.5             ↔ moonshotai/kimi-k2.5
+  MiniMaxAI/MiniMax-M2.5           ↔ minimax/minimax-m2.5
+  zai-org/GLM-5                    ↔ z-ai/glm-5
+  XiaomiMiMo/MiMo-V2-Flash         ↔ xiaomi/mimo-v2-pro
+  moonshotai/Kimi-K2-Thinking      ↔ moonshotai/kimi-k2-thinking
+
+Users can still pick any HF model via Enter custom model name.
+
+
+ agent/model_metadata.py         | 12 +---------
+ hermes_cli/main.py              | 49 +++++++++++++++++++----------------------
+ hermes_cli/models.py            | 19 ++++------------
+ tests/test_api_key_providers.py |  4 ++--
+ 4 files changed, 30 insertions(+), 54 deletions(-)
+
+================================================================
+9a19cd6cf3a7c7cafe794d92c884bb46a1eedc39
+Teknium <teknium1@gmail.com>
+2026-03-25 08:21:58 -0700
+
+feat: persist reasoning across gateway session turns (schema v6)
+
+Add reasoning TEXT, reasoning_details TEXT, and codex_reasoning_items
+TEXT columns to the messages table (schema v5->v6). This preserves
+assistant reasoning chains across gateway session reloads so all
+provider-specific reasoning formats survive the round-trip.
+
+Three reasoning formats are now persisted:
+- reasoning: plain text (DeepSeek, Qwen, Moonshot, Novita, OpenRouter)
+- reasoning_details: structured array (OpenRouter multi-turn continuity)
+- codex_reasoning_items: encrypted blobs (OpenAI Codex Responses API)
+
+Previously, all three existed in-memory during a single session but
+were lost on gateway reload.
+
+Changes:
+- hermes_state.py: schema v6 migration, append_message() accepts all
+  three fields, get_messages_as_conversation() restores them on
+  assistant messages
+- run_agent.py: _flush_messages_to_session_db() passes all reasoning
+  fields through for assistant messages
+- gateway/run.py: agent_history builder preserves reasoning fields
+  on non-tool-calling assistant messages
+- gateway/session.py: append_to_transcript() and rewrite_transcript()
+  pass all reasoning fields to the DB
+- Tests: 5 new tests for round-trip persistence
+
+Verified against:
+- OpenAI Codex direct (codex_reasoning_items round-trip: 868 enc chars)
+- OpenRouter -> Anthropic, Google, DeepSeek, Meta, Qwen, Mistral
+- Anthropic adapter (strips extra fields by construction)
+- Codex Responses API path (replays codex_reasoning_items correctly)
+
+
+ gateway/run.py             | 13 ++++++-
+ gateway/session.py         | 12 +++++-
+ hermes_state.py            | 65 ++++++++++++++++++++++++++++++---
+ run_agent.py               |  3 ++
+ tests/test_hermes_state.py | 91 ++++++++++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 173 insertions(+), 11 deletions(-)
+
+================================================================
+900e848522091bcdc82bdc33ebd6055be04bc1e2
+Test <test@test.com>
+2026-03-20 11:57:24 -0700
+
+fix: infer provider from base URL for models.dev context length lookup
+
+Custom endpoint users (DashScope/Alibaba, Z.AI, Kimi, DeepSeek, etc.)
+get wrong context lengths because their provider resolves as "openrouter"
+or "custom", skipping the models.dev lookup entirely. For example,
+qwen3.5-plus on DashScope falls to the generic "qwen" hardcoded default
+(131K) instead of the correct 1M.
+
+Add _infer_provider_from_url() that maps known API hostnames to their
+models.dev provider IDs. When the explicit provider is generic
+(openrouter/custom/empty), infer from the base URL before the models.dev
+lookup. This resolves context lengths correctly for DashScope, Z.AI,
+Kimi, MiniMax, DeepSeek, and Nous endpoints without requiring users to
+manually set context_length in config.
+
+Also refactors _is_known_provider_base_url() to use the same URL mapping,
+removing the duplicated hostname list.
+
+
+ agent/model_metadata.py | 57 ++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 42 insertions(+), 15 deletions(-)
+
+================================================================
+36dd7a3e8db3ec186102a7c5f102b4b0342a1073
+ygd58 <ygd58@users.noreply.github.com>
+2026-03-16 00:18:30 -0700
+
+fix(setup): defer config.yaml write until after model selection
+
+_update_config_for_provider() was called immediately after provider
+selection for zai, kimi-coding, minimax, minimax-cn, and anthropic —
+before model selection happened. Since the gateway re-reads config.yaml
+per-message, this created a race where the gateway would pick up the
+new provider but still use the old (incompatible) model name.
+
+Capture selected_base_url in each provider block, then call
+_update_config_for_provider() once, after model selection completes,
+right before save_config(). The in-memory _set_model_provider() calls
+stay in place so the config object remains consistent during setup.
+
+Closes #1182
+
+
+ hermes_cli/setup.py | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
+
+================================================================
+f549981293d043d86fc37d92dbe8b42895572017
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-14 20:46:51 -0700
+
+Merge pull request #1369 from NousResearch/hermes/hermes-aed06679
+
+fix: exclude Coding Plan-only models from Moonshot model selection
+
+ hermes_cli/main.py              | 10 ++++++++--
+ tests/test_api_key_providers.py | 27 +++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+), 2 deletions(-)
+
+================================================================
+2a6dbb25b26231d2e60ce5ca5d983cda134f6f01
+0xbyt4 <35742124+0xbyt4@users.noreply.github.com>
+2026-03-12 16:25:13 +0300
+
+fix: exclude Coding Plan-only models from Moonshot model selection
+
+Moonshot (legacy key) users were shown kimi-for-coding and
+kimi-k2-thinking-turbo which only work on the Coding Plan endpoint
+(api.kimi.com/coding/v1). Add a separate "moonshot" model list that
+excludes plan-specific models.
+
+
+ hermes_cli/main.py              | 10 ++++++++--
+ tests/test_api_key_providers.py | 27 +++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+), 2 deletions(-)
+
+================================================================
+2054ffdaebdf63804ff9bf82cd5b9a897799eb49
+teknium1 <teknium1@gmail.com>
+2026-03-11 07:48:44 -0700
+
+fix: smart vision setup that respects the user's chosen provider
+
+The old flow blindly asked for an OpenRouter API key after ANY non-OR
+provider selection, even for Nous Portal and Codex which already
+support vision natively. This was confusing and annoying.
+
+New behavior:
+- OpenRouter: skip — vision uses Gemini via their OR key
+- Nous Portal OAuth: skip — vision uses Gemini via Nous
+- OpenAI Codex: skip — gpt-5.3-codex supports vision
+- Custom endpoint (api.openai.com): show OpenAI vision model picker
+  (gpt-4o, gpt-4o-mini, gpt-4.1, etc.), saves AUXILIARY_VISION_MODEL
+- Custom (other) / z.ai / kimi / minimax / nous-api:
+  - First checks if existing OR/Nous creds already cover vision
+  - If not, offers friendly choice: OpenRouter / OpenAI / Skip
+  - No more 'enter OpenRouter key' thrown in your face
+
+Also fixes the setup summary to check actual vision availability
+across all providers instead of hardcoding 'requires OPENROUTER_API_KEY'.
+MoA still correctly requires OpenRouter (calls multiple frontier models).
+
+
+ hermes_cli/setup.py | 156 ++++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 128 insertions(+), 28 deletions(-)
+
+================================================================
+11b577671b721adeafd7c1eff8e315b08ec327ac
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-13 10:02:16 -0700
+
+fix: auxiliary client uses main model for custom/local endpoints instead of gpt-4o-mini (#1189)
+
+* fix: prevent model/provider mismatch when switching providers during active gateway
+
+When _update_config_for_provider() writes the new provider and base_url
+to config.yaml, the gateway (which re-reads config per-message) can pick
+up the change before model selection completes. This causes the old model
+name (e.g. 'anthropic/claude-opus-4.6') to be sent to the new provider's
+API (e.g. MiniMax), which fails.
+
+Changes:
+- _update_config_for_provider() now accepts an optional default_model
+  parameter. When provided and the current model.default is empty or
+  uses OpenRouter format (contains '/'), it sets a safe default model
+  for the new provider.
+- All setup.py callers for direct-API providers (zai, kimi, minimax,
+  minimax-cn, anthropic) now pass a provider-appropriate default model.
+- _setup_provider_model_selection() now validates the 'Keep current'
+  choice: if the current model uses OpenRouter format and wouldn't work
+  with the new provider, it warns and switches to the provider's first
+  default model instead of silently keeping the incompatible name.
+
+Reported by a user on Home Assistant whose gateway started sending
+'anthropic/claude-opus-4.6' to MiniMax's API after running hermes setup.
+
+* fix: auxiliary client uses main model for custom/local endpoints instead of gpt-4o-mini
+
+When a user runs a local server (e.g. Qwen3.5-9B via OPENAI_BASE_URL),
+the auxiliary client (context compression, vision, session search) would
+send requests for 'gpt-4o-mini' or 'google/gemini-3-flash-preview' to
+the local server, which only serves one model — causing 404 errors
+mid-task.
+
+Changes:
+- _try_custom_endpoint() now reads the user's configured main model via
+  _read_main_model() (checks OPENAI_MODEL → HERMES_MODEL → LLM_MODEL →
+  config.yaml model.default) instead of hardcoding 'gpt-4o-mini'.
+- resolve_provider_client() auto mode now detects when an OpenRouter-
+  formatted model override (containing '/') would be sent to a non-
+  OpenRouter provider (like a local server) and drops it in favor of
+  the provider's default model.
+- Test isolation fixes: properly clear env vars in 'nothing available'
+  tests to prevent host environment leakage.
+
+ agent/auxiliary_client.py            | 36 +++++++++++++++++++++++++++++++++++-
+ tests/agent/test_auxiliary_client.py | 25 ++++++++++++++++++-------
+
+================================================================
+e8c9bcea2b2ac669c3fb42774e6f8f6f8c1fd991
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-13 09:03:48 -0700
+
+fix: prevent model/provider mismatch when switching providers during active gateway (#1183)
+
+When _update_config_for_provider() writes the new provider and base_url
+to config.yaml, the gateway (which re-reads config per-message) can pick
+up the change before model selection completes. This causes the old model
+name (e.g. 'anthropic/claude-opus-4.6') to be sent to the new provider's
+API (e.g. MiniMax), which fails.
+
+Changes:
+- _update_config_for_provider() now accepts an optional default_model
+  parameter. When provided and the current model.default is empty or
+  uses OpenRouter format (contains '/'), it sets a safe default model
+  for the new provider.
+- All setup.py callers for direct-API providers (zai, kimi, minimax,
+  minimax-cn, anthropic) now pass a provider-appropriate default model.
+- _setup_provider_model_selection() now validates the 'Keep current'
+  choice: if the current model uses OpenRouter format and wouldn't work
+  with the new provider, it warns and switches to the provider's first
+  default model instead of silently keeping the incompatible name.
+
+Reported by a user on Home Assistant whose gateway started sending
+'anthropic/claude-opus-4.6' to MiniMax's API after running hermes setup.
+
+ hermes_cli/auth.py  | 25 +++++++++++++++++++++++--
+ hermes_cli/setup.py | 22 ++++++++++++++++------
+ 2 files changed, 39 insertions(+), 8 deletions(-)
+
+================================================================
+1a79a5118f9259fbfa59e56ff025871cb5635ab3
+teknium1 <teknium1@gmail.com>
+2026-03-13 09:01:58 -0700
+
+fix: prevent model/provider mismatch when switching providers during active gateway
+
+When _update_config_for_provider() writes the new provider and base_url
+to config.yaml, the gateway (which re-reads config per-message) can pick
+up the change before model selection completes. This causes the old model
+name (e.g. 'anthropic/claude-opus-4.6') to be sent to the new provider's
+API (e.g. MiniMax), which fails.
+
+Changes:
+- _update_config_for_provider() now accepts an optional default_model
+  parameter. When provided and the current model.default is empty or
+  uses OpenRouter format (contains '/'), it sets a safe default model
+  for the new provider.
+- All setup.py callers for direct-API providers (zai, kimi, minimax,
+  minimax-cn, anthropic) now pass a provider-appropriate default model.
+- _setup_provider_model_selection() now validates the 'Keep current'
+  choice: if the current model uses OpenRouter format and wouldn't work
+  with the new provider, it warns and switches to the provider's first
+  default model instead of silently keeping the incompatible name.
+
+Reported by a user on Home Assistant whose gateway started sending
+'anthropic/claude-opus-4.6' to MiniMax's API after running hermes setup.
+
+
+ hermes_cli/auth.py  | 25 +++++++++++++++++++++++--
+ hermes_cli/setup.py | 22 ++++++++++++++++------
+ 2 files changed, 39 insertions(+), 8 deletions(-)
+
+================================================================
+93c3a1a9c927046d54ee173038f05a5ad2b82dc1
+0xbyt4 <35742124+0xbyt4@users.noreply.github.com>
+2026-03-13 04:42:26 +0300
+
+fix(setup): remove dead code causing is_coding_plan NameError crash
+
+Remove 50 lines of unreachable duplicate model selection logic in
+setup_model_provider() for zai/kimi-coding/minimax/minimax-cn providers.
+The code referenced undefined `is_coding_plan` variable, crashing setup.
+_setup_provider_model_selection() already handles these providers correctly
+via _DEFAULT_PROVIDER_MODELS dict.
+
+
+ hermes_cli/setup.py                 |  50 ---------------
+ tests/test_setup_model_selection.py | 124 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 124 insertions(+), 50 deletions(-)
+
+================================================================
+e9c33171581d5b310c1a467247de3522ef73a99a
+Teknium <127238744+teknium1@users.noreply.github.com>
+2026-03-12 05:58:48 -0700
+
+fix: improve Kimi model selection — auto-detect endpoint, add missing models (#1039)
+
+* fix: /reasoning command output ordering, display, and inline think extraction
+
+Three issues with the /reasoning command:
+
+1. Output interleaving: The command echo used print() while feedback
+   used _cprint(), causing them to render out-of-order under
+   prompt_toolkit's patch_stdout. Changed echo to use _cprint() so
+   all output renders through the same path in correct order.
+
+2. Reasoning display not working: /reasoning show toggled a flag
+   but reasoning never appeared for models that embed thinking in
+   inline <think> blocks rather than structured API fields. Added
+   fallback extraction in _build_assistant_message to capture
+   <think> block content as reasoning when no structured reasoning
+   fields (reasoning, reasoning_content, reasoning_details) are
+   present. This feeds into both the reasoning callback (during
+   tool loops) and the post-response reasoning box display.
+
+3. Feedback clarity: Added checkmarks to confirm actions, persisted
+   show/hide to config (was session-only before), and aligned the
+   status display for readability.
+
+Tests: 7 new tests for inline think block extraction (41 total).
+
+* feat: add /reasoning command to gateway (Telegram/Discord/etc)
+
+The /reasoning command only existed in the CLI — messaging platforms
+had no way to view or change reasoning settings. This adds:
+
+1. /reasoning command handler in the gateway:
+   - No args: shows current effort level and display state
+   - /reasoning <level>: sets reasoning effort (none/low/medium/high/xhigh)
+   - /reasoning show|hide: toggles reasoning display in responses
+   - All changes saved to config.yaml immediately
+
+2. Reasoning display in gateway responses:
+   - When show_reasoning is enabled, prepends a 'Reasoning' block
+     with the model's last_reasoning content before the response
+   - Collapses long reasoning (>15 lines) to keep messages readable
+   - Uses last_reasoning from run_conversation result dict
+
+3. Plumbing:
+   - Added _show_reasoning attribute loaded from config at startup
+   - Propagated last_reasoning through _run_agent return dict
+
+================================================================
+df0745fb86ca3f3eec2edba08e3b98bb44d176f4
+teknium1 <teknium1@gmail.com>
+2026-03-12 05:50:19 -0700
+
+fix: improve Kimi model selection — auto-detect endpoint, add missing models
+
+Kimi Coding Plan setup:
+- New dedicated _model_flow_kimi() replaces the generic API-key flow
+  for kimi-coding. Removes the confusing 'Base URL' prompt entirely —
+  the endpoint is auto-detected from the API key prefix:
+    sk-kimi-* → api.kimi.com/coding/v1 (Kimi Coding Plan)
+    other     → api.moonshot.ai/v1 (legacy Moonshot)
+
+- Shows appropriate models for each endpoint:
+    Coding Plan: kimi-for-coding, kimi-k2.5, kimi-k2-thinking, kimi-k2-thinking-turbo
+    Moonshot:    full model catalog
+
+- Clears any stale KIMI_BASE_URL override so runtime auto-detection
+  via _resolve_kimi_base_url() works correctly.
+
+Model catalog updates:
+- Added kimi-for-coding (primary Coding Plan model) and kimi-k2-thinking-turbo
+  to models.py, main.py _PROVIDER_MODELS, and model_metadata.py context windows.
+
+- Updated User-Agent from KimiCLI/1.0 to KimiCLI/1.3 (Kimi's coding
+  endpoint whitelists known coding agents via User-Agent sniffing).
+
+
+ agent/model_metadata.py |   2 +
+ hermes_cli/main.py      | 112 +++++++++++++++++++++++++++++++++++++++++++++++-
+ hermes_cli/models.py    |   2 +
+ run_agent.py            |   2 +-
+ 4 files changed, 115 insertions(+), 3 deletions(-)
+
+================================================================
+ec2c6dff7073b1369ac71f405901dabb893e650f
+teknium1 <teknium1@gmail.com>
+2026-03-11 23:06:06 -0700
+
+feat: unified /model and /provider into single view
+
+Both /model and /provider now show the same unified display:
+
+  Current: anthropic/claude-opus-4.6 via OpenRouter
+
+  Authenticated providers & models:
+    [openrouter] ← active
+      anthropic/claude-opus-4.6 ← current
+      anthropic/claude-sonnet-4.5
+      ...
+    [nous]
+      claude-opus-4-6
+      gemini-3-flash
+      ...
+    [openai-codex]
+      gpt-5.2-codex
+      gpt-5.1-codex-mini
+      ...
+
+  Not configured: Z.AI / GLM, Kimi / Moonshot, ...
+
+  Switch model:    /model <model-name>
+  Switch provider: /model <provider>:<model-name>
+  Example: /model nous:claude-opus-4-6
+
+Users can see all authenticated providers and their models at a glance,
+making it easy to switch mid-conversation.
+
+Also added curated model lists for Nous Portal and OpenAI Codex to
+hermes_cli/models.py.
+
+
+ cli.py                          | 126 ++++++++++++++++++++++------------------
+ hermes_cli/models.py            |  13 +++++
+ tests/test_cli_model_command.py |   4 +-
+ 3 files changed, 83 insertions(+), 60 deletions(-)
+
+================================================================
+1e373745a91cf787e9722acc9dbfd3d5c00d10a4
+teknium1 <teknium1@gmail.com>
+2026-03-11 07:48:44 -0700
+
+fix: smart vision setup that respects the user's chosen provider
+
+The old flow blindly asked for an OpenRouter API key after ANY non-OR
+provider selection, even for Nous Portal and Codex which already
+support vision natively. This was confusing and annoying.
+
+New behavior:
+- OpenRouter: skip — vision uses Gemini via their OR key
+- Nous Portal OAuth: skip — vision uses Gemini via Nous
+- OpenAI Codex: skip — gpt-5.3-codex supports vision
+- Custom endpoint (api.openai.com): show OpenAI vision model picker
+  (gpt-4o, gpt-4o-mini, gpt-4.1, etc.), saves AUXILIARY_VISION_MODEL
+- Custom (other) / z.ai / kimi / minimax / nous-api:
+  - First checks if existing OR/Nous creds already cover vision
+  - If not, offers friendly choice: OpenRouter / OpenAI / Skip
+  - No more 'enter OpenRouter key' thrown in your face
+
+Also fixes the setup summary to check actual vision availability
+across all providers instead of hardcoding 'requires OPENROUTER_API_KEY'.
+MoA still correctly requires OpenRouter (calls multiple frontier models).
+
+
+ hermes_cli/setup.py | 141 ++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 126 insertions(+), 15 deletions(-)
+
+================================================================
+c64efa92607bf6af0de66236fff93d1b08d34f82
+teknium1 <teknium1@gmail.com>
+2026-03-11 07:48:44 -0700
+
+fix: smart vision setup that respects the user's chosen provider
+
+The old flow blindly asked for an OpenRouter API key after ANY non-OR
+provider selection, even for Nous Portal and Codex which already
+support vision natively. This was confusing and annoying.
+
+New behavior:
+- OpenRouter: skip — vision uses Gemini via their OR key
+- Nous Portal OAuth: skip — vision uses Gemini via Nous
+- OpenAI Codex: skip — gpt-5.3-codex supports vision
+- Custom endpoint (api.openai.com): show OpenAI vision model picker
+  (gpt-4o, gpt-4o-mini, gpt-4.1, etc.), saves AUXILIARY_VISION_MODEL
+- Custom (other) / z.ai / kimi / minimax / nous-api:
+  - First checks if existing OR/Nous creds already cover vision
+  - If not, offers friendly choice: OpenRouter / OpenAI / Skip
+  - No more 'enter OpenRouter key' thrown in your face
+
+Also fixes the setup summary to check actual vision availability
+across all providers instead of hardcoding 'requires OPENROUTER_API_KEY'.
+MoA still correctly requires OpenRouter (calls multiple frontier models).
+
+
+ hermes_cli/setup.py | 141 ++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 126 insertions(+), 15 deletions(-)
+
+================================================================
+9423fda5cb573ef6b1a7876fc01157433eb7d785
+teknium1 <teknium1@gmail.com>
+2026-03-11 06:12:21 -0700
+
+feat: configurable subagent provider:model with full credential resolution
+
+Adds delegation.model and delegation.provider config fields so subagents
+can run on a completely different provider:model pair than the parent agent.
+
+When delegation.provider is set, the system resolves the full credential
+bundle (base_url, api_key, api_mode) via resolve_runtime_provider() —
+the same path used by CLI/gateway startup. This means all configured
+providers work out of the box: openrouter, nous, zai, kimi-coding,
+minimax, minimax-cn.
+
+Key design decisions:
+- Provider resolution uses hermes_cli.runtime_provider (single source of
+  truth for credential resolution across CLI, gateway, cron, and now
+  delegation)
+- When only delegation.model is set (no provider), the model name changes
+  but parent credentials are inherited (for switching models within the
+  same provider like OpenRouter)
+- When delegation.provider is set, full credentials are resolved
+  independently — enabling cross-provider delegation (e.g. parent on
+  Nous Portal, subagents on OpenRouter)
+- Clear error messages if provider resolution fails (missing API key,
+  unknown provider name)
+- _load_config() now falls back to hermes_cli.config.load_config() for
+  gateway/cron contexts where CLI_CONFIG is unavailable
+
+Based on PR #791 by 0xbyt4 (closes #609), reworked to use proper
+provider credential resolution instead of passing provider as metadata.
+
+Co-authored-by: 0xbyt4 <0xbyt4@users.noreply.github.com>
+
+
+ cli-config.yaml.example                  |   4 +
+ cli.py                                   |   2 +
+ hermes_cli/config.py                     |  11 +-
+ tests/tools/test_delegate.py             | 283 +++++++++++++++++++++++++++++++
+ tools/delegate_tool.py                   | 120 ++++++++++++-
+ website/docs/user-guide/configuration.md |   8 +
+ 6 files changed, 418 insertions(+), 10 deletions(-)
+
+================================================================
+3b67606c42462def32fcc5e74513ee939a5880f6
+teknium1 <teknium1@gmail.com>
+2026-03-09 02:38:34 -0700
+
+fix: custom endpoint provider shows as openrouter in gateway
+
+Three issues caused the gateway to display 'openrouter' instead of
+'Custom endpoint' when users configured a custom OAI-compatible endpoint:
+
+1. hermes setup: custom endpoint path saved OPENAI_BASE_URL and
+   OPENAI_API_KEY to .env but never wrote model.provider to config.yaml.
+   All other providers (Codex, z.ai, Kimi, etc.) call
+   _update_config_for_provider() which sets this — custom was the only
+   path that skipped it. Now writes model.provider='custom' and
+   model.base_url to config.yaml.
+
+2. hermes model: custom endpoint set model.provider='auto' in config.yaml.
+   The CLI display had a hack to detect OPENAI_BASE_URL and override to
+   'custom', but the gateway didn't. Now sets model.provider='custom'
+   directly.
+
+3. gateway /model and /provider commands: defaulted to 'openrouter' and
+   read config.yaml — which had no provider set. Added OPENAI_BASE_URL
+   detection fallback (same pattern the CLI uses) as a defensive catch
+   for existing users who set up before this fix.
+
+
+ gateway/run.py       |  9 +++++++++
+ hermes_cli/main.py   |  2 +-
+ hermes_cli/models.py |  2 +-
+ hermes_cli/setup.py  | 22 ++++++++++++++++++++++
+ 4 files changed, 33 insertions(+), 2 deletions(-)
+
+================================================================
+35d57ed752f250e008490a3bc7f11072d8efa2c7
+teknium1 <teknium1@gmail.com>
+2026-03-08 21:44:48 -0700
+
+refactor: unified OAuth/API-key credential resolution for fallback
+
+Split fallback provider handling into two clean registries:
+
+  _FALLBACK_API_KEY_PROVIDERS — env-var-based (openrouter, zai, kimi, minimax)
+  _FALLBACK_OAUTH_PROVIDERS  — OAuth-based (openai-codex, nous)
+
+New _resolve_fallback_credentials() method handles all three cases
+(OAuth, API key, custom endpoint) and returns a uniform (key, url, mode)
+tuple. _try_activate_fallback() is now just validation + client build.
+
+Adds Nous Portal as a fallback provider — uses the same OAuth flow
+as the primary provider (hermes login), returns chat_completions mode.
+
+OAuth providers get credential refresh for free: the existing 401
+retry handlers (_try_refresh_codex/nous_client_credentials) check
+self.provider, which is set correctly after fallback activation.
+
+4 new tests (nous activation, nous no-login, codex retained).
+27 total fallback tests passing, 2548 full suite.
+
+
+ hermes_cli/config.py         |   1 +
+ run_agent.py                 | 112 ++++++++++++++++++++++++++-----------------
+ tests/test_fallback_model.py |  34 +++++++++++++
+ 3 files changed, 102 insertions(+), 45 deletions(-)
+
+================================================================
+b3765c28d0ac311764d9163062f8ecdddd252e99
+teknium1 <teknium1@gmail.com>
+2026-03-08 20:49:55 -0700
+
+fix: restrict fallback providers to actual hermes providers
+
+Remove hallucinated providers (openai, deepseek, together, groq,
+fireworks, mistral, gemini, nous) from the fallback provider map.
+These don't exist in hermes-agent's provider system.
+
+The real supported providers for fallback are:
+  openrouter   (OPENROUTER_API_KEY)
+  zai          (ZAI_API_KEY)
+  kimi-coding  (KIMI_API_KEY)
+  minimax      (MINIMAX_API_KEY)
+  minimax-cn   (MINIMAX_CN_API_KEY)
+
+For any other OpenAI-compatible endpoint, users can use the
+base_url + api_key_env overrides in the config.
+
+Also adds Kimi User-Agent header for kimi fallback (matching
+the main provider system).
+
+
+ hermes_cli/config.py         | 18 ++++-------
+ run_agent.py                 | 16 ++++-----
+ tests/test_fallback_model.py | 77 ++++++++++++++++++++++++++++----------------
+ 3 files changed, 65 insertions(+), 46 deletions(-)
+
+================================================================
+34792dd907dfd1599417c3ae73942e4987020ae6
+teknium1 <teknium1@gmail.com>
+2026-03-08 05:58:45 -0700
+
+fix: resolve 'auto' provider properly via credential detection
+
+'auto' doesn't always mean openrouter — it could be nous, zai,
+kimi-coding, etc. depending on configured credentials. Reverted the
+hardcoded mapping and now both CLI and gateway call
+resolve_provider() to detect the actual active provider when 'auto'
+is set. Falls back to openrouter only if resolution fails.
+
+
+ cli.py               | 15 ++++++++++++++-
+ gateway/run.py       |  7 +++++++
+ hermes_cli/models.py |  9 ++++++---
+ 3 files changed, 27 insertions(+), 4 deletions(-)
+
+================================================================
+66d3e6a0c2c3c7d8032e26befa06eb3220bcff53
+teknium1 <teknium1@gmail.com>
+2026-03-08 05:45:55 -0700
+
+feat: provider switching via /model + enhanced model display
+
+Add provider:model syntax to /model command for runtime provider switching:
+  /model zai:glm-5           → switch to Z.AI provider with glm-5
+  /model nous:hermes-3       → switch to Nous Portal with hermes-3
+  /model openrouter:anthropic/claude-sonnet-4.5  → explicit OpenRouter
+
+When switching providers, credentials are resolved via resolve_runtime_provider
+and validated before committing. Both model and provider are saved to config.
+Provider aliases work (glm: → zai, kimi: → kimi-coding, etc.).
+
+Enhanced /model (no args) display now shows:
+  - Current model and provider
+  - Curated model list for the current provider with ← marker
+  - Usage examples including provider:model syntax
+
+39 tests covering parse_model_input, curated_models_for_provider,
+provider switching (success + credential failure), and display output.
+
+
+ cli.py                                    |  85 +++++++++++++++------
+ hermes_cli/models.py                      |  32 ++++++++
+ tests/hermes_cli/test_model_validation.py | 120 +++++++++++++++++-------------
+ tests/test_cli_model_command.py           |  68 ++++++++++++-----
+ 4 files changed, 213 insertions(+), 92 deletions(-)
+
+================================================================
+dfd37a4b3132e0b5b5e8e261a58562e36f5626f7
+teknium1 <teknium1@gmail.com>
+2026-03-07 21:45:27 -0800
+
+Merge PR #635: fix: add Kimi Code API support (api.kimi.com/coding/v1)
+
+Authored by christomitov. Auto-detects sk-kimi- key prefix and routes
+to api.kimi.com/coding/v1. Adds User-Agent header for Kimi Code API
+compatibility. Legacy Moonshot keys continue to work unchanged.
+
+
+ .env.example                    | 10 +++--
+ agent/auxiliary_client.py       | 18 +++++++--
+ hermes_cli/auth.py              | 46 ++++++++++++++++++---
+ hermes_cli/doctor.py            |  8 +++-
+ run_agent.py                    |  6 +++
+ tests/test_api_key_providers.py | 88 ++++++++++++++++++++++++++++++++++++++++-
+ 6 files changed, 161 insertions(+), 15 deletions(-)
+
+================================================================
+4447e7d71afaa9840e02469c6296c7e2604b3ea5
+Christo Mitov <christo.mitov@gmail.com>
+2026-03-07 20:43:34 -0500
+
+fix: add Kimi Code API support (api.kimi.com/coding/v1)
+
+Kimi Code (platform.kimi.ai) issues API keys prefixed sk-kimi- that require:
+1. A different base URL: api.kimi.com/coding/v1 (not api.moonshot.ai/v1)
+2. A User-Agent header identifying a recognized coding agent
+
+Without this fix, sk-kimi- keys fail with 401 (wrong endpoint) or 403
+('only available for Coding Agents') errors.
+
+Changes:
+- Auto-detect sk-kimi- key prefix and route to api.kimi.com/coding/v1
+- Send User-Agent: KimiCLI/1.0 header for Kimi Code endpoints
+- Legacy Moonshot keys (api.moonshot.ai) continue to work unchanged
+- KIMI_BASE_URL env var override still takes priority over auto-detection
+- Updated .env.example with correct docs and all endpoint options
+- Fixed doctor.py health check for Kimi Code keys
+
+Reference: https://github.com/MoonshotAI/kimi-cli (platforms.py)
+
+
+ .env.example                    | 10 +++--
+ agent/auxiliary_client.py       | 18 +++++++--
+ hermes_cli/auth.py              | 46 ++++++++++++++++++---
+ hermes_cli/doctor.py            |  8 +++-
+ run_agent.py                    |  6 +++
+ tests/test_api_key_providers.py | 88 ++++++++++++++++++++++++++++++++++++++++-
+ 6 files changed, 161 insertions(+), 15 deletions(-)
+
+================================================================
+82d7e9429e9d7cdc63589c80b82c5b12902885ab
+teknium1 <teknium1@gmail.com>
+2026-03-06 19:12:14 -0800
+
+chore: add GLM/Kimi/MiniMax models to insights pricing (zero cost)
+
+These direct providers don't return cost in API responses and their
+per-token pricing isn't readily available externally. Treat as local
+models with zero cost so they appear in /insights without fake estimates.
+
+
+ agent/insights.py | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+================================================================
+e2821effb5cccb5b3f3a1975d7df76667a799c38
+teknium1 <teknium1@gmail.com>
+2026-03-06 19:08:54 -0800
+
+feat: add direct API-key providers as auxiliary client fallbacks
+
+When the user only has a z.ai/Kimi/MiniMax API key (no OpenRouter key),
+auxiliary tasks (context compression, web summarization, session search)
+now fall back to the configured direct provider instead of returning None.
+
+Resolution chain: OpenRouter -> Nous -> Custom endpoint -> Codex OAuth
+-> direct API-key providers -> None.
+
+Uses cheap/fast models for auxiliary tasks:
+- zai: glm-4.5-flash
+- kimi-coding: kimi-k2-turbo-preview
+- minimax/minimax-cn: MiniMax-M2.5-highspeed
+
+Vision auxiliary intentionally NOT modified — vision needs multimodal
+models (Gemini) that these providers don't serve.
+
+
+ agent/auxiliary_client.py | 59 ++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 56 insertions(+), 3 deletions(-)
+
+================================================================
+9742f11fda2afbd79b7d3206112276f3e5949f83
+teknium1 <teknium1@gmail.com>
+2026-03-06 19:01:38 -0800
+
+chore: add context lengths for Kimi and MiniMax models
+
+Adds DEFAULT_CONTEXT_LENGTHS entries for kimi-k2.5 (262144), kimi-k2-thinking
+(262144), kimi-k2-turbo-preview (262144), kimi-k2-0905-preview (131072),
+MiniMax-M2.5/M2.5-highspeed/M2.1 (204800), and glm-4.5/4.5-flash (131072).
+
+Avoids unnecessary 2M-token probe on first use with direct providers.
+
+
+ agent/model_metadata.py | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+================================================================
+388dd4789c4530e428b1c5b446b902c96a98ca9c
+teknium1 <teknium1@gmail.com>
+2026-03-06 18:55:12 -0800
+
+feat: add z.ai/GLM, Kimi/Moonshot, MiniMax as first-class providers
+
+Adds 4 new direct API-key providers (zai, kimi-coding, minimax, minimax-cn)
+to the inference provider system. All use standard OpenAI-compatible
+chat/completions endpoints with Bearer token auth.
+
+Core changes:
+- auth.py: Extended ProviderConfig with api_key_env_vars and base_url_env_var
+  fields. Added providers to PROVIDER_REGISTRY. Added provider aliases
+  (glm, z-ai, zhipu, kimi, moonshot). Added auto-detection of API-key
+  providers in resolve_provider(). Added resolve_api_key_provider_credentials()
+  and get_api_key_provider_status() helpers.
+- runtime_provider.py: Added generic API-key provider branch in
+  resolve_runtime_provider() — any provider with auth_type='api_key'
+  is automatically handled.
+- main.py: Added providers to hermes model menu with generic
+  _model_flow_api_key_provider() flow. Updated _has_any_provider_configured()
+  to check all provider env vars. Updated argparse --provider choices.
+- setup.py: Added providers to setup wizard with API key prompts and
+  curated model lists.
+- config.py: Added env vars (GLM_API_KEY, KIMI_API_KEY, MINIMAX_API_KEY,
+  etc.) to OPTIONAL_ENV_VARS.
+- status.py: Added API key display and provider status section.
+- doctor.py: Added connectivity checks for each provider endpoint.
+- cli.py: Updated provider docstrings.
+
+Docs: Updated README.md, .env.example, cli-config.yaml.example,
+cli-commands.md, environment-variables.md, configuration.md.
+
+Tests: 50 new tests covering registry, aliases, resolution, auto-detection,
+credential resolution, and runtime provider dispatch.
+
+Inspired by PR #33 (numman-ali) which proposed a provider registry approach.
+Credit to tars90percent (PR #473) and manuelschipper (PR #420) for related
+provider improvements merged earlier in this changeset.
+
+
+ .env.example                                    |  28 ++
+ README.md                                       |   2 +-
+ cli-config.yaml.example                         |   4 +
+ cli.py                                          |   4 +-
+ hermes_cli/auth.py                              | 130 ++++++++-
+ hermes_cli/config.py                            |  80 ++++++
+ hermes_cli/doctor.py                            |  43 ++-
+ hermes_cli/main.py                              | 134 +++++++++-
+ hermes_cli/runtime_provider.py                  |  15 ++
+
+================================================================
+f172f7d4aa145913dca40a7871c693495b3840f2
+teknium <teknium@nousresearch.com>
+2026-01-30 07:39:55 +0000
+
+Add skills tools and enhance model integration
+
+- Introduced new skills tools: `skills_categories`, `skills_list`, and `skill_view` in `model_tools.py`, allowing for better organization and access to skill-related functionalities.
+- Updated `toolsets.py` to include a new `skills` toolset, providing a dedicated space for skill tools.
+- Enhanced `batch_runner.py` to recognize and validate skills tools during batch processing.
+- Added comprehensive tool definitions for skills tools, ensuring compatibility with OpenAI's expected format.
+- Created new shell script `test_skills_kimi.sh` for testing skills tool functionality with Kimi K2.5.
+- Added example skill files demonstrating the structure and usage of skills within the Hermes-Agent framework, including `SKILL.md` for example and audiocraft skills.
+- Improved documentation for skills tools and their integration into the existing tool framework, ensuring clarity for future development and usage.
+
+
+ batch_runner.py                                    |     4 +
+ configs/test_skills_kimi.sh                        |    21 +
+ example-skill/SKILL.md                             |    70 +
+ model_tools.py                                     |   120 +-
+ skills/mlops/accelerate/SKILL.md                   |   332 +
+ .../mlops/accelerate/references/custom-plugins.md  |   453 +
+ .../accelerate/references/megatron-integration.md  |   489 +
+ skills/mlops/accelerate/references/performance.md  |   525 +
+ skills/mlops/audiocraft/SKILL.md                   |   564 +
+ .../mlops/audiocraft/references/advanced-usage.md  |   666 +
+ .../mlops/audiocraft/references/troubleshooting.md |   504 +
+ skills/mlops/axolotl/SKILL.md                      |   158 +
+ skills/mlops/axolotl/references/api.md             |  5548 ++++++
+ skills/mlops/axolotl/references/dataset-formats.md |  1029 ++
+ skills/mlops/axolotl/references/index.md           |    15 +
+ skills/mlops/axolotl/references/other.md           |  3563 ++++
+ skills/mlops/chroma/SKILL.md                       |   406 +
+ skills/mlops/chroma/references/integration.md      |    38 +
+ skills/mlops/clip/SKILL.md                         |   253 +
+ skills/mlops/clip/references/applications.md       |   207 +
+ skills/mlops/code-review/SKILL.md                  |    81 +
+ skills/mlops/dspy/SKILL.md                         |   590 +
+ skills/mlops/dspy/references/examples.md           |   663 +
+ skills/mlops/dspy/references/modules.md            |   475 +
+ skills/mlops/dspy/references/optimizers.md         |   566 +
+ skills/mlops/faiss/SKILL.md                        |   221 +
+ skills/mlops/faiss/references/index_types.md       |   280 +
+ skills/mlops/flash-attention/SKILL.md              |   367 +
+ .../mlops/flash-attention/references/benchmarks.md |   215 +
+ .../references/transformers-integration.md         |   293 +
+ skills/mlops/gguf/SKILL.md                         |   427 +
+ skills/mlops/gguf/references/advanced-usage.md     |   504 +
+ skills/mlops/gguf/references/troubleshooting.md    |   442 +
+ skills/mlops/grpo-rl-training/README.md            |    97 +
+ skills/mlops/grpo-rl-training/SKILL.md             |   572 +
+
