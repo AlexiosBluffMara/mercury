@@ -7,6 +7,8 @@
 > **Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT) by [Red Team Kitchen](https://github.com/AlexiosBluffMara).**
 > Submitted to the **Nous Research + Kimi Hackathon — Creative category** (due May 3, 2026).
 
+**Built with Kimi K2.6 (hackathon sprint) · Now running Gemma 4 E4B (production)**
+
 ## What it is
 
 Mercury is a personal AI assistant. It runs on your own computer.
@@ -20,7 +22,7 @@ It comes with four specialist skill sets out of the box:
 - **3D web graphics development** — React Three Fiber, GLSL shaders, Blender, WebXR.
 - **Hackathon submission packaging** — the skill that built this README.
 
-The brain is **Kimi K2.6**, an open-weight model from Moonshot AI accessed through the Nous Portal. The body is **Hermes Agent**, an open-source framework from Nous Research. Mercury is what we built on top — a multi-domain stack you can fork and bend to your own four problems.
+The original hackathon sprint ran on **Kimi K2.6**, an open-weight model from Moonshot AI accessed through the Nous Portal — 14 commits, 75 minutes, $22.04. The live agent now runs on **Gemma 4 E4B** locally at 194 tok/s on an RTX 5090 via Ollama — zero API cost, zero cloud dependency. The body is **Hermes Agent**, an open-source framework from Nous Research. Mercury is what we built on top — a multi-domain stack you can fork and bend to your own four problems.
 
 To run it on your hardware, jump to [Try it yourself](#try-it-yourself).
 
@@ -56,7 +58,7 @@ The v1 diagram (preserved for reference) lives at [`assets/architecture_v1_depre
 
 ---
 
-## Kimi K2.6 Authorship — Proof of Use
+## Initial Sprint by Kimi K2.6 (via Nous Portal) — Proof of Use
 
 > **This section is part of the Nous Research / Kimi Track submission only. It does not appear in the Cortex / Gemma-4-Good Kaggle submission.**
 
@@ -120,9 +122,27 @@ git log --all --pretty='%h | %ai | %s' --since='2026-04-27' --until='2026-04-30'
 
 ## What Mercury Is
 
-Mercury is a local-first autonomous agent running on an RTX 5090 desktop. It is the operational brain behind **[The Academy / Project Oldstones](https://github.com/AlexiosBluffMara/JennyOfOldstones)** — a system that ingests 20 years of Facebook Messenger data and creates RAG-backed ghost personas of real people, anchored to their actual life eras, voice patterns, and emotional arcs.
+Mercury is a local-first autonomous agent running on an RTX 5090 desktop. It is the operational brain behind **[Cortex](https://github.com/AlexiosBluffMara/cortex)** — a multimodal brain-response analysis system that combines TRIBE v2 (Meta's brain foundation model) with Gemma 4 to predict and explain cortical activation in response to video, audio, or text stimuli.
 
-The creative submission is Mercury acting as the agent that *inhabits* these personas — driving them, orchestrating the data pipeline, and responding to queries as the people in the dataset would have responded at a given point in their lives.
+The creative submission is Mercury acting as the orchestrator that drives the Cortex pipeline — accepting media inputs, routing them through TRIBE v2 inference, and generating multi-audience narrations of the brain's predicted response.
+
+---
+
+## Live Deployment
+
+| | |
+|---|---|
+| **Discord** | Snowy The Bot, #bot-test-3 (invite-only) |
+| **Model** | Gemma 4 E4B — RTX 5090, fully local |
+| **Nous Portal / Kimi K2.6** | Used for hackathon sprint only |
+
+---
+
+## Current Model Config
+
+- Default model: `gemma4:e4b` via Ollama at `localhost:11434`
+- Runs on RTX 5090 (32 GB GDDR7)
+- Provider config: `custom:ollama-local` in `~/.mercury/config.yaml`
 
 ---
 
@@ -132,7 +152,7 @@ The creative submission is Mercury acting as the agent that *inhabits* these per
 |---|---|---|
 | Default / Vision / Multimodal | `gemma4:e4b` | completion · vision · audio · tools · thinking |
 | Deep reasoning / long context | `gemma4-26b-moe:latest` | completion · tools · thinking |
-| Fine-tuned persona model (in training) | `gemma4-soumit-persona` | LoRA on 70K JennyOfOldstones turns |
+| Fine-tuned cortex model (in training) | `cortex-gemma-4-e4b` | LoRA on TRIBE v2 narration turns |
 
 All models run locally via Ollama at `http://localhost:11434`. No cloud API calls in the hot path.
 
@@ -157,58 +177,57 @@ gemma4:e4b → "Mercury is live."  ✓
 
 ---
 
-## The Academy — Creative Submission
+## Cortex — Creative Submission
 
-**Project Oldstones** is a second-brain / digital-memory system built on ~362,000 Facebook Messenger messages spanning 2003–2026:
+**[Cortex](https://github.com/AlexiosBluffMara/cortex)** is a multimodal brain-response analysis system built on TRIBE v2 + Gemma 4:
 
-- **SQLite + LanceDB** — 362K messages, 3072-dim Gemini Embedding 2 vectors
-- **Ghost personas** — RAG + era summaries + cross-person temporal echoes
-- **Life era grounding** — 22 eras (per-semester college years, HS summers, India childhood) anchoring every memory retrieval to real biographical context
-- **Voice profiles** — 654 people profiled; 7 focus personas with full emotional arcs
-- **3D visualization** — Three.js / R3F: Timeline Nebula (60K particle field), Relationship Galaxy (135 nodes), Ghost Chat portal
-- **LoRA fine-tune** — Gemma 4 E4B trained on 70K persona-formatted conversation turns
+- **TRIBE v2** (Meta) — predicts fsaverage5 BOLD responses at 20,484 vertices × 2 Hz from video, audio, or text
+- **Gemma 4 E4B** — multimodal description + three-audience narration (General / College / Clinical) in parallel
+- **Three.js viewer** — real-time per-vertex cortical activation animation with ISU cardinal colormap
+- **GPU scheduler** — IDLE → GEMMA_ACTIVE → TRIBE_ACTIVE eviction-driven swap on 32 GB VRAM
+- **LoRA fine-tune** — Gemma 4 E4B training on TRIBE v2 narration turns for domain specialization
 
-Mercury drives the ghost chat endpoint, orchestrates the embedding pipeline, and serves as the demo agent for the hackathon presentation.
+Mercury drives the Cortex scan endpoint, routes media through the TRIBE v2 pipeline, and serves as the orchestrator for the hackathon demo.
 
 ### Kimi Track — Claude→Kimi Orchestration
 
-Mercury also serves as the **Kimi dispatch layer** for the hackathon's Kimi Track:
+Mercury also served as the **Kimi dispatch layer** for the hackathon's Kimi Track:
 
 - Mercury dispatched specs (written by Claude Code) to **Kimi K2.6** via `tools/kimi_dispatch.py`
-- Kimi K2.6 wrote the entire `training/` pipeline: Facebook message parser, dataset cleaner, Gemma 4 fine-tune trainer, Ollama Modelfiles
+- Kimi K2.6 wrote the initial Cortex viewer: Three.js brain mesh, per-vertex BOLD animation, narration panels
 - Claude Code reviewed, integrated, and committed
 
-**Ghost-invoke skill:** `/ghost-invoke Callie 2015` — queries any Academy persona directly from the Mercury terminal, streaming memory-grounded responses through the FastAPI SSE endpoint.
+**Cortex-bridge skill:** `/scan <media_file>` — submits a clip to the Cortex API from the Mercury terminal, streams TRIBE v2 progress, and displays the narration on scan complete.
 
 **Related repos:**
-- [AlexiosBluffMara/JennyOfOldstones](https://github.com/AlexiosBluffMara/JennyOfOldstones) — The Academy (ghost system + 3D viz)
-- [AlexiosBluffMara/gemma4-pipeline](https://github.com/AlexiosBluffMara/gemma4-pipeline) — Kimi-written Gemma 4 training pipeline
+- [AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex) — TRIBE v2 + Gemma 4 brain-response system
+- [AlexiosBluffMara/gemma4-pipeline](https://github.com/AlexiosBluffMara/gemma4-pipeline) — Gemma 4 fine-tune pipeline
 
 ---
 
 ## Quick Start (this machine)
 
 ```bash
-# Mercury is installed in WSL2 Ubuntu
 # Start interactive chat (connects to local Ollama automatically)
-~/mercury/.venv/bin/mercury chat
+mercury chat
+
+# Start the Discord gateway (Snowy The Bot)
+mercury gateway run -v
 
 # Check status
-~/mercury/.venv/bin/mercury status
+mercury config show
 ```
 
-**Start the Academy backend + frontend:**
+**Start the Cortex brain viewer (sister project):**
 ```bash
-# Windows — from JennyOfOldstones/
-start_api.bat          # FastAPI :8765
-cd viz && npm run dev  # Vite :5173
+# Windows — from D:/cortex/
+source C:/Users/soumi/cortex/.venv/Scripts/activate
+uvicorn webapp.server:app --host 0.0.0.0 --port 8765 --reload
+# open http://localhost:8765
 ```
 
 **Monitor LoRA training:**
 ```bash
-# WSL2
-tmux attach -t training
-# or
 tail -f ~/gemma4-pipeline/gemma4-pipeline/rtx-5090/logs/train.log
 ```
 
@@ -245,25 +264,24 @@ When local Ollama is unavailable:
 
 ## Training Pipeline
 
-LoRA fine-tune running in `tmux:training` on WSL2:
+LoRA fine-tune in progress on the RTX 5090:
 
 - **Base model:** `unsloth/gemma-4-E4B-it` (4-bit BnB, ~9.6GB)
-- **Training data:** 70,034 JennyOfOldstones persona turns (role/content chat format)
-- **Eval data:** 17,509 held-out turns
+- **Training data:** TRIBE v2 narration turns (General / College / Clinical tier pairs)
 - **Framework:** Unsloth 2026.4.8 + TRL 0.24.0 + `get_chat_template("gemma-4")`
-- **Output:** `~/gemma4-pipeline/gemma4-pipeline/rtx-5090/outputs/gemma4-soumit-persona/`
+- **Output:** `cortex-gemma-4-e4b` — domain-specialized for brain-response narration
 
-Post-training: export → GGUF → `ollama create gemma4-soumit-persona`
+Post-training: export → GGUF → `ollama create cortex-gemma-4-e4b`
 
 ---
 
 ## Repository Structure
 
 ```
-~/mercury/                           <- this repo (Hermes agent fork)
-~/.mercury/                          <- runtime config, memories, SOUL.md, state
-~/gemma4-pipeline/                   <- LoRA training pipeline fork
-C:/Users/soumi/JennyOfOldstones/     <- Academy data pipeline + Three.js frontend
+D:/mercury/           <- this repo (Hermes agent fork)
+~/.mercury/           <- runtime config, memories, SOUL.md, state
+D:/cortex/            <- TRIBE v2 + Gemma 4 brain-response system (sister project)
+~/gemma4-pipeline/    <- LoRA training pipeline fork
 ```
 
 ---
@@ -272,7 +290,7 @@ C:/Users/soumi/JennyOfOldstones/     <- Academy data pipeline + Three.js fronten
 
 **Nous Research + Kimi Hackathon — Creative** (due May 3, 2026)
 
-Submission: Mercury as the agent powering The Academy ghost personas — a 20-year digital-memory system running entirely on local hardware, using Gemma 4 E4B (multimodal: vision + audio + tools + thinking) and a LoRA fine-tuned persona model for authentic temporal persona simulation.
+Submission: Mercury as the orchestrator for Cortex — a multimodal brain-response analysis system running entirely on local hardware, using TRIBE v2 (Meta's brain foundation model) + Gemma 4 E4B for cortical activation prediction and multi-audience narration.
 
 ---
 
@@ -287,7 +305,7 @@ Submission: Mercury as the agent powering The Academy ghost personas — a 20-ye
 - **Ollama** to run the language models locally ([download here](https://ollama.com/download)).
 - Roughly **30 GB of disk space** for the model weights.
 
-You don't need an API key for anything to get the basic agent running — the default brain is local Gemma 4. If you want to also use Kimi K2.6 (the cloud brain that built this repo), you'll need a Nous Portal account.
+You don't need an API key for anything to get the basic agent running — the default brain is Gemma 4 E4B, fully local. Kimi K2.6 via the Nous Portal was used for the original hackathon sprint only; production runs entirely on local hardware.
 
 ### Setup, copy-paste-able
 
