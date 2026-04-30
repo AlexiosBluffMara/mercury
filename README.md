@@ -235,7 +235,7 @@ tail -f ~/gemma4-pipeline/gemma4-pipeline/rtx-5090/logs/train.log
 
 ## Persona (SOUL.md)
 
-Mercury runs as **Artemis** — direct, autonomous, dry-witted. Configured in `~/.mercury/SOUL.md`. Acts first, explains after.
+Mercury runs as **Snowy The Bot** (Discord: `abmsnowy`) — direct, autonomous, dry-witted. Persona configured in `~/.mercury/SOUL.md`. Acts first, explains after. On other surfaces the bot may surface as **ABM Hermes** depending on gateway configuration.
 
 ---
 
