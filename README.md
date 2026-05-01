@@ -2,29 +2,74 @@
   <img src="assets/banner.svg" alt="Mercury — local-first dual-brain agent" width="100%">
 </p>
 
-# Mercury
+# Mercury — Your AI on Your Hardware, Through Every Door You Own
 
-> **Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT) by [Red Team Kitchen](https://github.com/AlexiosBluffMara).**
-> Submitted to the **Nous Research + Kimi Hackathon — Creative category** (due May 3, 2026).
+> One brain. One memory. Six doors — terminal, Discord, a web page, iMessage, email, your phone. The same agent answers, with the same memory, on hardware you own. No round-trips to anyone else's cloud.
 
-**Built with Kimi K2.6 (hackathon sprint) · Now running Gemma 4 E4B (production)**
+Built for the [Nous Research × Kimi Creative Hackathon](https://nousresearch.com) (Creative track) by **Alexios Bluff Mara LLC (dba Red Team Kitchen) / Illinois State University**.
 
-## What it is
+Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT). Submitted May 3, 2026.
 
-Mercury is a personal AI assistant. It runs on your own computer.
+---
 
-You talk to it from any of six places — your terminal, Discord, a web page, iMessage, email, your phone — and the same agent answers, with the same memory, on the same hardware. No round-trips to anyone else's cloud.
+## The Six-Door Office — how Mercury works
 
-It comes with four specialist skill sets out of the box:
+Picture a small office with one occupant: an assistant who already knows you. They've read your notes, they remember last week's conversation, they know what tools you keep on your desk and what documents you keep in your filing cabinet. Most assistants today live in someone else's building — you walk in, they get amnesia, you start from scratch.
 
-- **Chicago college search** — eight public + five private universities, MBA modalities, ROI analysis.
-- **Chicago tax & tenant law** — Cook County property taxes, the Residential Landlord and Tenant Ordinance, courts, legal aid.
-- **3D web graphics development** — React Three Fiber, GLSL shaders, Blender, WebXR.
-- **Hackathon submission packaging** — the skill that built this README.
+Mercury's office is in **your** building. The assistant lives on a single computer that you own — by default, an RTX 5090 desktop in Chicago. The desk has six doors:
 
-The original hackathon sprint ran on **Kimi K2.6**, an open-weight model from Moonshot AI accessed through the Nous Portal — 14 commits, 75 minutes, $22.04. The live agent now runs on **Gemma 4 E4B** locally at 194 tok/s on an RTX 5090 via Ollama — zero API cost, zero cloud dependency. The body is **Hermes Agent**, an open-source framework from Nous Research. Mercury is what we built on top — a multi-domain stack you can fork and bend to your own four problems.
+- **The terminal door** — `mercury chat` from any shell, anywhere on your machine.
+- **The Discord door** — Snowy The Bot, present in any server you invite it to.
+- **The web door** — a chat surface on a private URL, reachable from a browser.
+- **The iMessage door** — texts to a relay number, replies back to your phone.
+- **The email door** — `you@redteamkitchen.com` becomes a working address for the agent.
+- **The mobile door** — same chat, same memory, on the phone in your pocket.
 
-To run it on your hardware, jump to [Try it yourself](#try-it-yourself).
+Walk through any door, and you're talking to the same person. Tell it something on Discord at noon, ask about it from the terminal at four — it remembers. The brain is **Gemma 4 E4B** running locally via Ollama at 194 tok/s on the 5090. The orchestration layer is **Hermes Agent** — Nous Research's open-source framework. Mercury is what we built on top: a multi-domain skill stack and a six-surface gateway, designed so a single human can run a single agent across every device they own without ever sending a token to a cloud they don't control.
+
+**Skills, not prompts.** Mercury ships with four specialist skill sets that compose tools out of a five-source data layer (filesystem, web search, browser MCP, Python exec, knowledge graph). The dispatcher auto-loads the right skill by domain context — no `/skill` slash commands, no manual routing. Add a fifth skill tomorrow without touching the agent loop.
+
+**Local by default, cloud on demand.** When the 5090 is busy or offline, Mercury falls over to Google Cloud Run with the same Gemma 4 model. When it's back, the local path resumes automatically. You never see the cutover.
+
+---
+
+## Why it matters
+
+Personal AI today comes in two shapes: a **chat box on someone else's website** (your conversation lives in their database) or a **wrapper around someone else's API** (every token is metered and logged). Both are useful. Neither is *yours*.
+
+Mercury is the third shape: an agent that lives on hardware you bought, reading files you wrote, answering through channels you control. The implications follow:
+
+- **Privacy is an architectural property, not a promise.** No data leaves the machine in the hot path. The default model never makes an outbound call. There is no "we promise we don't read your messages" clause to trust — there's no one to read them.
+- **Cost converges to electricity.** After the GPU purchase, Mercury costs roughly $0.02 per hour to run at idle on grid power. There is no per-token bill, no monthly subscription, no rate limit beyond what the hardware can sustain.
+- **Memory is yours.** Every conversation, profile fact, and skill output is written to `~/.mercury/` on your own filesystem. Back it up, port it, fork it. The agent that knows you isn't trapped in someone else's account.
+- **The skills are forkable.** Mercury's four bundled skill domains (below) are the ones we needed. The hard work isn't writing skills — it's the dispatcher, the gateway, the multi-surface plumbing. Fork the dispatcher, write your own four skills, run your own version.
+
+The cost case isn't subtle. An RTX 5090 runs about $2,500–3,000 street price. The equivalent cloud capacity is $0.70/hour for an L4 GPU on Google Cloud Run, or ~$504/month at 24/7 — break-even in five months even before counting the per-token fees that a hosted equivalent would charge. **Local AI is no longer a hobbyist tradeoff.** It's the cheapest deployment path that exists for an always-on personal agent.
+
+---
+
+## What Mercury is NOT
+
+- **Not a chatbot wrapper.** Mercury runs an actual agent loop with tool use, memory, and skill dispatch — not a single-turn LLM call dressed up with a chat UI.
+- **Not a hosted service.** There is no `app.mercury.com`. To run Mercury, you need your own GPU. We ship the code; you ship the hardware.
+- **Not a Hermes Agent fork in name only.** Mercury is the Nous Research Hermes-agent codebase with a custom dispatcher, a six-surface gateway, four skill domains, and a Cortex-bridge — but the agent loop, tool router, and config schema are upstream Hermes. We send patches back when they're general-purpose.
+- **Not for production at scale.** Mercury is a personal agent for a single user (or a small group). It is not designed to serve a thousand concurrent sessions. The whole point is that the GPU is yours.
+- **Not a Kimi-only project.** Kimi K2.6 (via the Nous Portal) wrote the initial Cortex viewer in a 75-minute, 14-commit, $22.04 sprint — that is the Nous/Kimi track submission. The live agent runs entirely on Gemma 4 E4B locally. Kimi is acknowledged as the build collaborator, not a runtime dependency.
+
+---
+
+## The four skill domains
+
+Mercury ships with four specialist skill bundles. Each one composes tools (filesystem, web, Python, browser, knowledge graph) into a workflow for a specific kind of question. Adding a fifth domain is a matter of writing a new YAML manifest and dropping it into `skills/` — no agent-loop changes.
+
+| Domain | What it answers |
+|---|---|
+| **chicago-education** | Eight public + five private universities in greater Chicago, MBA modalities (full-time / part-time / EMBA / online), tuition + ROI analysis, transfer pathways. |
+| **chicago-tax-legal** | Cook County property tax appeals, the Residential Landlord and Tenant Ordinance (RLTO), state and circuit court structure, legal aid org directory. |
+| **threejs-design-dev** | React Three Fiber idioms, GLSL shader patterns, Blender → glTF pipeline, WebXR, performance budgets for in-browser 3D. |
+| **nous-hackathon** | Submission packaging — demo scripts, deployment recipes, video storyboard, judge-checklist artifacts. (This skill wrote large parts of this README.) |
+
+Why these four? They cover the four problems we needed solved while building Cortex: the team's school search (a return-to-grad-school question), the team's housing legal questions (Cook County renters), the actual 3D viewer code, and the hackathon submission itself. They are not a curated demo set — they are the live skills the team uses.
 
 ---
 
@@ -34,7 +79,7 @@ To run it on your hardware, jump to [Try it yourself](#try-it-yourself).
   <img src="assets/architecture_v2.png" alt="Mercury — Hermes Multi-Domain Agent Stack" width="100%">
 </p>
 
-Six client surfaces fan into a single Hermes Gateway. The gateway routes through a Nous Portal brain (Kimi K2.6 inference), a tool router, a context-aware skill dispatcher, and a cross-session memory store. Four custom skill domains (Chicago Education, Chicago Tax/Legal, Three.js Design Dev, Nous Hackathon Packager) compose tools out of a five-source data layer. The whole stack runs across three nodes — a Mac Mini in Bloomington for skill authoring, a self-hosted RTX 5090 in Chicago for inference, and Google Cloud Run as managed fallback / scale.
+Six client surfaces fan into a single Hermes Gateway. The gateway routes through a local Gemma 4 brain (Kimi K2.6 was used for the hackathon sprint), a tool router, a context-aware skill dispatcher, and a cross-session memory store. Four custom skill domains compose tools out of a five-source data layer. The whole stack runs across three nodes — a Mac Mini in Bloomington for skill authoring, a self-hosted RTX 5090 in Chicago for inference, and Google Cloud Run as managed fallback.
 
 | Custom skills (4 domains) | Multi-node infra | Hermes-native |
 |---|---|---|
@@ -43,24 +88,58 @@ Six client surfaces fan into a single Hermes Gateway. The gateway routes through
 | **threejs-design-dev** — R3F, GLSL shaders, Blender pipeline, WebXR, performance | **Google Cloud Run** — managed fallback, auto-scaling, public API endpoint | Subagent delegation for parallel research + code generation |
 | **nous-hackathon** — demo scripts, deployment recipes, video storyboard | One-command `rsync` syncs skills + config across all nodes | Cron jobs + webhooks for scheduled monitoring tasks |
 
-### Architecture v1 → v2 (what changed and why)
+```
+Six doors           Hermes Gateway             Skills + Tools             Storage
+─────────           ──────────────             ──────────────             ───────
+terminal  ─┐                                                              ┌─ ~/.mercury/memory/
+discord    │                                   ┌─ chicago-education       │   (cross-session profile)
+web        ├─►   ┌─ tool-router  ─┐    ┌──►    ├─ chicago-tax-legal       │
+imessage   │    ─┤  skill-disp.  ├─    │       ├─ threejs-design-dev      ├─ ~/.mercury/SOUL.md
+email      │     └─ memory       ─┘    │       └─ nous-hackathon          │   (persona)
+mobile    ─┘                           │           ↓                      │
+                                       │       ┌─ filesystem  ─┐          ├─ knowledge-graph
+                                       └──►    │ web-search    │           │   (~/.mercury/kg/)
+                                               │ browser-mcp   ├─►        │
+                                               │ python-exec   │           └─ Cortex API bridge
+                                               └─ knowledge-graph          (D:/cortex via cortex-bridge)
+```
+
+### v1 → v2: what changed and why
 
 | Surface | v1 (deprecated) | v2 (current) |
 |---|---|---|
-| Brain | Hermes 4 405B + Kimi K2.6 split-role planner/coder | Single Kimi K2.6 brain via Nous Portal — simpler, cheaper, faster planning |
+| Brain | Hermes 4 405B + Kimi K2.6 split-role planner/coder | Single Gemma 4 E4B locally (Kimi for build sprint only) — simpler, free, faster |
 | Skill model | Three demo skills hard-coded into the agent loop | Skill Dispatcher auto-loads by domain context — 4 domains today, n+1 tomorrow without code change |
 | Nodes | Single 5090 with manual ssh fallback | 3-node mesh: Mac Mini (dev) ↔ 5090 (inference) ↔ Cloud Run (scale), one-command sync |
-| Clients | Discord-only | Six surfaces: Terminal, Discord, Web UI, iMessage, Email, Mobile |
+| Clients | Discord-only | Six doors: terminal, Discord, web, iMessage, email, mobile |
 | Memory | Per-session only | Cross-session profile + environment facts |
-| Data layer | Filesystem only | Filesystem + Web Search + Browser MCP + Python Exec + Knowledge Graph |
+| Data layer | Filesystem only | Filesystem + web search + browser MCP + Python exec + knowledge graph |
 
 The v1 diagram (preserved for reference) lives at [`assets/architecture_v1_deprecated.png`](assets/architecture_v1_deprecated.png). The v2 above is the current shipping topology.
 
 ---
 
-## Initial Sprint by Kimi K2.6 (via Nous Portal) — Proof of Use
+## Tech stack
 
-> **This section is part of the Nous Research / Kimi Track submission only. It does not appear in the Cortex / Gemma-4-Good Kaggle submission.**
+| Component | What it is | Key numbers |
+|---|---|---|
+| Hermes Agent | Nous Research's open-source agent framework | MIT license, upstream codebase |
+| Gemma 4 E4B | Local default brain (Ollama) | 194 tok/s on RTX 5090, multimodal, ~10 GB VRAM |
+| Gemma 4 26B MoE | Deep reasoning fallback | 132 tok/s, mixture-of-experts |
+| Kimi K2.6 | Build-sprint coder (Nous Portal) — sprint only, not runtime | 1,035 requests / $22.04 over 75-minute window |
+| Ollama | Local model server | `localhost:11434` — no outbound calls |
+| Skill dispatcher | Custom routing layer on top of Hermes | YAML manifests in `skills/` — auto-load by domain |
+| Hardware (local) | RTX 5090, 64 GB RAM, Windows 11 | MSRP ~$1,999, street ~$2,500–3,000 |
+| Cloud fallback | Google Cloud Run + Gemma 4 | ~$0.70/hr; ~$0 at scale-to-zero |
+| Cortex-bridge | Skill that drives the [Cortex](https://github.com/AlexiosBluffMara/cortex) brain-response viewer | `/scan <media_file>` from any surface |
+
+**Connectivity model.** Mercury never speaks directly to a cloud LLM in the hot path. The default model is local Gemma 4 E4B. When the 5090 is offline, the gateway routes to Google Cloud Run (which itself runs Gemma 4) — still no third-party LLM API. Kimi K2.6 (via the Nous Portal) and Gemini 2.5-pro / GitHub Copilot remain configured as **build-time** fallbacks for the development sprint, gated behind explicit `MERCURY_FALLBACK=cloud` env vars. Production = local.
+
+---
+
+## Initial sprint by Kimi K2.6 (via Nous Portal) — proof of use
+
+> **This section is part of the Nous Research / Kimi Track submission. It does not appear in the Cortex / Gemma-4-Good Kaggle submission.**
 
 <p align="center">
   <img src="kimi_proof/06_nous_portal_usage_2026-04-30.png" alt="Nous Portal usage — $22.04 spend, 1,035 requests, kimi-k2.6 spike Apr 28-29" width="100%">
@@ -100,7 +179,7 @@ The Kimi K2.6 spike on Apr 28-29 maps 1:1 to a 75-minute burst of 14 commits in 
 | Apr 29 17:21 | `8626b2be` | `docs(README): rewrite for hackathon submission — local Ollama + Academy personas` |
 | Apr 29 18:10 | `bafa5fde` | `docs: add Academy hackathon submission section + Kimi K2.6 integration` |
 
-The 09:59 commit is the actual cortex viewer (47 KB `main.js`, 36 KB `index.html`, 50-region atlas, brain mesh) running at `D:/cortex/webapp/public/` and visible in the demo video.
+The 09:59 commit is the actual Cortex viewer (47 KB `main.js`, 36 KB `index.html`, 50-region atlas, brain mesh) running at `D:/cortex/webapp/public/` and visible in the demo video.
 
 ### Authorship artifacts (archived in this repo)
 
@@ -120,177 +199,13 @@ git log --all --pretty='%h | %ai | %s' --since='2026-04-27' --until='2026-04-30'
 
 ---
 
-## What Mercury Is
+## Cortex — the sister project Mercury orchestrates
 
-Mercury is a local-first autonomous agent running on an RTX 5090 desktop. It is the operational brain behind **[Cortex](https://github.com/AlexiosBluffMara/cortex)** — a multimodal brain-response analysis system that combines TRIBE v2 (Meta's brain foundation model) with Gemma 4 to predict and explain cortical activation in response to video, audio, or text stimuli.
+**[Cortex](https://github.com/AlexiosBluffMara/cortex)** is a multimodal brain-response analysis system built on TRIBE v2 (Meta) + Gemma 4. Upload a short clip; in about six minutes, 20,484 cortical vertices light up in 3D and Gemma narrates the response at three levels of detail.
 
-The creative submission is Mercury acting as the orchestrator that drives the Cortex pipeline — accepting media inputs, routing them through TRIBE v2 inference, and generating multi-audience narrations of the brain's predicted response.
+Mercury drives Cortex through the **`cortex-bridge`** skill: `/scan <media_file>` submits a clip to the Cortex API from any of the six surfaces, streams TRIBE v2 progress, and displays the narration on completion. The Three.js viewer in the demo video was written in Kimi K2.6's Apr 28 sprint (`commit 50423c0d`).
 
----
-
-## Live Deployment
-
-| | |
-|---|---|
-| **Discord** | Snowy The Bot, #bot-test-3 (invite-only) |
-| **Model** | Gemma 4 E4B — RTX 5090, fully local |
-| **Nous Portal / Kimi K2.6** | Used for hackathon sprint only |
-
----
-
-## Current Model Config
-
-- Default model: `gemma4:e4b` via Ollama at `localhost:11434`
-- Runs on RTX 5090 (32 GB GDDR7)
-- Provider config: `custom:ollama-local` in `~/.mercury/config.yaml`
-
----
-
-## Models (RTX 5090 — local Ollama)
-
-| Role | Model | Capability |
-|---|---|---|
-| Default / Vision / Multimodal | `gemma4:e4b` | completion · vision · audio · tools · thinking |
-| Deep reasoning / long context | `gemma4-26b-moe:latest` | completion · tools · thinking |
-| Fine-tuned cortex model (in training) | `cortex-gemma-4-e4b` | LoRA on TRIBE v2 narration turns |
-
-All models run locally via Ollama at `http://localhost:11434`. No cloud API calls in the hot path.
-
-```yaml
-# ~/.mercury/config.yaml
-model:
-  provider: custom
-  base_url: http://localhost:11434/v1
-  api_key: ollama
-  default: gemma4:e4b
-  routing:
-    vision: gemma4:e4b
-    fast: gemma4:e4b
-    deep: gemma4-26b-moe
-    reasoning: gemma4-26b-moe
-```
-
-**Verified live:**
-```
-gemma4:e4b → "Mercury is live."  ✓
-```
-
----
-
-## Cortex — Creative Submission
-
-**[Cortex](https://github.com/AlexiosBluffMara/cortex)** is a multimodal brain-response analysis system built on TRIBE v2 + Gemma 4:
-
-- **TRIBE v2** (Meta) — predicts fsaverage5 BOLD responses at 20,484 vertices × 2 Hz from video, audio, or text
-- **Gemma 4 E4B** — multimodal description + three-audience narration (General / College / Clinical) in parallel
-- **Three.js viewer** — real-time per-vertex cortical activation animation with ISU cardinal colormap
-- **GPU scheduler** — IDLE → GEMMA_ACTIVE → TRIBE_ACTIVE eviction-driven swap on 32 GB VRAM
-- **LoRA fine-tune** — Gemma 4 E4B training on TRIBE v2 narration turns for domain specialization
-
-Mercury drives the Cortex scan endpoint, routes media through the TRIBE v2 pipeline, and serves as the orchestrator for the hackathon demo.
-
-### Kimi Track — Claude→Kimi Orchestration
-
-Mercury also served as the **Kimi dispatch layer** for the hackathon's Kimi Track:
-
-- Mercury dispatched specs (written by Claude Code) to **Kimi K2.6** via `tools/kimi_dispatch.py`
-- Kimi K2.6 wrote the initial Cortex viewer: Three.js brain mesh, per-vertex BOLD animation, narration panels
-- Claude Code reviewed, integrated, and committed
-
-**Cortex-bridge skill:** `/scan <media_file>` — submits a clip to the Cortex API from the Mercury terminal, streams TRIBE v2 progress, and displays the narration on scan complete.
-
-**Related repos:**
-- [AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex) — TRIBE v2 + Gemma 4 brain-response system
-- [AlexiosBluffMara/gemma4-pipeline](https://github.com/AlexiosBluffMara/gemma4-pipeline) — Gemma 4 fine-tune pipeline
-
----
-
-## Quick Start (this machine)
-
-```bash
-# Start interactive chat (connects to local Ollama automatically)
-mercury chat
-
-# Start the Discord gateway (Snowy The Bot)
-mercury gateway run -v
-
-# Check status
-mercury config show
-```
-
-**Start the Cortex brain viewer (sister project):**
-```bash
-# Windows — from D:/cortex/
-source C:/Users/soumi/cortex/.venv/Scripts/activate
-uvicorn webapp.server:app --host 0.0.0.0 --port 8765 --reload
-# open http://localhost:8765
-```
-
-**Monitor LoRA training:**
-```bash
-tail -f ~/gemma4-pipeline/gemma4-pipeline/rtx-5090/logs/train.log
-```
-
----
-
-## Persona (SOUL.md)
-
-Mercury runs as **Snowy The Bot** (Discord: `abmsnowy`) — direct, autonomous, dry-witted. Persona configured in `~/.mercury/SOUL.md`. Acts first, explains after. On other surfaces the bot may surface as **ABM Hermes** depending on gateway configuration.
-
----
-
-## MCP Servers
-
-| Server | Purpose |
-|---|---|
-| `@modelcontextprotocol/server-filesystem` | Full home-dir file access |
-| `@modelcontextprotocol/server-github` | Repo management (AlexiosBluffMara org) |
-| `@modelcontextprotocol/server-memory` | Knowledge-graph persistent memory |
-| `@upstash/context7-mcp` | Library docs lookup |
-| `@modelcontextprotocol/server-sequential-thinking` | Multi-step planning |
-
----
-
-## Fallback Providers
-
-When local Ollama is unavailable:
-
-| Provider | Key source | Model |
-|---|---|---|
-| Gemini | `GOOGLE_API_KEY` (Windows system env) | gemini-2.5-pro |
-| GitHub Copilot | `GITHUB_PERSONAL_ACCESS_TOKEN` | copilot default |
-
----
-
-## Training Pipeline
-
-LoRA fine-tune in progress on the RTX 5090:
-
-- **Base model:** `unsloth/gemma-4-E4B-it` (4-bit BnB, ~9.6GB)
-- **Training data:** TRIBE v2 narration turns (General / College / Clinical tier pairs)
-- **Framework:** Unsloth 2026.4.8 + TRL 0.24.0 + `get_chat_template("gemma-4")`
-- **Output:** `cortex-gemma-4-e4b` — domain-specialized for brain-response narration
-
-Post-training: export → GGUF → `ollama create cortex-gemma-4-e4b`
-
----
-
-## Repository Structure
-
-```
-D:/mercury/           <- this repo (Hermes agent fork)
-~/.mercury/           <- runtime config, memories, SOUL.md, state
-D:/cortex/            <- TRIBE v2 + Gemma 4 brain-response system (sister project)
-~/gemma4-pipeline/    <- LoRA training pipeline fork
-```
-
----
-
-## Hackathon
-
-**Nous Research + Kimi Hackathon — Creative** (due May 3, 2026)
-
-Submission: Mercury as the orchestrator for Cortex — a multimodal brain-response analysis system running entirely on local hardware, using TRIBE v2 (Meta's brain foundation model) + Gemma 4 E4B for cortical activation prediction and multi-audience narration.
+The Cortex repo is the Gemma-4-Good Kaggle submission. This Mercury repo is the Nous Research / Kimi Creative Hackathon submission. They share an architecture; the bridge between them is one skill.
 
 ---
 
@@ -340,7 +255,7 @@ Mercury can also act as a Discord bot, an iMessage relay, or a WhatsApp bot. Eac
 
 ### Optional: the brain visualizer (the thing in the demo video)
 
-The 3D brain viewer in the demo lives in a sister project, [Cortex](https://github.com/AlexiosBluffMara/cortex). Mercury talks to it through a skill called `cortex-bridge`. To run that yourself:
+The 3D brain viewer in the demo lives in a sister project, [Cortex](https://github.com/AlexiosBluffMara/cortex). Mercury talks to it through the `cortex-bridge` skill. To run that yourself:
 
 ```bash
 git clone https://github.com/AlexiosBluffMara/cortex
@@ -349,6 +264,38 @@ cortex serve --port 8765   # opens the brain viewer
 ```
 
 Then point Mercury at it (`mercury config` → `cortex_url: http://localhost:8765`). The full pipeline (video in → brain prediction → narration out) takes ~6 minutes per scan.
+
+---
+
+## Repository layout
+
+```
+D:/mercury/           <- this repo (Hermes agent fork)
+~/.mercury/           <- runtime config, memories, SOUL.md, state, knowledge graph
+D:/cortex/            <- TRIBE v2 + Gemma 4 brain-response system (sister project)
+~/gemma4-pipeline/    <- LoRA training pipeline fork
+```
+
+Persona lives in `~/.mercury/SOUL.md`. Mercury runs as **Snowy The Bot** (Discord: `abmsnowy`) on the Discord surface — direct, autonomous, dry-witted. Acts first, explains after. On other surfaces the bot may surface as **ABM Hermes** depending on gateway configuration.
+
+---
+
+## Hackathon context
+
+Mercury is submitted to the **[Nous Research × Kimi Creative Hackathon](https://nousresearch.com)** — Creative track, due May 3, 2026.
+
+Submission positioning: Mercury as the **orchestrator** for Cortex, with Kimi K2.6 (via the Nous Portal) as the build-sprint coder for the Three.js viewer that ships in Cortex. Production runtime is fully local on Gemma 4 E4B; Kimi appears only in the build artifact trail (see [Initial sprint by Kimi K2.6](#initial-sprint-by-kimi-k26-via-nous-portal--proof-of-use) above).
+
+The Cortex repo is a separate dual submission — the **Gemma 4 Good Hackathon** (Health & Sciences track, Kaggle, due May 18, 2026) — covering the brain-response analysis system Mercury orchestrates.
+
+---
+
+## Links
+
+- GitHub: [https://github.com/AlexiosBluffMara/mercury](https://github.com/AlexiosBluffMara/mercury)
+- Cortex (sister project): [https://github.com/AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex)
+- Cortex live demo: [https://cortex.redteamkitchen.com](https://cortex.redteamkitchen.com)
+- Nous Portal usage proof: [`kimi_proof/06_nous_portal_usage_2026-04-30.png`](kimi_proof/06_nous_portal_usage_2026-04-30.png)
 
 ---
 
