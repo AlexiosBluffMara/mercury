@@ -1,0 +1,245 @@
+name: Deploy Brain
+
+# Mercury Brain — Gemma 4 inference container deploy.
+#
+# Triggered by tag `brain-v*.*.*`. Builds two image variants (E4B default
+# and 26B-MoE multimodal), pushes to Artifact Registry, then redeploys
+# both Cloud Run services (cold + warm) to the new E4B image.
+#
+# WIF auth uses the existing brain-runtime SA — no long-lived keys.
+
+on:
+  push:
+    tags:
+      - "brain-v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Override image tag (e.g. v0.1.0)"
+        required: false
+        type: string
+      skip_26bmoe:
+        description: "Skip building the 26B-MoE variant"
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: deploy-brain
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write   # WIF for GCP
+
+env:
+  GCP_PROJECT: abm-isu
+  GCP_REGION: us-central1
+  AR_REPO: us-central1-docker.pkg.dev/abm-isu/cortex
+  IMAGE_NAME: mercury-brain
+  WIF_PROVIDER: projects/abm-isu/locations/global/workloadIdentityPools/github/providers/github
+  DEPLOY_SA: brain-runtime@abm-isu.iam.gserviceaccount.com
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 1 — Resolve tag
+  # ─────────────────────────────────────────────────────────────────────────────
+  resolve:
+    name: Resolve tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+    steps:
+      - id: t
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            # strip refs/tags/brain-v -> v
+            REF="${GITHUB_REF##refs/tags/brain-}"
+            echo "tag=${REF}" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 2 — Build & push E4B (default)
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-e4b:
+    name: Build & push E4B → Artifact Registry
+    needs: resolve
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+
+      - name: Configure docker for AR
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - id: meta
+        run: |
+          IMAGE="${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:e4b-${{ needs.resolve.outputs.tag }}"
+          IMAGE_LATEST="${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:e4b-latest"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+          echo "IMAGE_LATEST=${IMAGE_LATEST}" >> "$GITHUB_ENV"
+
+      - name: Build & push E4B
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: gcp/Dockerfile.brain
+          push: true
+          build-args: |
+            BRAIN_MODEL=gemma4:e4b
+          tags: |
+            ${{ env.IMAGE }}
+            ${{ env.IMAGE_LATEST }}
+          cache-from: type=gha,scope=brain-e4b
+          cache-to: type=gha,mode=max,scope=brain-e4b
+
+      - run: |
+          {
+            echo "### Brain image (E4B)"
+            echo "- \`${{ env.IMAGE }}\`"
+            echo "- \`${{ env.IMAGE_LATEST }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 3 — Build & push 26B-MoE (multimodal variant)
+  # Disabled by default on workflow_dispatch; tag pushes always build it.
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-26bmoe:
+    name: Build & push 26B-MoE → Artifact Registry
+    needs: resolve
+    if: ${{ inputs.skip_26bmoe != true || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+
+      - run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push 26B-MoE
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: gcp/Dockerfile.brain
+          push: true
+          build-args: |
+            BRAIN_MODEL=gemma4:26b-moe
+          tags: |
+            ${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:26bmoe-${{ needs.resolve.outputs.tag }}
+            ${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:26bmoe-latest
+          cache-from: type=gha,scope=brain-26bmoe
+          cache-to: type=gha,mode=max,scope=brain-26bmoe
+
+      - run: |
+          {
+            echo "### Brain image (26B-MoE)"
+            echo "- \`${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:26bmoe-${{ needs.resolve.outputs.tag }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 4 — Deploy E4B image to both Cloud Run services
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy → Cloud Run (cold + warm)
+    needs: [resolve, build-e4b]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Patch image tag in Cloud Run spec
+        env:
+          IMAGE: ${{ needs.build-e4b.outputs.image }}
+        run: |
+          # Rewrite both image: lines to point at the freshly-built tag.
+          sed -i "s|image: us-central1-docker.pkg.dev/abm-isu/cortex/mercury-brain:e4b-latest|image: ${IMAGE}|g" \
+            gcp/cloud-run-brain.yaml
+          echo "--- patched spec ---"
+          grep -n "^[[:space:]]*image:" gcp/cloud-run-brain.yaml
+
+      - name: Split multi-doc YAML
+        run: |
+          mkdir -p /tmp/cr
+          csplit -z -f /tmp/cr/svc- -b "%02d.yaml" gcp/cloud-run-brain.yaml '/^---$/' '{*}' >/dev/null
+          # Strip the leading `---` from continuation docs.
+          for f in /tmp/cr/svc-*.yaml; do
+            sed -i '1{/^---$/d}' "$f"
+          done
+          ls -la /tmp/cr/
+
+      - name: Apply mercury-brain-cold
+        run: |
+          gcloud run services replace /tmp/cr/svc-00.yaml \
+            --region="${GCP_REGION}" \
+            --project="${GCP_PROJECT}"
+
+      - name: Apply mercury-brain-warm
+        run: |
+          gcloud run services replace /tmp/cr/svc-01.yaml \
+            --region="${GCP_REGION}" \
+            --project="${GCP_PROJECT}"
+
+      - name: Lock down ingress (no public)
+        run: |
+          for svc in mercury-brain-cold mercury-brain-warm; do
+            gcloud run services remove-iam-policy-binding "${svc}" \
+              --region="${GCP_REGION}" \
+              --project="${GCP_PROJECT}" \
+              --member="allUsers" \
+              --role="roles/run.invoker" 2>/dev/null || true
+          done
+
+      - name: Smoke /ready on warm
+        run: |
+          URL=$(gcloud run services describe mercury-brain-warm \
+            --region="${GCP_REGION}" --project="${GCP_PROJECT}" \
+            --format='value(status.url)')
+          TOKEN=$(gcloud auth print-identity-token --audiences="${URL}")
+          for i in $(seq 1 30); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${TOKEN}" "${URL}/ready" || echo "000")
+            if [ "${CODE}" = "200" ]; then
+              echo "warm pool ready after ${i} attempts"
+              exit 0
+            fi
+            echo "Attempt ${i}/30: /ready -> ${CODE}"
+            sleep 6
+          done
+          echo "WARNING: warm pool did not report ready within 3 minutes"
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Mercury Brain deployment"
+            echo "- Tag: \`${{ needs.resolve.outputs.tag }}\`"
+            echo "- Image: \`${{ needs.build-e4b.outputs.image }}\`"
+            echo "- Services: \`mercury-brain-cold\`, \`mercury-brain-warm\` (region ${GCP_REGION})"
+          } >> "$GITHUB_STEP_SUMMARY"

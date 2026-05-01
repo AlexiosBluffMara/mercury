@@ -1,0 +1,66 @@
+# Mercury Brain — Gemma 4 inference container for Cloud Run (GPU).
+#
+# Runtime: Ollama (multimodal Gemma 4 support; vLLM lacks vision/audio).
+# Surface: OpenAI-compatible HTTP via a thin FastAPI facade in front of Ollama.
+#
+# Public port: 8080  (FastAPI facade)
+# Internal:    11434 (Ollama daemon, localhost-only)
+#
+# Build:
+#   docker build -f gcp/Dockerfile.brain \
+#     --build-arg BRAIN_MODEL=gemma4:e4b \
+#     -t mercury-brain:e4b .
+#
+# Build a different SKU (e.g. multimodal MoE):
+#   docker build -f gcp/Dockerfile.brain \
+#     --build-arg BRAIN_MODEL=gemma4:26b-moe \
+#     -t mercury-brain:26bmoe .
+FROM ollama/ollama:latest
+
+ARG BRAIN_MODEL=gemma4:e4b
+ENV BRAIN_MODEL=${BRAIN_MODEL}
+
+# Listen on every interface so the FastAPI facade (and only the facade) can
+# proxy in. Cloud Run only exposes one port publicly; we expose 8080 below
+# and bind Ollama to 127.0.0.1 implicitly via the start script.
+ENV OLLAMA_HOST=127.0.0.1:11434
+ENV OLLAMA_KEEP_ALIVE=24h
+ENV OLLAMA_NUM_PARALLEL=2
+ENV OLLAMA_MAX_LOADED_MODELS=1
+ENV PORT=8080
+
+# Install Python (slim) + curl for the facade and healthchecks.
+# ollama/ollama is debian-based, so apt works.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+         python3 python3-pip python3-venv curl tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# uv for fast, reproducible installs (matches user-level convention).
+RUN pip install --no-cache-dir --break-system-packages uv
+
+WORKDIR /app
+COPY gcp/brain/requirements.txt /app/requirements.txt
+RUN uv pip install --system --no-cache -r /app/requirements.txt
+
+COPY gcp/brain/main.py /app/main.py
+COPY gcp/brain/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Pre-pull the default model at build time so cold starts don't pay the
+# 5-10 GB download. We start ollama in the background, pull, then stop it.
+RUN ollama serve & \
+    OLLAMA_PID=$! && \
+    sleep 6 && \
+    ollama pull "${BRAIN_MODEL}" && \
+    kill "${OLLAMA_PID}" && \
+    wait "${OLLAMA_PID}" 2>/dev/null || true
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD curl -fsS http://localhost:8080/healthz || exit 1
+
+# tini reaps zombie processes (we run two: ollama + uvicorn).
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/app/start.sh"]

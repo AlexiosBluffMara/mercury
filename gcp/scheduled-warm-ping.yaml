@@ -1,0 +1,64 @@
+# Mercury Brain warm-ping — Cloud Scheduler.
+#
+# Hits mercury-brain-warm/healthz every 4 minutes during waking hours
+# (07:00–23:00 America/Chicago) so the min-instances=1 container stays
+# alive instead of cold-starting on the first interactive request.
+#
+# Outside that window the warm pool is allowed to die; the cold pool
+# absorbs any overnight traffic at the cost of a ~30 s first-request.
+#
+# The TZ window is configurable per env: re-render this file with
+# different TIME_ZONE / SCHEDULE values for other deployments.
+#
+# Apply (one-shot):
+#   gcloud scheduler jobs create http mercury-brain-warm-ping \
+#     --location=us-central1 \
+#     --schedule="*/4 7-22 * * *" \
+#     --time-zone="America/Chicago" \
+#     --uri="https://mercury-brain-warm-XXXXXX-uc.a.run.app/healthz" \
+#     --http-method=GET \
+#     --oidc-service-account-email=brain-pinger@abm-isu.iam.gserviceaccount.com \
+#     --oidc-token-audience="https://mercury-brain-warm-XXXXXX-uc.a.run.app" \
+#     --attempt-deadline=30s
+#
+# Update later:
+#   gcloud scheduler jobs update http mercury-brain-warm-ping ...
+#
+# This YAML is the source-of-truth; the workflow renders it into the
+# `gcloud scheduler jobs ... --message-body-from-file` form below for
+# `gcloud scheduler jobs create http --config`-equivalent automation.
+
+job:
+  name: mercury-brain-warm-ping
+  description: Keep mercury-brain-warm hot during 07:00–23:00 America/Chicago.
+  region: us-central1
+
+  # Cron: every 4 minutes, only between 07:00 and 22:59 local time.
+  # `7-22` covers 07:00–22:59; the 23:00 hour is excluded so the warm
+  # pool can wind down before midnight.
+  schedule: "*/4 7-22 * * *"
+  time_zone: America/Chicago
+
+  attempt_deadline: 30s
+  retry_config:
+    retry_count: 1
+    min_backoff_duration: 10s
+    max_backoff_duration: 30s
+
+  http_target:
+    # Replace XXXXXX with the actual Cloud Run revision suffix once the
+    # warm service exists (gcloud run services describe mercury-brain-warm
+    # --region=us-central1 --format='value(status.url)').
+    uri: https://mercury-brain-warm-XXXXXX-uc.a.run.app/healthz
+    http_method: GET
+    oidc_token:
+      service_account_email: brain-pinger@abm-isu.iam.gserviceaccount.com
+      audience: https://mercury-brain-warm-XXXXXX-uc.a.run.app
+
+# Configuration knobs (read by the deploy workflow when rendering this
+# spec for non-Chicago timezones):
+config:
+  wake_hour_start: 7      # local hour, inclusive
+  wake_hour_end: 23       # local hour, exclusive (last cron hour is 22)
+  ping_interval_minutes: 4
+  default_time_zone: America/Chicago
