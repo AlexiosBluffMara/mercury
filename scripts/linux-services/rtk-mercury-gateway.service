@@ -1,0 +1,18 @@
+[Unit]
+Description=Mercury gateway (Hermes-fork agent + Discord bot)
+After=network-online.target rtk-cloudflared.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/mercury
+ExecStart=%h/mercury/.venv/bin/python -m mercury_cli gateway run -v
+Restart=on-failure
+RestartSec=60s
+StartLimitIntervalSec=3600
+StartLimitBurst=5
+StandardOutput=append:%h/.mercury/logs/gateway.out.log
+StandardError=append:%h/.mercury/logs/gateway.err.log
+
+[Install]
+WantedBy=default.target

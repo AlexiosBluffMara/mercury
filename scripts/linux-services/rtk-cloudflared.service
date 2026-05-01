@@ -1,0 +1,17 @@
+[Unit]
+Description=Cloudflare tunnel (rtk-5090) — exposes mercury.redteamkitchen.com / ollama.redteamkitchen.com
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env cloudflared tunnel --config %h/.cloudflared/config.yml run rtk-5090
+Restart=on-failure
+RestartSec=60s
+StartLimitIntervalSec=3600
+StartLimitBurst=5
+StandardOutput=append:%h/.cloudflared/service.log
+StandardError=append:%h/.cloudflared/service.log
+
+[Install]
+WantedBy=default.target

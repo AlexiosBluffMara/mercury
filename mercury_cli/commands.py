@@ -180,6 +180,9 @@ COMMAND_REGISTRY: list[CommandDef] = [
     CommandDef("update", "Update Hermes Agent to the latest version", "Info",
                gateway_only=True),
     CommandDef("debug", "Upload debug report (system info + logs) and get shareable links", "Info"),
+    CommandDef("services", "Owner-only — list / restart / fetch logs for the rtk-* services", "Info",
+               gateway_only=True, args_hint="[list|restart <name>|logs <name>]",
+               subcommands=("list", "restart", "logs")),
 
     # Exit
     CommandDef("quit", "Exit the CLI", "Exit",

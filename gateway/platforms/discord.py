@@ -2257,6 +2257,122 @@ class DiscordAdapter(BasePlatformAdapter):
         )
         await interaction.response.send_message(msg, ephemeral=True)
 
+    async def _handle_services_slash(
+        self,
+        interaction: discord.Interaction,
+        action: str,
+        name: str,
+    ) -> None:
+        """Owner-only ``/services`` — wraps the local rtk-* service controller.
+
+        ``action`` is one of:
+          - ``list``: show current state of all three rtk-* services (default)
+          - ``restart <name>``: restart a single service (cloudflared/cortex-webapp/mercury-gateway)
+          - ``logs <name>``: DM the requester the last 50 lines of that service's log
+
+        Owner check uses the same gating as ``/kill`` (DISCORD_OWNER_IDS env).
+        """
+        try:
+            from gateway.external_limits import get_external_limits
+        except Exception as exc:
+            await interaction.response.send_message(
+                f"services unavailable: {exc}", ephemeral=True,
+            )
+            return
+
+        limits = get_external_limits()
+        user_id = str(getattr(interaction.user, "id", ""))
+        if not limits.is_owner_discord(user_id):
+            await interaction.response.send_message(
+                "Only the operator can run /services.", ephemeral=True,
+            )
+            return
+
+        # Lazy import — keeps ``scripts/`` off the gateway import path until needed.
+        try:
+            import sys
+            from pathlib import Path as _SvcPath
+            _scripts = _SvcPath(__file__).resolve().parents[2] / "scripts"
+            if str(_scripts) not in sys.path:
+                sys.path.insert(0, str(_scripts))
+            from rtk_tui.service_control import SERVICES, ServiceController  # type: ignore[import-not-found]
+        except Exception as exc:
+            await interaction.response.send_message(
+                f"service controller import failed: {exc}", ephemeral=True,
+            )
+            return
+
+        controller = ServiceController()
+        action_lower = (action or "list").strip().lower()
+
+        # Allow short names: "mercury" -> "rtk-mercury-gateway", etc.
+        def _resolve(short: str) -> str | None:
+            if not short:
+                return None
+            if short in SERVICES:
+                return short
+            for full in SERVICES:
+                if full.endswith(short) or full == f"rtk-{short}":
+                    return full
+            return None
+
+        if action_lower == "list":
+            lines = []
+            for svc in SERVICES:
+                s = controller.status(svc)
+                lines.append(f"`{svc}`  {s.state}  {s.detail}".rstrip())
+            await interaction.response.send_message(
+                "**rtk-\\* services**\n" + "\n".join(lines),
+                ephemeral=True,
+            )
+            return
+
+        target = _resolve(name)
+        if target is None:
+            await interaction.response.send_message(
+                f"unknown service `{name}`. choices: {', '.join(SERVICES)}",
+                ephemeral=True,
+            )
+            return
+
+        if action_lower == "restart":
+            await interaction.response.defer(ephemeral=True, thinking=True)
+            loop = asyncio.get_running_loop()
+            ok, msg = await loop.run_in_executor(None, controller.restart, target)
+            await interaction.followup.send(
+                f"`{target}` restart {'ok' if ok else 'FAILED'}: {msg}",
+                ephemeral=True,
+            )
+            return
+
+        if action_lower == "logs":
+            await interaction.response.defer(ephemeral=True, thinking=True)
+            loop = asyncio.get_running_loop()
+            tail = await loop.run_in_executor(
+                None, lambda: controller.tail_log(target, lines=50, stream="out")
+            )
+            # Prefer DM; fall back to ephemeral channel reply if DMs are closed.
+            chunk = tail[-1900:] if len(tail) > 1900 else tail
+            payload = f"**{target}** last 50 lines:\n```\n{chunk}\n```"
+            try:
+                user = interaction.user
+                dm = await user.create_dm()
+                await dm.send(payload)
+                await interaction.followup.send(
+                    f"DM sent with {target} logs.", ephemeral=True,
+                )
+            except Exception as exc:
+                await interaction.followup.send(
+                    f"DM failed ({exc}); inline:\n{payload}",
+                    ephemeral=True,
+                )
+            return
+
+        await interaction.response.send_message(
+            f"unknown action `{action}`. use list / restart / logs.",
+            ephemeral=True,
+        )
+
     def _register_slash_commands(self) -> None:
         """Register Discord slash commands on the command tree."""
         if not self._client:
@@ -2439,6 +2555,21 @@ class DiscordAdapter(BasePlatformAdapter):
         @tree.command(name="kill", description="Owner-only — pause all external Mercury traffic")
         async def slash_kill(interaction: discord.Interaction):
             await self._handle_kill_switch_slash(interaction)
+
+        @tree.command(
+            name="services",
+            description="Owner-only — list / restart / fetch logs for the rtk-* services",
+        )
+        @discord.app_commands.describe(
+            action="list | restart | logs",
+            name="Service name (required for restart/logs): cloudflared / cortex-webapp / mercury-gateway",
+        )
+        async def slash_services(
+            interaction: discord.Interaction,
+            action: str = "list",
+            name: str = "",
+        ):
+            await self._handle_services_slash(interaction, action, name)
 
         # ── Auto-register any gateway-available commands not yet on the tree ──
         # This ensures new commands added to COMMAND_REGISTRY in

@@ -1,0 +1,18 @@
+[Unit]
+Description=Cortex hackathon webapp (uvicorn :8765)
+After=network-online.target rtk-cloudflared.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/cortex
+ExecStart=%h/cortex/.venv/bin/python -m uvicorn webapp.server:app --host 0.0.0.0 --port 8765
+Restart=on-failure
+RestartSec=60s
+StartLimitIntervalSec=3600
+StartLimitBurst=5
+StandardOutput=append:%h/.cortex/logs/webapp.out.log
+StandardError=append:%h/.cortex/logs/webapp.err.log
+
+[Install]
+WantedBy=default.target
