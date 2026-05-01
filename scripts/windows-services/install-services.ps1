@@ -135,16 +135,14 @@ function Install-RtkService {
     # Auto-start at boot
     Set-NssmParam $Name 'Start' 'SERVICE_AUTO_START'
 
-    # Restart-on-failure: throttle 60s, give up after 5 attempts in an hour
-    # AppExit Default requires 3-arg form: nssm set <svc> AppExit Default Restart
+    # Restart-on-failure: restart always, throttle 60s between attempts
+    # AppExit Default: 3-arg form (cannot use Set-NssmParam wrapper for this one)
     & $nssm set $Name AppExit Default Restart | Out-Null
-    Set-NssmParam $Name 'AppRestartDelay'   '60000'
-    Set-NssmParam $Name 'AppThrottle'       '60000'
-    Set-NssmParam $Name 'AppStopMethodSkip' '0'
+    Set-NssmParam $Name 'AppRestartDelay'      '60000'   # 60s before restart
+    Set-NssmParam $Name 'AppThrottle'          '60000'   # throttle window
+    Set-NssmParam $Name 'AppStopMethodSkip'    '0'
     Set-NssmParam $Name 'AppStopMethodConsole' '15000'
-    # Throttle window of 1 hour = 3600000 ms; max 5 restarts before giving up
-    Set-NssmParam $Name 'AppRestartCount'  '5'
-    Set-NssmParam $Name 'AppRestartWindow' '3600000'
+    # Note: AppRestartCount / AppRestartWindow are NOT valid NSSM params — removed
 
     # Run as the current interactive user (preserves $HOME-relative paths)
     $userName = "$env:USERDOMAIN\$env:USERNAME"
