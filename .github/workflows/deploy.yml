@@ -1,0 +1,161 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy (defaults to HEAD SHA)"
+        required: false
+        type: string
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write   # push to ghcr.io
+  id-token: write   # WIF for GCP (relay deploy)
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ghcr.io/${{ github.repository_owner }}/mercury
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 1 — Quality gate (reuse CI checks inline for speed)
+  # ─────────────────────────────────────────────────────────────────────────────
+  gate:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install "ruff>=0.9.0" requests httpx python-dotenv pyyaml typer aiohttp aiofiles websockets
+
+      - name: ruff check
+        run: ruff check .
+
+      - name: Smoke import
+        run: |
+          python -c "from agent import context_engine, prompt_builder, model_metadata, logger"
+          python -c "from gateway import config, hooks, delivery"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 2 — Build & push to ghcr.io
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-push:
+    name: Build & push image → ghcr.io
+    needs: gate
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.tags && steps.meta.outputs.tags || env.IMAGE }}
+      digest: ${{ steps.push.outputs.digest }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata (tags + labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
+
+      - name: Build & push
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=mercury-docker
+          cache-to: type=gha,mode=max,scope=mercury-docker
+
+      - name: Summary
+        run: |
+          echo "### Mercury image pushed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image: \`${{ steps.meta.outputs.tags }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Digest: \`${{ steps.push.outputs.digest }}\`" >> "$GITHUB_STEP_SUMMARY"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 3 — Deploy to host via self-hosted runner
+  #
+  # Prerequisites:
+  #   1. Register a GitHub Actions self-hosted runner on the machine that runs
+  #      Mercury (the 5090 workstation or a GCP VM):
+  #        cd ~/actions-runner && ./run.sh
+  #      Label it `self-hosted,mercury`.
+  #
+  #   2. Ensure docker-compose.yml and ~/.hermes are set up on the host.
+  #
+  # The runner pulls the new image and restarts the gateway + dashboard
+  # containers. Zero-downtime: docker-compose up -d waits for the new
+  # container before stopping the old one.
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy → mercury host
+    needs: build-push
+    runs-on: [self-hosted, mercury]
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to ghcr.io (host pull auth)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Pull new image
+        run: docker pull "${{ env.IMAGE }}:latest"
+
+      - name: Restart gateway + dashboard
+        run: |
+          cd "${{ secrets.MERCURY_COMPOSE_DIR }}"
+          HERMES_UID=$(id -u) HERMES_GID=$(id -g) \
+            docker-compose up -d --no-build --pull never
+
+      - name: Wait for gateway health
+        run: |
+          for i in $(seq 1 12); do
+            STATUS=$(curl -sf http://localhost:9119/healthz 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
+            if [ "$STATUS" = "ok" ] || [ "$STATUS" = "running" ]; then
+              echo "Gateway healthy after ${i} attempts"
+              exit 0
+            fi
+            echo "Attempt ${i}/12: waiting..."
+            sleep 5
+          done
+          echo "WARNING: Gateway health check timed out — manual verification required"
+          exit 1
+
+      - name: Post deployment summary
+        if: always()
+        run: |
+          echo "### Mercury deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image: \`${{ env.IMAGE }}:latest\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Host: \`$(hostname)\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Time: \`$(date -u +%Y-%m-%dT%H:%M:%SZ)\`" >> "$GITHUB_STEP_SUMMARY"
