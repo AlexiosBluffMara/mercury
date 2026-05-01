@@ -3,67 +3,75 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mercury — Built with Kimi K2.6 for the hackathon sprint · Now running Gemma 4 E4B locally</title>
-<meta name="description" content="A multi-domain Hermes Agent fork running across an RTX 5090, a Mac Mini, and Google Cloud Run. Built with Kimi K2.6 for the hackathon sprint · Now running Gemma 4 E4B locally via Ollama.">
-<meta property="og:title" content="Mercury — Built with Kimi K2.6 for the hackathon sprint · Now running Gemma 4 E4B locally">
-<meta property="og:description" content="Kimi K2.6 hackathon sprint. Gemma 4 E4B production. Six clients. Three nodes. Receipts in the repo.">
+<title>Mercury — your AI on your hardware, through every door you own</title>
+<meta name="description" content="A personal AI agent that lives on your own RTX 5090. One brain, one memory, six doors — terminal, Discord, web, iMessage, email, phone. No round-trips to anyone else's cloud.">
+<meta property="og:title" content="Mercury — your AI on your hardware, through every door you own">
+<meta property="og:description" content="A personal AI agent that lives on your own GPU, reachable from terminal, Discord, web, iMessage, email, and your phone — same brain, same memory, no cloud round-trips.">
 <meta property="og:image" content="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/assets/architecture_v2.png">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- Free open-source typefaces. Inter for body, Outfit for display, JetBrains Mono for code. All OFL-licensed. -->
+<!-- Illinois State University web fonts: Open Sans (primary sans), PT Serif (serif), JetBrains Mono (data/code). -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
   /*
-   * Type system inspired by Apple product pages: tight tracking, generous
-   * whitespace, two display sizes, one body size, one mono.
+   * Visual system: Illinois State University brand.
+   *  - Cardinal Red #CC0000 (single accent, used sparingly)
+   *  - ISU Gold #F6A917 (highlights / call-outs)
+   *  - ISU Blue #56758f (subtle secondary)
+   *  - Open Sans for body, PT Serif for editorial display, JetBrains Mono for data
    *
-   * Color palette: Illinois State University cardinal as the brand accent
-   * (publicly published color values; logos and wordmarks are NOT used).
+   * Tone: explain the system to someone who has never written a line of code,
+   * never used a terminal, and is hearing the phrase "AI agent" for the first
+   * time. Lean on metaphors from offices, theatres, and household appliances —
+   * the most common cultural overlap.
    */
   :root {
-    --bg: #0b0b0e;
-    --bg-elev: #14141a;
-    --fg: #f4f4f7;
-    --muted: #8b8d96;
-    --border: #25262e;
-    --border-strong: #353742;
-    --panel: #131419;
+    --bg: #0a0b0e;
+    --surface: #14151c;
+    --surface2: #1c1e28;
+    --border: #262834;
+    --border-strong: #383a47;
 
-    /* ISU cardinal — used as a single-accent brand color */
-    --cardinal: #CE1126;
+    /* ISU brand */
+    --cardinal: #CC0000;
     --cardinal-bright: #ee2d3f;
     --cardinal-deep: #9c0d1d;
+    --isu-gold: #F6A917;
+    --isu-blue: #56758f;
 
-    /* Status accents (separate from brand to keep semantics clear) */
-    --positive: #6dd3a3;
-    --warm: #ffb86b;
+    --text: #f0f2f6;
+    --muted: #8b8d96;
 
-    --max: 1040px;
+    --max: 1080px;
     --radius: 14px;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0;
-    background: var(--bg); color: var(--fg);
-    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: "ss01", "cv11";
-    line-height: 1.6;
+    background: var(--bg); color: var(--text);
+    font-family: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  a { color: var(--cardinal-bright); text-decoration: none; transition: color 0.15s ease; }
-  a:hover { color: #ff5f6e; }
+  a {
+    color: var(--cardinal-bright);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(238, 45, 63, 0.25);
+    transition: border-color .15s ease, color .15s ease;
+  }
+  a:hover { color: #ff5f6e; border-bottom-color: var(--cardinal-bright); }
   .wrap { max-width: var(--max); margin: 0 auto; padding: 80px 32px 96px; }
 
-  /* Hero */
-  header { margin-bottom: 88px; }
+  /* ───── Hero ───── */
+  header { margin-bottom: 96px; }
   header .pills { margin-bottom: 28px; }
   header .pill {
     display: inline-block;
-    background: var(--bg-elev);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 999px;
     padding: 6px 14px;
@@ -75,24 +83,32 @@
   }
   header .pill.brand {
     color: var(--cardinal-bright);
-    border-color: rgba(238, 45, 63, 0.25);
+    border-color: rgba(238, 45, 63, 0.30);
     background: rgba(238, 45, 63, 0.06);
   }
-  header h1 {
-    font-family: "Outfit", "Inter", sans-serif;
-    font-size: clamp(2.8rem, 6vw, 4.8rem);
-    font-weight: 700;
-    margin: 12px 0 16px;
-    letter-spacing: -0.03em;
-    line-height: 1;
+  header .pill.gold {
+    color: var(--isu-gold);
+    border-color: rgba(246, 169, 23, 0.35);
+    background: rgba(246, 169, 23, 0.06);
   }
+  header h1 {
+    font-family: "PT Serif", "Open Sans", serif;
+    font-size: clamp(2.8rem, 6vw, 4.6rem);
+    font-weight: 700;
+    margin: 12px 0 18px;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  header h1 em { font-style: italic; color: var(--cardinal-bright); }
   header .tag {
-    color: var(--fg);
-    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    color: var(--text);
+    font-size: clamp(1.05rem, 1.7vw, 1.3rem);
     margin-bottom: 36px;
-    max-width: 660px;
+    max-width: 720px;
     line-height: 1.55;
   }
+  header .tag strong { color: var(--isu-gold); font-weight: 600; }
   header .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
   .cta {
     display: inline-block;
@@ -102,41 +118,93 @@
     font-size: 0.95rem;
     text-decoration: none;
     border: 1px solid transparent;
-    transition: transform 0.1s ease, background 0.15s ease;
+    transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
   }
   .cta:hover { transform: translateY(-1px); }
   .cta.primary {
     background: var(--cardinal);
     color: #fff;
+    border-bottom: 1px solid var(--cardinal); /* override default link underline */
   }
-  .cta.primary:hover { background: var(--cardinal-bright); color: #fff; }
+  .cta.primary:hover { background: var(--cardinal-bright); color: #fff; border-bottom-color: var(--cardinal-bright); }
   .cta.ghost {
     background: transparent;
-    color: var(--fg);
-    border-color: var(--border-strong);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
   }
-  .cta.ghost:hover { background: var(--bg-elev); border-color: var(--cardinal-bright); }
+  .cta.ghost:hover { background: var(--surface); border-color: var(--cardinal-bright); }
 
-  /* Sections */
-  section { margin-top: 80px; }
+  /* ───── Sections ───── */
+  section { margin-top: 96px; }
   section h2 {
-    font-family: "Outfit", "Inter", sans-serif;
-    font-size: 1.65rem;
-    font-weight: 600;
-    letter-spacing: -0.015em;
+    font-family: "PT Serif", serif;
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     margin: 0 0 22px;
+    color: var(--text);
   }
   section h2 .accent { color: var(--cardinal-bright); }
-  section > p { color: var(--muted); max-width: 720px; margin-top: 0; }
+  section > p, section > .panel > p {
+    color: #cdd0d8;
+    max-width: 780px;
+    margin: 0 0 16px;
+  }
+  section > p:first-of-type { margin-top: 0; }
 
   .panel {
-    background: var(--panel);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 28px 32px;
+    padding: 30px 34px;
+  }
+  .panel.tinted {
+    background: linear-gradient(180deg, rgba(238, 45, 63, 0.04) 0%, var(--surface) 100%);
+    border-color: rgba(238, 45, 63, 0.18);
+  }
+  .panel h3 {
+    font-family: "PT Serif", serif;
+    font-size: 1.2rem;
+    margin: 24px 0 10px;
+    color: var(--text);
+    font-weight: 700;
+  }
+  .panel h3:first-child { margin-top: 0; }
+
+  /* ───── The doors strip ───── */
+  .doors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .door {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .door:hover { border-color: var(--cardinal-deep); transform: translateY(-1px); }
+  .door .icon {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 1.2rem;
+    color: var(--isu-gold);
+    margin-bottom: 8px;
+  }
+  .door .name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .door .what {
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-top: 4px;
+    line-height: 1.4;
   }
 
-  /* Receipts grid */
+  /* ───── Numbers ───── */
   .receipts {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -144,7 +212,7 @@
     margin-top: 8px;
   }
   .receipts .cell {
-    background: var(--panel);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 22px 24px;
@@ -152,11 +220,11 @@
   }
   .receipts .cell:hover { border-color: var(--cardinal-deep); }
   .receipts .cell .num {
-    font-family: "Outfit", "Inter", sans-serif;
+    font-family: "JetBrains Mono", monospace;
     font-size: 1.95rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--cardinal-bright);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
     line-height: 1;
   }
   .receipts .cell .lbl {
@@ -168,7 +236,39 @@
     font-weight: 500;
   }
 
-  /* Media */
+  /* ───── Skill cards ───── */
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .skill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .skill .head {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.85rem;
+    color: var(--isu-gold);
+    margin-bottom: 8px;
+  }
+  .skill .title {
+    font-family: "PT Serif", serif;
+    font-size: 1.15rem;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .skill .body {
+    color: #cdd0d8;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  /* ───── Media ───── */
   img.full {
     width: 100%; height: auto;
     border-radius: var(--radius);
@@ -177,12 +277,12 @@
   }
   figcaption { color: var(--muted); margin-top: 12px; font-size: 0.9rem; }
 
-  /* Code */
+  /* ───── Code ───── */
   pre {
     background: #06070a;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 20px 22px;
+    padding: 22px 26px;
     overflow-x: auto;
     font-size: 0.88rem;
     line-height: 1.7;
@@ -191,20 +291,31 @@
   code {
     font-family: "JetBrains Mono", ui-monospace, monospace;
     font-size: 0.92em;
-    font-feature-settings: "calt", "ss01", "ss02";
   }
   pre code { font-size: inherit; }
 
-  /* Inline brand bar */
+  /* ───── Pull quote ───── */
+  .pull {
+    border-left: 3px solid var(--isu-gold);
+    padding: 12px 22px;
+    margin: 24px 0;
+    font-family: "PT Serif", serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text);
+    line-height: 1.55;
+  }
+
+  /* ───── Brand bar / footer ───── */
   .brand-bar {
-    margin-top: 64px; padding-top: 28px;
+    margin-top: 80px; padding-top: 32px;
     border-top: 1px solid var(--border);
     display: flex; flex-wrap: wrap; gap: 24px;
     align-items: center; justify-content: space-between;
     color: var(--muted);
     font-size: 0.85rem;
   }
-  .brand-bar strong { color: var(--fg); font-weight: 600; }
+  .brand-bar strong { color: var(--text); font-weight: 600; }
   .brand-bar .swatch {
     display: inline-block;
     width: 10px; height: 10px;
@@ -216,16 +327,17 @@
 
   footer {
     color: var(--muted);
-    margin-top: 80px;
+    margin-top: 56px;
     padding-top: 28px;
     border-top: 1px solid var(--border);
-    font-size: 0.88rem;
+    font-size: 0.86rem;
   }
-  footer p { margin: 6px 0; }
+  footer p { margin: 6px 0; max-width: 780px; }
+  footer a { color: var(--cardinal-bright); border-bottom-color: rgba(238, 45, 63, 0.20); }
 
   @media (max-width: 600px) {
     .wrap { padding: 48px 20px 72px; }
-    header { margin-bottom: 56px; }
+    header { margin-bottom: 64px; }
     section { margin-top: 64px; }
     .panel { padding: 22px 24px; }
     pre { padding: 16px 18px; }
@@ -235,39 +347,164 @@
 <body>
 <div class="wrap">
 
+<!-- ═══════════════════════════════════ Hero ═══════════════════════════════════ -->
 <header>
   <div class="pills">
-    <span class="pill brand">Nous + Kimi Hackathon — Creative</span>
-    <span class="pill">v0.2.0</span>
-    <span class="pill">MIT</span>
+    <span class="pill brand">Nous Research × Kimi — Creative Track</span>
+    <span class="pill gold">Submission · May 3, 2026</span>
+    <span class="pill">v0.2.0 · MIT</span>
   </div>
-  <h1>Mercury.</h1>
-  <p class="tag">An open-source AI assistant that runs on your own GPU. Built with Kimi K2.6 for the hackathon sprint · Now running Gemma 4 E4B locally on an RTX 5090 via Ollama.</p>
+  <h1>One brain. <em>Six doors.</em><br>Your hardware.</h1>
+  <p class="tag">
+    Mercury is a personal AI agent that <strong>lives on a computer you own</strong>.
+    You walk up to it through any of six doors — terminal, Discord, a web page,
+    iMessage, email, your phone — and the same agent answers, with the same memory,
+    on the same hardware. Nothing leaves the building.
+  </p>
   <div class="ctas">
     <a class="cta primary" href="https://github.com/AlexiosBluffMara/mercury">View source on GitHub</a>
     <a class="cta ghost" href="#try">Run it yourself</a>
+    <a class="cta ghost" href="https://github.com/AlexiosBluffMara/cortex">See the sister project · Cortex</a>
   </div>
 </header>
 
+<!-- ═══════════════════════════════════ The Six-Door Office ═══════════════════════════════════ -->
 <section>
-  <h2>What it is</h2>
-  <div class="panel">
-    <p style="color: var(--fg)">Mercury is a personal AI assistant. It runs on your own computer.</p>
-    <p>You talk to it from any of six places — your terminal, Discord, a web page, iMessage, email, your phone — and the same agent answers, with the same memory, on the same hardware. No round-trips to anyone else's cloud.</p>
-    <p>It comes with four specialist skill domains out of the box: <strong style="color: var(--fg)">Chicago college search</strong>, <strong style="color: var(--fg)">Chicago tax &amp; tenant law</strong>, <strong style="color: var(--fg)">3D web graphics development</strong>, and <strong style="color: var(--fg)">hackathon submission packaging</strong> — the last of which built this page.</p>
-    <p>The body is <strong style="color: var(--fg)">Hermes Agent</strong>, an open-source framework from Nous Research.</p>
-    <p>The original hackathon sprint ran on <strong style="color: var(--fg)">Kimi K2.6</strong> via the Nous Portal. The live agent now uses <strong style="color: var(--fg)">Gemma 4 E4B</strong> — an open-weight multimodal model from Google, running at 194 tok/s on the local RTX 5090 via Ollama. Zero API cost, zero cloud dependency.</p>
+  <h2>The Six-Door Office <span class="accent">— how Mercury works</span></h2>
+  <p>
+    Picture a small office with one occupant: an assistant who already knows
+    you. They've read your notes, they remember last week's conversation,
+    they know which tools sit on your desk and which documents live in your
+    filing cabinet. Most assistants in 2026 don't work this way — you walk
+    into someone else's building, they get amnesia, and you start from
+    scratch.
+  </p>
+  <p>
+    Mercury's office is in <strong>your</strong> building. The assistant
+    lives on a single computer you own — by default, an RTX 5090 desktop
+    sitting in Chicago. The desk has six doors:
+  </p>
+
+  <div class="doors">
+    <div class="door"><div class="icon">▷</div><div class="name">Terminal</div><div class="what">Type to it from any shell, Mac or Windows.</div></div>
+    <div class="door"><div class="icon">▷</div><div class="name">Discord</div><div class="what">"Snowy The Bot" in any server you invite it to.</div></div>
+    <div class="door"><div class="icon">▷</div><div class="name">Web</div><div class="what">A private chat URL, reachable from any browser.</div></div>
+    <div class="door"><div class="icon">▷</div><div class="name">iMessage</div><div class="what">Text a relay number, replies arrive on your phone.</div></div>
+    <div class="door"><div class="icon">▷</div><div class="name">Email</div><div class="what">Send to a real address; the agent reads &amp; replies.</div></div>
+    <div class="door"><div class="icon">▷</div><div class="name">Mobile</div><div class="what">Same chat, same memory, in your pocket.</div></div>
+  </div>
+
+  <p style="margin-top: 24px;">
+    Walk through any door, and you're talking to the same person. Tell it
+    something on Discord at noon, ask about it from the terminal at four —
+    it remembers. The brain is <strong>Gemma 4 E4B</strong>, an open-weight
+    model from Google running locally at 194 tokens per second on the 5090.
+    The body is <strong>Hermes Agent</strong>, an open-source framework
+    from Nous Research. Mercury is what we built on top: a multi-domain
+    skill stack and a six-surface gateway, designed so a single human can
+    run a single agent across every device they own — without ever sending
+    a token to a cloud they don't control.
+  </p>
+
+  <div class="pull">
+    "Privacy as an architectural property, not a promise."
   </div>
 </section>
 
+<!-- ═══════════════════════════════════ Why it matters ═══════════════════════════════════ -->
+<section>
+  <h2>Why it matters</h2>
+  <p>
+    Personal AI today comes in two shapes: a <strong>chat box on someone
+    else's website</strong> (your conversation lives in their database) or
+    a <strong>wrapper around someone else's API</strong> (every token is
+    metered and logged). Both are useful. Neither is <em>yours</em>.
+    Mercury is the third shape:
+  </p>
+  <div class="receipts" style="margin-top: 16px;">
+    <div class="cell"><div class="num">$0.02</div><div class="lbl">Per hour, idle (electricity)</div></div>
+    <div class="cell"><div class="num">194</div><div class="lbl">Tokens / sec on RTX 5090</div></div>
+    <div class="cell"><div class="num">0</div><div class="lbl">Outbound calls in hot path</div></div>
+    <div class="cell"><div class="num">6</div><div class="lbl">Doors, one brain</div></div>
+  </div>
+  <p style="margin-top: 24px;">
+    The cost case isn't subtle. An RTX 5090 runs about $2,500–3,000 street
+    price. The equivalent cloud capacity is roughly $0.70/hour — about
+    $504/month at 24/7 — break-even in five months even before counting
+    the per-token fees a hosted equivalent would charge. <strong>Local AI
+    is no longer a hobbyist trade-off.</strong> It's the cheapest
+    deployment path that exists for an always-on personal agent.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════ The four skills ═══════════════════════════════════ -->
+<section>
+  <h2>Four specialist skills <span class="accent">— ones we actually use</span></h2>
+  <p>
+    Most demo agents ship with a curated set of party tricks. Mercury ships
+    with the four skill bundles the team needed while building Cortex (the
+    sister project). They are not a polished demo set — they are the live
+    skills running on the live agent.
+  </p>
+  <div class="skills">
+    <div class="skill">
+      <div class="head">chicago-education</div>
+      <div class="title">Where to study in Chicago</div>
+      <div class="body">Eight public + five private universities. MBA modalities (full-time / part-time / EMBA / online). Tuition + ROI analysis. Transfer pathways.</div>
+    </div>
+    <div class="skill">
+      <div class="head">chicago-tax-legal</div>
+      <div class="title">Cook County tax &amp; tenant law</div>
+      <div class="body">Property tax appeals. The Residential Landlord and Tenant Ordinance (RLTO). State and circuit court structure. Legal aid org directory.</div>
+    </div>
+    <div class="skill">
+      <div class="head">threejs-design-dev</div>
+      <div class="title">3D web graphics</div>
+      <div class="body">React Three Fiber idioms. GLSL shader patterns. The Blender → glTF pipeline. WebXR. Performance budgets for in-browser 3D.</div>
+    </div>
+    <div class="skill">
+      <div class="head">nous-hackathon</div>
+      <div class="title">Submission packaging</div>
+      <div class="body">Demo scripts. Deployment recipes. Video storyboards. Judge-checklist artifacts. (This skill wrote large parts of this page.)</div>
+    </div>
+  </div>
+  <p style="margin-top: 24px;">
+    Adding a fifth skill is a matter of writing a YAML manifest and
+    dropping it into a folder. The dispatcher auto-loads it by domain
+    context — no slash-commands, no manual routing. The hard part isn't
+    the skills; the hard part is the gateway, the dispatcher, the memory
+    layer, the multi-surface plumbing. Fork those, and write your own
+    four skills.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════ Architecture ═══════════════════════════════════ -->
 <section>
   <h2>Architecture</h2>
   <img class="full" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/assets/architecture_v2.png" alt="Mercury architecture v2">
-  <p>Six client surfaces fan into one Hermes Gateway → Kimi K2.6 brain → 4 custom skill domains → 5-source data layer → 3-node infra (Mac dev, 5090 inference, Cloud Run scale).</p>
+  <p>
+    Six client surfaces fan into one Hermes Gateway. The gateway routes
+    through a local Gemma 4 brain, a tool router, a context-aware skill
+    dispatcher, and a cross-session memory store. Four skill domains
+    compose tools out of a five-source data layer (filesystem, web search,
+    browser MCP, Python exec, knowledge graph). The whole stack runs across
+    three nodes — a Mac Mini in Bloomington for skill authoring, the
+    RTX 5090 in Chicago for inference, and Google Cloud Run as managed
+    fallback.
+  </p>
 </section>
 
+<!-- ═══════════════════════════════════ Receipts ═══════════════════════════════════ -->
 <section>
-  <h2>Receipts <span class="accent">— what $22 of Kimi K2.6 produced (hackathon sprint)</span></h2>
+  <h2>Receipts <span class="accent">— what $22 of Kimi K2.6 produced</span></h2>
+  <p>
+    The hackathon sprint ran on <strong>Kimi K2.6</strong>, an open-weight
+    model from Moonshot AI accessed through the Nous Portal. Over a
+    seven-day window, Mercury made 1,035 requests to the portal at a total
+    cost of $22.04. The Apr 28–29 spike maps 1:1 to a 75-minute burst of
+    14 commits — covering the brain visualizer, the gateway wiring, the
+    four skill domains, and most of the docs you're reading right now.
+  </p>
   <div class="receipts">
     <div class="cell"><div class="num">$22.04</div><div class="lbl">Total spend</div></div>
     <div class="cell"><div class="num">1,035</div><div class="lbl">Requests</div></div>
@@ -276,15 +513,62 @@
     <div class="cell"><div class="num">39.5M</div><div class="lbl">Cache reads</div></div>
     <div class="cell"><div class="num">14</div><div class="lbl">Commits in 75 min</div></div>
   </div>
-  <img class="full" style="margin-top: 20px;" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/kimi_proof/06_nous_portal_usage_2026-04-30.png" alt="Nous Portal usage chart">
-  <p>The Apr 28 – 29 spike maps 1:1 to a 75-minute burst that built the brain visualizer, the gateway wiring, the four skill domains, and the docs you're reading right now. Per-commit timeline at <a href="https://github.com/AlexiosBluffMara/mercury#initial-sprint-by-kimi-k26-via-nous-portal--proof-of-use">github.com/AlexiosBluffMara/mercury</a>. The $22.04 was the hackathon sprint (Kimi K2.6 via Nous Portal); current production cost is local electricity only.</p>
+  <img class="full" style="margin-top: 22px;" src="https://raw.githubusercontent.com/AlexiosBluffMara/mercury/main/kimi_proof/06_nous_portal_usage_2026-04-30.png" alt="Nous Portal usage chart">
+  <p>
+    The per-commit timeline is in the
+    <a href="https://github.com/AlexiosBluffMara/mercury#initial-sprint-by-kimi-k26-via-nous-portal--proof-of-use">repository README</a>,
+    along with the raw POST bodies, the dispatcher source, and the Mercury
+    config file in effect during the spike. Production runs entirely
+    locally on Gemma 4 E4B; Kimi appears only in the build artifact trail.
+  </p>
 </section>
 
+<!-- ═══════════════════════════════════ Cortex link ═══════════════════════════════════ -->
+<section>
+  <h2>Cortex <span class="accent">— the sister project Mercury orchestrates</span></h2>
+  <div class="panel tinted">
+    <p style="color: var(--text);">
+      Mercury's most visible job is driving <strong>Cortex</strong> — a
+      multimodal brain-response analysis system built on TRIBE v2 (Meta) +
+      Gemma 4. Upload a short video; in about six minutes, 20,484 cortical
+      vertices light up in 3D and Gemma narrates the response at three
+      levels of detail (general, college, clinical).
+    </p>
+    <p>
+      The Three.js viewer in the Cortex demo video was written in Kimi
+      K2.6's Apr 28 sprint (commit <code>50423c0d</code>). Mercury talks
+      to Cortex through a single skill called <code>cortex-bridge</code> —
+      <code>/scan &lt;media_file&gt;</code> from any of the six doors
+      submits a clip to the Cortex API, streams progress, and displays
+      the narration on completion.
+    </p>
+    <p>
+      <a href="https://github.com/AlexiosBluffMara/cortex">github.com/AlexiosBluffMara/cortex</a>
+      &nbsp;·&nbsp;
+      <a href="https://cortex.redteamkitchen.com">live demo</a>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ Try it ═══════════════════════════════════ -->
 <section id="try">
   <h2>Run it yourself</h2>
   <div class="panel">
-    <p style="color: var(--fg)"><strong>Heads up:</strong> there is no public hosted version of the live agent. Mercury is local-first by design — the AI runs on <em>your</em> GPU, not ours. The architecture diagrams and demo video here are real, but to actually chat with the agent you need to clone, install, and bring your own hardware.</p>
-    <p>What you need: an NVIDIA GPU with 12 GB+ VRAM, Python 3.11+, Ollama, and ~30 GB of disk space.</p>
+    <p style="color: var(--text);">
+      <strong>Heads up:</strong> there is no public hosted version of the
+      live agent. Mercury is local-first by design — the AI runs on
+      <em>your</em> GPU, not ours. The architecture diagrams and demo
+      video here are real, but to actually chat with the agent you need
+      to clone, install, and bring your own hardware.
+    </p>
+    <h3>What you need</h3>
+    <ul>
+      <li>An NVIDIA GPU with at least 12 GB of VRAM. Tested on RTX 5090; a 4090, 3090, or any 12 GB+ card works for the smallest model.</li>
+      <li>Python 3.11 or newer.</li>
+      <li>Ollama, to run the language models locally.</li>
+      <li>Roughly 30 GB of disk space for model weights.</li>
+    </ul>
+    <h3>Setup, copy-paste-able</h3>
     <pre><code># 1. Clone Mercury
 git clone https://github.com/AlexiosBluffMara/mercury
 cd mercury
@@ -306,10 +590,11 @@ mercury chat</code></pre>
   </div>
 </section>
 
+<!-- ═══════════════════════════════════ Brand bar ═══════════════════════════════════ -->
 <div class="brand-bar">
   <div>
     <span class="swatch" aria-hidden="true"></span>
-    <strong>Submitted in partial fulfillment</strong> of coursework at Illinois State University.
+    <strong>Submitted in partial fulfillment</strong> of coursework at Illinois State University, Bloomington–Normal.
   </div>
   <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
     v0.2.0-nous-creative · MIT
@@ -318,7 +603,7 @@ mercury chat</code></pre>
 
 <footer>
   <p>Mercury is a fork of <a href="https://github.com/NousResearch/hermes-agent">NousResearch/hermes-agent</a>. Adapted by <a href="https://github.com/AlexiosBluffMara">Red Team Kitchen / Alexios Bluff Mara LLC</a>.</p>
-  <p>Demo input footage: NASA Artemis II program, public domain (17 U.S.C. § 105). Brand accent color references Illinois State University's published cardinal value; ISU logos and wordmarks are not used.</p>
+  <p>Demo input footage: NASA Artemis II program, public domain (17 U.S.C. § 105). Brand accent colors reference Illinois State University's published values; ISU logos and wordmarks are not used. Gemma is a trademark of Google LLC.</p>
 </footer>
 
 </div>
