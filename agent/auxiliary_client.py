@@ -138,7 +138,8 @@ def _fixed_temperature_for_model(
 
 # Default auxiliary models for direct API-key providers (cheap/fast for side tasks)
 _API_KEY_PROVIDER_AUX_MODELS: Dict[str, str] = {
-    "gemini": "gemini-3-flash-preview",
+    # Gemini 3.1 is the target — lite-preview is the only 3.1 text model available
+    "gemini": "gemini-3.1-flash-lite-preview",
     "zai": "glm-4.5-flash",
     "kimi-coding": "kimi-k2-turbo-preview",
     "stepfun": "step-3.5-flash",
@@ -146,10 +147,10 @@ _API_KEY_PROVIDER_AUX_MODELS: Dict[str, str] = {
     "minimax": "MiniMax-M2.7",
     "minimax-cn": "MiniMax-M2.7",
     "anthropic": "claude-haiku-4-5-20251001",
-    "ai-gateway": "google/gemini-3-flash",
-    "opencode-zen": "gemini-3-flash",
+    "ai-gateway": "google/gemini-3.1-flash-lite-preview",
+    "opencode-zen": "gemini-3.1-flash-lite-preview",
     "opencode-go": "glm-5",
-    "kilocode": "google/gemini-3-flash-preview",
+    "kilocode": "google/gemini-3.1-flash-lite-preview",
     "ollama-cloud": "nemotron-3-nano:30b",
 }
 
@@ -191,8 +192,8 @@ auxiliary_is_nous: bool = False
 # Gemma 4 26B MoE on OpenRouter — free tier, ~4B active params, fastest cloud fallback
 # Paid: google/gemma-4-26b-a4b-it  ($0.06/$0.33 per 1M tokens)
 _OPENROUTER_MODEL = "google/gemma-4-26b-a4b-it:free"
-# Nous Portal falls back to Gemini 3 Flash when Nous models are unavailable
-_NOUS_MODEL = "google/gemini-3-flash-preview"
+# Nous Portal falls back to Gemini 3.1 Flash Lite when Nous models are unavailable
+_NOUS_MODEL = "google/gemini-3.1-flash-lite-preview"
 _NOUS_DEFAULT_BASE_URL = "https://inference-api.nousresearch.com/v1"
 _ANTHROPIC_DEFAULT_BASE_URL = "https://api.anthropic.com"
 _AUTH_JSON_PATH = get_hermes_home() / "auth.json"
