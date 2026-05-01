@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snowy — Mercury chat</title>
+<meta name="description" content="A small public window into Mercury, a personal AI agent running on Soumit Lahiri's RTX 5090 in Chicago. Research collaboration with Illinois State University.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=PT+Serif:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0a0b0e;
+  --surface: #14151c;
+  --surface2: #1c1e28;
+  --border: #262834;
+  --border-strong: #383a47;
+  --cardinal: #CC0000;
+  --cardinal-bright: #ee2d3f;
+  --isu-gold: #F6A917;
+  --isu-blue: #56758f;
+  --text: #f0f2f6;
+  --muted: #8b8d96;
+  --max: 880px;
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font-family: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--cardinal-bright); text-decoration: none; border-bottom: 1px solid rgba(238, 45, 63, 0.25); }
+a:hover { color: #ff5f6e; }
+.wrap { max-width: var(--max); margin: 0 auto; padding: 32px 24px 40px; }
+
+header {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  margin-bottom: 18px; gap: 12px;
+}
+header h1 {
+  font-family: "PT Serif", serif;
+  font-size: 1.6rem; font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+header h1 em { font-style: italic; color: var(--cardinal-bright); }
+.tag {
+  color: var(--muted); font-size: 0.88rem;
+}
+.status-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: "JetBrains Mono", monospace; font-size: 0.78rem;
+}
+.status-pill .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted);
+}
+.status-pill.online .dot { background: #34d399; box-shadow: 0 0 6px rgba(52, 211, 153, 0.6); }
+.status-pill.offline .dot { background: var(--cardinal-bright); }
+.status-pill.degraded .dot { background: var(--isu-gold); }
+
+.intro {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cardinal);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-size: 0.92rem;
+  margin-bottom: 24px;
+}
+.intro strong { color: var(--isu-gold); }
+
+#log {
+  display: flex; flex-direction: column; gap: 14px;
+  margin-bottom: 22px; min-height: 120px;
+}
+.msg {
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+.msg.user {
+  background: rgba(86, 117, 143, 0.10);
+  border-color: rgba(86, 117, 143, 0.45);
+  align-self: flex-end;
+  max-width: 85%;
+}
+.msg.bot {
+  background: var(--surface);
+  align-self: flex-start;
+  max-width: 95%;
+}
+.msg.bot.streaming::after {
+  content: "▌"; color: var(--cardinal-bright);
+  animation: blink 1s infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+.msg.error {
+  background: rgba(204, 0, 0, 0.10);
+  border-color: rgba(238, 45, 63, 0.45);
+  color: #ffb4b4;
+  align-self: flex-start;
+  max-width: 95%;
+}
+.msg .who {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+form#chat {
+  display: flex; gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 8px;
+  position: sticky; bottom: 16px;
+}
+form#chat textarea {
+  flex: 1;
+  min-height: 44px; max-height: 200px;
+  resize: vertical;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  outline: none;
+}
+form#chat button {
+  background: var(--cardinal);
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+form#chat button:hover:not(:disabled) { background: var(--cardinal-bright); }
+form#chat button:disabled { background: var(--border-strong); cursor: not-allowed; }
+
+footer {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between;
+}
+footer code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--isu-gold);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Snowy <em>· Mercury</em></h1>
+  <span id="status" class="status-pill"><span class="dot"></span><span class="label">checking…</span></span>
+</header>
+
+<p class="tag">A small window into Mercury — a personal AI agent running on a single RTX 5090 in Chicago.  Research collaboration between <strong>Alexios Bluff Mara</strong> and <strong>Illinois State University</strong>.</p>
+
+<div class="intro">
+<strong>Heads up:</strong> this is the public chat surface.  Anonymous traffic is heavily rate-limited (5 messages/minute, 30/hour, 1000/day across all visitors).  If you hit a limit, come back in a bit.  For deeper conversations, use the Discord bot in #bot-test-3.
+</div>
+
+<div id="log"></div>
+
+<form id="chat" autocomplete="off">
+  <textarea id="prompt" placeholder="Ask Snowy something… (Enter to send, Shift+Enter for newline)" required></textarea>
+  <button id="send" type="submit">Send</button>
+</form>
+
+<footer>
+  <span>Snowy is <code id="modelTag">…</code> on Soumit's 5090.</span>
+  <span><a href="/api/health">/api/health</a> · <a href="https://github.com/AlexiosBluffMara/mercury">source</a></span>
+</footer>
+
+</div>
+
+<script>
+const log = document.getElementById('log');
+const form = document.getElementById('chat');
+const promptEl = document.getElementById('prompt');
+const sendBtn = document.getElementById('send');
+const statusPill = document.getElementById('status');
+const modelTag = document.getElementById('modelTag');
+
+function addMessage(who, text, cls) {
+  const div = document.createElement('div');
+  div.className = `msg ${cls || who}`;
+  const label = document.createElement('div');
+  label.className = 'who';
+  label.textContent = who === 'user' ? 'you' : (cls === 'error' ? 'error' : 'snowy');
+  const body = document.createElement('div');
+  body.textContent = text || '';
+  div.appendChild(label);
+  div.appendChild(body);
+  log.appendChild(div);
+  div.scrollIntoView({behavior: 'smooth', block: 'end'});
+  return body;
+}
+
+async function refreshStatus() {
+  try {
+    const r = await fetch('/api/health', {cache: 'no-store'});
+    if (!r.ok) throw new Error('http ' + r.status);
+    const data = await r.json();
+    const dot = statusPill.querySelector('.dot');
+    const label = statusPill.querySelector('.label');
+    statusPill.classList.remove('online', 'offline', 'degraded');
+    if (!data.external_enabled) {
+      statusPill.classList.add('offline');
+      label.textContent = 'paused — owner only';
+    } else if ((data.daily_used || 0) >= (data.daily_cap || 0)) {
+      statusPill.classList.add('degraded');
+      label.textContent = 'daily cap reached';
+    } else {
+      statusPill.classList.add('online');
+      const free = data.vram_free_gb;
+      label.textContent = free != null ? `online · ${free.toFixed(1)} GB free` : 'online';
+    }
+    if (data.model) modelTag.textContent = data.model;
+  } catch (e) {
+    statusPill.classList.add('offline');
+    statusPill.querySelector('.label').textContent = 'offline';
+  }
+}
+
+async function sendPrompt(text) {
+  addMessage('user', text);
+  const reply = addMessage('bot', '', 'bot streaming');
+  sendBtn.disabled = true;
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: text}),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({error: 'request failed'}));
+      reply.parentElement.classList.remove('streaming');
+      reply.parentElement.classList.remove('bot');
+      reply.parentElement.classList.add('error');
+      reply.parentElement.querySelector('.who').textContent = 'error';
+      reply.textContent = err.message || err.error || 'request failed';
+      return;
+    }
+    const ct = r.headers.get('content-type') || '';
+    if (ct.includes('text/event-stream') && r.body) {
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      let acc = '';
+      while (true) {
+        const {value, done} = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, {stream: true});
+        const events = buf.split('\n\n');
+        buf = events.pop() || '';
+        for (const evt of events) {
+          for (const line of evt.split('\n')) {
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim();
+            if (payload === '[DONE]') continue;
+            try {
+              const obj = JSON.parse(payload);
+              const piece = obj.delta || obj.content || '';
+              if (piece) {
+                acc += piece;
+                reply.textContent = acc;
+                reply.parentElement.scrollIntoView({behavior: 'smooth', block: 'end'});
+              }
+            } catch (e) { /* ignore */ }
+          }
+        }
+      }
+    } else {
+      const data = await r.json();
+      reply.textContent = data.reply || data.content || '(no reply)';
+    }
+  } catch (e) {
+    reply.textContent = 'network error: ' + e.message;
+    reply.parentElement.classList.add('error');
+  } finally {
+    reply.parentElement.classList.remove('streaming');
+    sendBtn.disabled = false;
+    refreshStatus();
+  }
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = promptEl.value.trim();
+  if (!text) return;
+  promptEl.value = '';
+  sendPrompt(text);
+});
+promptEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+
+refreshStatus();
+setInterval(refreshStatus, 30000);
+</script>
+</body>
+</html>

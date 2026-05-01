@@ -980,3 +980,27 @@ display:
 #     - command: "~/.hermes/agent-hooks/log-orchestration.sh"
 #
 # hooks_auto_accept: false
+
+# =============================================================================
+# Mercury / Cortex GPU coordination (RTX 5090, local Gemma 4 via Ollama)
+# =============================================================================
+# These keys configure Mercury's coexistence with Cortex on the same GPU.
+# Cortex exposes /api/utilization at http://localhost:8765 — Mercury queries it
+# before any local Ollama call and downgrades models when TRIBE v2 is loaded.
+#
+# mercury:
+#   gpu_coordinator:
+#     cortex_url: "http://localhost:8765"
+#     cache_ttl_seconds: 5
+#     timeout_seconds: 2
+#   reasoning:
+#     # default mode: "immediate" | "thinking"
+#     default_mode: "immediate"
+#     # When thinking mode is on, prefer the 26B MoE if VRAM allows.
+#     prefer_26b_moe_for_thinking: true
+#     # num_ctx applied when reasoning mode is on
+#     thinking_num_ctx: 16384
+#   multimodal:
+#     # 26B MoE is required for audio. The E4B handles text+vision only.
+#     audio_model: "gemma4-26b-moe"
+#     vision_models: ["gemma4:e4b", "gemma4-26b-moe", "gemma4:27b", "gemma4:31b"]

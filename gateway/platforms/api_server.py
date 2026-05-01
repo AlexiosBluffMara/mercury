@@ -2589,6 +2589,17 @@ class APIServerAdapter(BasePlatformAdapter):
             # Structured event streaming
             self._app.router.add_post("/v1/runs", self._handle_runs)
             self._app.router.add_get("/v1/runs/{run_id}/events", self._handle_run_events)
+            # Public web surface — /chat, /api/chat, /api/health, kill switch.
+            # Lives behind external-traffic rate limits + daily caps + kill
+            # switch; see gateway/external_limits.py and docs/EXTERNAL_LIMITS.md.
+            try:
+                from gateway.web import register_public_web_routes
+                register_public_web_routes(
+                    self._app,
+                    agent_runner=getattr(self, "_public_agent_runner", None),
+                )
+            except Exception as exc:
+                logger.warning("[%s] public web routes not registered: %s", self.name, exc)
             # Start background sweep to clean up orphaned (unconsumed) run streams
             sweep_task = asyncio.create_task(self._sweep_orphaned_runs())
             try:

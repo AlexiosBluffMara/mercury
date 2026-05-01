@@ -1166,6 +1166,11 @@ def cmd_chat(args):
     if getattr(args, "yolo", False):
         os.environ["HERMES_YOLO_MODE"] = "1"
 
+    # --think: enable Gemma 4 thinking mode for this session. Read by
+    # agent.reasoning_mode at Ollama-call time.
+    if getattr(args, "reasoning_thinking", False):
+        os.environ["MERCURY_REASONING_MODE"] = "thinking"
+
     # --ignore-user-config: make load_cli_config() / load_config() skip the
     # user's ~/.mercury/config.yaml and return built-in defaults. Set BEFORE
     # importing cli (which runs `CLI_CONFIG = load_cli_config()` at module
@@ -7171,6 +7176,14 @@ For more help on a command:
         action="store_true",
         default=False,
         help="With --tui: run TypeScript sources via tsx (skip dist build)",
+    )
+    chat_parser.add_argument(
+        "--think",
+        dest="reasoning_thinking",
+        action="store_true",
+        default=False,
+        help="Enable Gemma 4 thinking mode for this session (sets options.think=true, num_ctx=16384). "
+             "Prefers gemma4-26b-moe when VRAM allows.",
     )
     chat_parser.set_defaults(func=cmd_chat)
 

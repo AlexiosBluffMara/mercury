@@ -2173,6 +2173,90 @@ class DiscordAdapter(BasePlatformAdapter):
         except Exception as e:
             logger.debug("Discord interaction cleanup failed: %s", e)
 
+    async def _run_external_gated_slash(
+        self,
+        interaction: discord.Interaction,
+        command_text: str,
+        *,
+        surface_kind: str,
+    ) -> None:
+        """Like ``_run_simple_slash``, but enforces public external limits.
+
+        Owners (``DISCORD_OWNER_IDS`` / ``operators_discord``) bypass the
+        limit entirely.  Non-owners are subject to per-minute / per-hour
+        / daily caps from ``gateway.external_limits``.  Every call is
+        recorded to ``~/.mercury/logs/external/<date>.jsonl``.
+        """
+        try:
+            from gateway.external_limits import get_external_limits
+            from gateway.external_logging import StopWatch, log_external_request
+        except Exception:
+            # If the modules aren't importable for any reason, fall back
+            # to the un-gated path so the bot still works.
+            await self._run_simple_slash(interaction, command_text)
+            return
+
+        limits = get_external_limits()
+        user_id = str(getattr(interaction.user, "id", ""))
+        verdict = limits.check("discord", user_id)
+        if not verdict.allowed:
+            log_external_request(
+                surface="discord", user=user_id, prompt=command_text,
+                outcome=verdict.reason,
+                extra={"slash": surface_kind},
+            )
+            try:
+                await interaction.response.send_message(
+                    verdict.message, ephemeral=True,
+                )
+            except Exception:
+                try:
+                    await interaction.followup.send(verdict.message, ephemeral=True)
+                except Exception:
+                    pass
+            return
+
+        with StopWatch() as sw:
+            try:
+                await self._run_simple_slash(interaction, command_text)
+                outcome = "ok"
+            except Exception as exc:
+                outcome = f"runner_error:{type(exc).__name__}"
+                raise
+            finally:
+                log_external_request(
+                    surface="discord", user=user_id, prompt=command_text,
+                    latency_ms=sw.elapsed_ms, outcome=outcome,
+                    extra={"slash": surface_kind},
+                )
+
+    async def _handle_kill_switch_slash(self, interaction: discord.Interaction) -> None:
+        """Owner-only ``/kill`` — flips the external-traffic kill switch."""
+        try:
+            from gateway.external_limits import get_external_limits
+        except Exception as exc:
+            await interaction.response.send_message(
+                f"kill switch unavailable: {exc}", ephemeral=True,
+            )
+            return
+
+        limits = get_external_limits()
+        user_id = str(getattr(interaction.user, "id", ""))
+        if not limits.is_owner_discord(user_id):
+            await interaction.response.send_message(
+                "Only the operator can run /kill.", ephemeral=True,
+            )
+            return
+
+        new_value = not limits.enabled
+        limits.set_enabled(new_value)
+        msg = (
+            "External traffic re-opened.  Snowy is back online for everyone."
+            if new_value else
+            "External traffic paused.  Owner-only mode until the next /kill."
+        )
+        await interaction.response.send_message(msg, ephemeral=True)
+
     def _register_slash_commands(self) -> None:
         """Register Discord slash commands on the command tree."""
         if not self._client:
@@ -2319,6 +2403,42 @@ class DiscordAdapter(BasePlatformAdapter):
         @discord.app_commands.describe(question="Your side question (no tools, not persisted)")
         async def slash_btw(interaction: discord.Interaction, question: str):
             await self._run_simple_slash(interaction, f"/btw {question}")
+
+        # ── Public-surface commands for the Snowy The Bot front door ──
+        # These are the small set of commands a non-operator visitor will
+        # actually use in #bot-test-3 and similar shared servers. They
+        # share the same external-limits + external-logging machinery as
+        # the public web endpoint (see gateway/external_limits.py).
+
+        @tree.command(name="ask", description="Ask Snowy a quick question (fast, immediate-mode)")
+        @discord.app_commands.describe(prompt="Your question")
+        async def slash_ask(interaction: discord.Interaction, prompt: str):
+            await self._run_external_gated_slash(
+                interaction, f"/ask {prompt}".strip(), surface_kind="ask",
+            )
+
+        @tree.command(name="think", description="Ask Snowy a hard question (slower, deeper reasoning)")
+        @discord.app_commands.describe(prompt="Your question")
+        async def slash_think(interaction: discord.Interaction, prompt: str):
+            await self._run_external_gated_slash(
+                interaction, f"/think {prompt}".strip(), surface_kind="think",
+            )
+
+        @tree.command(name="scan", description="Submit content to Cortex; returns the live brain-viz URL")
+        @discord.app_commands.describe(prompt="Optional prompt for the scan")
+        async def slash_scan(interaction: discord.Interaction, prompt: str = ""):
+            await self._run_external_gated_slash(
+                interaction, f"/skill cortex-scan {prompt}".strip(),
+                surface_kind="scan",
+            )
+
+        @tree.command(name="skills", description="List available Mercury skills")
+        async def slash_skills(interaction: discord.Interaction):
+            await self._run_simple_slash(interaction, "/skills")
+
+        @tree.command(name="kill", description="Owner-only — pause all external Mercury traffic")
+        async def slash_kill(interaction: discord.Interaction):
+            await self._handle_kill_switch_slash(interaction)
 
         # ── Auto-register any gateway-available commands not yet on the tree ──
         # This ensures new commands added to COMMAND_REGISTRY in
