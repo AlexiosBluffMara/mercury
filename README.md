@@ -4,9 +4,14 @@
 
 # Mercury — Your AI on Your Hardware, Through Every Door You Own
 
+**`ALEXIOS BLUFF MARA × ILLINOIS STATE UNIVERSITY`**
+*Research conducted in association with [Illinois State University](https://illinoisstate.edu), Bloomington–Normal, IL.*
+
+---
+
 > One brain. One memory. Six doors — terminal, Discord, a web page, iMessage, email, your phone. The same agent answers, with the same memory, on hardware you own. No round-trips to anyone else's cloud.
 
-Built for the [Nous Research × Kimi Creative Hackathon](https://nousresearch.com) (Creative track) by **Alexios Bluff Mara LLC (dba Red Team Kitchen) / Illinois State University**.
+Built for the [Nous Research × Kimi Creative Hackathon](https://nousresearch.com) (Creative track) by **Alexios Bluff Mara LLC (dba Red Team Kitchen)**.
 
 Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT). Submitted May 3, 2026.
 

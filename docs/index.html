@@ -335,16 +335,71 @@
   footer p { margin: 6px 0; max-width: 780px; }
   footer a { color: var(--cardinal-bright); border-bottom-color: rgba(238, 45, 63, 0.20); }
 
+  /* ───── UNIQLO-style collab strip (top-of-page) ───── */
+  .collab-strip {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 32px;
+    text-align: center;
+  }
+  .collab-mark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 14px;
+    font-family: "PT Serif", serif;
+    font-weight: 700;
+    font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+    color: var(--text);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .collab-mark .x {
+    font-family: "JetBrains Mono", monospace;
+    color: var(--cardinal-bright);
+    font-weight: 600;
+    font-size: 1em;
+    transform: translateY(-0.05em);
+  }
+  .collab-mark .rhs {
+    color: var(--text);
+    border-bottom: 1px solid transparent;
+    text-decoration: none;
+  }
+  .collab-mark .rhs:hover { border-bottom-color: var(--cardinal-bright); }
+  .collab-meta {
+    margin-top: 6px;
+    font-family: "Open Sans", sans-serif;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
   @media (max-width: 600px) {
     .wrap { padding: 48px 20px 72px; }
     header { margin-bottom: 64px; }
     section { margin-top: 64px; }
     .panel { padding: 22px 24px; }
     pre { padding: 16px 18px; }
+    .collab-strip { padding: 16px 20px; }
+    .collab-mark { gap: 8px; font-size: 0.82rem; }
+    .collab-meta { font-size: 0.66rem; letter-spacing: 0.12em; }
   }
 </style>
 </head>
 <body>
+
+<!-- UNIQLO-style collab strip — Alexios Bluff Mara × Illinois State University -->
+<div class="collab-strip">
+  <div class="collab-mark">
+    <span class="lhs">Alexios Bluff Mara</span>
+    <span class="x">×</span>
+    <a class="rhs" href="https://illinoisstate.edu">Illinois State University</a>
+  </div>
+  <div class="collab-meta">Research Collaboration · Cardinal &amp; Code</div>
+</div>
+
 <div class="wrap">
 
 <!-- ═══════════════════════════════════ Hero ═══════════════════════════════════ -->
@@ -594,7 +649,7 @@ mercury chat</code></pre>
 <div class="brand-bar">
   <div>
     <span class="swatch" aria-hidden="true"></span>
-    <strong>Submitted in partial fulfillment</strong> of coursework at Illinois State University, Bloomington–Normal.
+    <strong>Research conducted in association with</strong> <a href="https://illinoisstate.edu" style="color: var(--text); border-bottom-color: rgba(204,0,0,0.30);">Illinois State University</a>, Bloomington–Normal, IL.
   </div>
   <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
     v0.2.0-nous-creative · MIT
