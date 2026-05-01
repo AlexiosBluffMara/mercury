@@ -1166,10 +1166,13 @@ def cmd_chat(args):
     if getattr(args, "yolo", False):
         os.environ["HERMES_YOLO_MODE"] = "1"
 
-    # --think: enable Gemma 4 thinking mode for this session. Read by
-    # agent.reasoning_mode at Ollama-call time.
-    if getattr(args, "reasoning_thinking", False):
-        os.environ["MERCURY_REASONING_MODE"] = "thinking"
+    # --short / --long (default short): set the reasoning-mode env var that
+    # agent.reasoning_mode reads at Ollama-call time. SHORT = single-pass
+    # think=false. LONG = two-pass progressive (fast answer first, then deep
+    # answer replaces it). The bare ``--think`` alias also resolves to "long".
+    _mode = getattr(args, "reasoning_mode", "short") or "short"
+    if _mode in ("long", "short"):
+        os.environ["MERCURY_REASONING_MODE"] = _mode
 
     # --ignore-user-config: make load_cli_config() / load_config() skip the
     # user's ~/.mercury/config.yaml and return built-in defaults. Set BEFORE
@@ -7177,14 +7180,35 @@ For more help on a command:
         default=False,
         help="With --tui: run TypeScript sources via tsx (skip dist build)",
     )
-    chat_parser.add_argument(
-        "--think",
-        dest="reasoning_thinking",
-        action="store_true",
-        default=False,
-        help="Enable Gemma 4 thinking mode for this session (sets options.think=true, num_ctx=16384). "
-             "Prefers gemma4-26b-moe when VRAM allows.",
+    # Reasoning mode toggle. SHORT (default) = fast single-pass answer with
+    # think=false. LONG = progressive enhancement: deliver the SHORT answer
+    # first, then re-run with thinking on and replace it. The bare `--think`
+    # alias is kept for back-compat.
+    reasoning_group = chat_parser.add_mutually_exclusive_group()
+    reasoning_group.add_argument(
+        "--long", "-l",
+        dest="reasoning_mode",
+        action="store_const",
+        const="long",
+        help="Long answer mode: deliver a fast answer first, then a deeper "
+             "(thinking-enabled) answer that replaces it. Slower; better quality.",
     )
+    reasoning_group.add_argument(
+        "--short", "-s",
+        dest="reasoning_mode",
+        action="store_const",
+        const="short",
+        help="Short answer mode (default): fast single-pass answer with no "
+             "thinking step. Quickest response.",
+    )
+    reasoning_group.add_argument(
+        "--think",
+        dest="reasoning_mode",
+        action="store_const",
+        const="long",
+        help="(deprecated alias for --long)",
+    )
+    chat_parser.set_defaults(reasoning_mode="short")
     chat_parser.set_defaults(func=cmd_chat)
 
     # =========================================================================
