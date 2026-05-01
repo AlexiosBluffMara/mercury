@@ -77,3 +77,7 @@ mini-swe-agent/
 .nix-stamps/
 result
 website/static/api/skills-index.json
+.dev.err
+.dev.log
+mercury-web/.dev.err
+mercury-web/.dev.log
