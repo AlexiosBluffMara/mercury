@@ -11,6 +11,7 @@ See `docs/EXTERNAL_LIMITS.md` for the rate-limit / kill-switch /
 daily-cap configuration.
 """
 
+from .oauth import register_oauth_routes
 from .routes import register_public_web_routes
 
-__all__ = ["register_public_web_routes"]
+__all__ = ["register_oauth_routes", "register_public_web_routes"]

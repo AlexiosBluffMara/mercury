@@ -43,7 +43,9 @@ logger = logging.getLogger(__name__)
 _CHAT_HTML = Path(__file__).parent / "chat.html"
 _MAX_PROMPT_BYTES = 8000
 
-AgentRunner = Callable[[str], Awaitable[str]]
+# Tenant-aware runner: receives (prompt, user_id). Plain (prompt) is also
+# accepted for back-compat — local single-user mode keeps working.
+AgentRunner = Callable[..., Awaitable[str]]
 
 
 def _client_ip(request: "web.Request") -> str:
@@ -106,10 +108,39 @@ def _vram_free_gb() -> Optional[float]:
         return None
 
 
+async def _resolve_user_id(request: "web.Request") -> tuple[str, bool]:
+    """Return ``(user_id, is_anonymous)``. Falls back to client-IP if
+    no session middleware is installed (e.g. local single-user mode)."""
+    try:
+        from gateway.web.oauth import get_or_assign_anon_id, get_session_user
+    except ImportError:
+        return _client_ip(request), True
+
+    user = await get_session_user(request)
+    if user:
+        return user["user_id"], False
+    return await get_or_assign_anon_id(request), True
+
+
+async def _invoke_runner(runner: AgentRunner, prompt: str, user_id: str) -> str:
+    """Call the runner with whichever signature it accepts."""
+    import inspect
+    try:
+        sig = inspect.signature(runner)
+        if "user_id" in sig.parameters or any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+        ):
+            return await runner(prompt, user_id=user_id)  # type: ignore[call-arg]
+    except (TypeError, ValueError):
+        pass
+    return await runner(prompt)  # type: ignore[call-arg]
+
+
 def _make_chat_handler(agent_runner: Optional[AgentRunner]) -> Callable[["web.Request"], Awaitable["web.Response"]]:
     async def _handle_chat_api(request: "web.Request") -> "web.Response":
         limits = get_external_limits()
         ip = _client_ip(request)
+        user_id, _is_anon = await _resolve_user_id(request)
 
         # Body parse + size guard
         try:
@@ -131,7 +162,7 @@ def _make_chat_handler(agent_runner: Optional[AgentRunner]) -> Callable[["web.Re
         verdict = limits.check("web", ip)
         if not verdict.allowed:
             log_external_request(
-                surface="web", user=ip, prompt=prompt,
+                surface="web", user=user_id, prompt=prompt,
                 outcome=verdict.reason,
             )
             status = 429 if verdict.reason in {"rate_minute", "rate_hour"} else 503
@@ -143,9 +174,25 @@ def _make_chat_handler(agent_runner: Optional[AgentRunner]) -> Callable[["web.Re
                 status=status, headers=headers,
             )
 
+        # Per-tenant daily quota gate (Cloud mode only).
+        try:
+            from agent.tenancy import load_tenant, quota_exceeded
+            ctx = await load_tenant(user_id)
+            if quota_exceeded(ctx):
+                log_external_request(
+                    surface="web", user=user_id, prompt=prompt,
+                    outcome="tenant_quota",
+                )
+                return web.json_response(
+                    {"error": "tenant_quota", "message": "Daily token quota reached for this account."},
+                    status=429,
+                )
+        except Exception:
+            ctx = None
+
         if agent_runner is None:
             log_external_request(
-                surface="web", user=ip, prompt=prompt, outcome="no_runner",
+                surface="web", user=user_id, prompt=prompt, outcome="no_runner",
             )
             return web.json_response(
                 {
@@ -157,7 +204,7 @@ def _make_chat_handler(agent_runner: Optional[AgentRunner]) -> Callable[["web.Re
 
         with StopWatch() as sw:
             try:
-                reply = await agent_runner(prompt)
+                reply = await _invoke_runner(agent_runner, prompt, user_id)
                 outcome = "ok"
             except Exception as exc:
                 logger.exception("[web] /api/chat agent runner failed")
@@ -166,9 +213,19 @@ def _make_chat_handler(agent_runner: Optional[AgentRunner]) -> Callable[["web.Re
         latency = sw.elapsed_ms
 
         log_external_request(
-            surface="web", user=ip, prompt=prompt,
+            surface="web", user=user_id, prompt=prompt,
             latency_ms=latency, outcome=outcome,
         )
+        if outcome == "ok" and ctx is not None:
+            try:
+                from agent.tenancy import save_tenant_event
+                await save_tenant_event(ctx, {
+                    "kind": "chat",
+                    "tokens": max(1, len(reply) // 4),
+                    "latency_ms": round(latency, 1),
+                })
+            except Exception:
+                logger.debug("[web] tenant event save failed", exc_info=True)
         if outcome != "ok":
             return web.json_response(
                 {"error": outcome, "message": "Mercury hit an error generating a reply.  Try again in a moment."},

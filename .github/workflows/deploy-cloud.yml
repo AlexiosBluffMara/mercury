@@ -1,0 +1,122 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "agent/**"
+      - "gateway/**"
+      - "gcp/Dockerfile.mercury-cloud"
+      - "gcp/cloud-run-mercury.yaml"
+      - ".github/workflows/deploy-cloud.yml"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy (defaults to HEAD SHA)"
+        required: false
+        type: string
+
+concurrency:
+  group: deploy-cloud
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ghcr.io/${{ github.repository_owner }}/mercury-cloud
+  GCP_PROJECT: abm-isu
+  GCP_REGION: us-central1
+  SERVICE_NAME: mercury
+
+jobs:
+  build-push:
+    name: Build & push mercury-cloud image
+    runs-on: ubuntu-latest
+    outputs:
+      image_ref: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: gcp/Dockerfile.mercury-cloud
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=mercury-cloud
+          cache-to: type=gha,mode=max,scope=mercury-cloud
+
+  deploy:
+    name: Deploy to Cloud Run
+    needs: build-push
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Auth to GCP via Workload Identity
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT }}
+
+      - name: Render service spec with image tag
+        run: |
+          IMAGE_REF="${{ env.IMAGE }}:sha-$(git rev-parse --short HEAD)"
+          sed "s|ghcr.io/alexiosbluffmara/mercury-cloud:latest|${IMAGE_REF}|" \
+            gcp/cloud-run-mercury.yaml > /tmp/mercury-cloud-rendered.yaml
+          echo "Rendered with image: ${IMAGE_REF}"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run services replace /tmp/mercury-cloud-rendered.yaml \
+            --project="${{ env.GCP_PROJECT }}" \
+            --region="${{ env.GCP_REGION }}"
+
+      - name: Allow public ingress
+        run: |
+          gcloud run services add-iam-policy-binding "${{ env.SERVICE_NAME }}" \
+            --project="${{ env.GCP_PROJECT }}" \
+            --region="${{ env.GCP_REGION }}" \
+            --member="allUsers" \
+            --role="roles/run.invoker" || true
+
+      - name: Print service URL
+        run: |
+          URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
+            --project="${{ env.GCP_PROJECT }}" \
+            --region="${{ env.GCP_REGION }}" \
+            --format="value(status.url)")
+          echo "### Mercury Cloud Run deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: ${URL}" >> "$GITHUB_STEP_SUMMARY"

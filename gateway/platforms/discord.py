@@ -3293,6 +3293,27 @@ class DiscordAdapter(BasePlatformAdapter):
 
     async def _handle_message(self, message: DiscordMessage) -> None:
         """Handle incoming Discord messages."""
+        # Multi-tenant: load (or lazy-create) the Discord user's tenant
+        # context. No-op in MERCURY_MODE=local; populates Firestore in
+        # MERCURY_MODE=cloud. Stash on the message for downstream handlers.
+        try:
+            from agent.tenancy import load_tenant
+            user_id = str(getattr(message.author, "id", "")).strip()
+            display = getattr(message.author, "display_name", None) or getattr(message.author, "name", None)
+            if user_id:
+                ctx = await load_tenant(user_id)
+                if display and not ctx.display_name:
+                    from agent.tenancy import _firestore_available, _memory_store
+                    if _firestore_available():
+                        from agent.tenancy import _firestore_upsert_profile
+                        await _firestore_upsert_profile(user_id, {"display_name": display})
+                    else:
+                        _memory_store.upsert_profile(user_id, {"display_name": display})
+                    ctx.display_name = display
+                setattr(message, "_mercury_tenant", ctx)
+        except Exception:
+            pass
+
         # In server channels (not DMs), require the bot to be @mentioned
         # UNLESS the channel is in the free-response list or the message is
         # in a thread where the bot has already participated.

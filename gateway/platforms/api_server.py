@@ -2593,7 +2593,10 @@ class APIServerAdapter(BasePlatformAdapter):
             # Lives behind external-traffic rate limits + daily caps + kill
             # switch; see gateway/external_limits.py and docs/EXTERNAL_LIMITS.md.
             try:
-                from gateway.web import register_public_web_routes
+                from gateway.web import register_oauth_routes, register_public_web_routes
+                # Session middleware must be installed before routes that
+                # consume the session — register OAuth first.
+                register_oauth_routes(self._app)
                 register_public_web_routes(
                     self._app,
                     agent_runner=getattr(self, "_public_agent_runner", None),

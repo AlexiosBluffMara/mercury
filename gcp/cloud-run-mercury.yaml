@@ -1,0 +1,86 @@
+# Cloud Run service spec for Mercury (gateway + agent loop).
+# Deploy with:
+#   gcloud run services replace gcp/cloud-run-mercury.yaml \
+#       --project=abm-isu --region=us-central1
+#
+# To toggle warm path, set autoscaling.knative.dev/minScale to "1".
+# All secrets must exist in Secret Manager before deploy:
+#   gcloud secrets create discord-bot-token --replication-policy=automatic
+#   gcloud secrets create discord-client-secret --replication-policy=automatic
+#   gcloud secrets create session-secret-key --replication-policy=automatic
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: mercury
+  labels:
+    cloud.googleapis.com/location: us-central1
+    app: mercury
+    project: abm-isu
+spec:
+  template:
+    metadata:
+      annotations:
+        # Cold path by default; set to "1" for always-warm.
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "50"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      serviceAccountName: mercury-runtime@abm-isu.iam.gserviceaccount.com
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+        - name: mercury
+          image: ghcr.io/alexiosbluffmara/mercury-cloud:latest
+          ports:
+            - name: http1
+              containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          env:
+            - name: MERCURY_MODE
+              value: cloud
+            - name: BRAIN_URL
+              value: https://brain-abm-isu-uc.a.run.app/v1
+            - name: FIRESTORE_PROJECT
+              value: abm-isu
+            - name: DISCORD_CLIENT_ID
+              value: "REPLACE_WITH_DISCORD_APP_CLIENT_ID"
+            - name: OAUTH_REDIRECT_URI
+              value: https://mercury-abm-isu-uc.a.run.app/oauth/callback
+            - name: DISCORD_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-bot-token
+                  key: latest
+            - name: DISCORD_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: discord-client-secret
+                  key: latest
+            - name: SESSION_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: session-secret-key
+                  key: latest
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            failureThreshold: 6
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+  traffic:
+    - latestRevision: true
+      percent: 100
