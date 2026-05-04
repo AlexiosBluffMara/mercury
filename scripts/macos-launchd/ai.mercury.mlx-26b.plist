@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  MLX VLM server for Gemma 4 26B-A4B on Big Apple (M4 Max 48 GB).
+
+  Serves the deep model (text + image, no audio — the audio config was
+  stripped during the 4-bit quantization) on http://0.0.0.0:8081/v1
+  (OpenAI-compatible). Used as Mercury's `dual_mode.deep` target for
+  responses over ~280 chars or anything routed via the `deep` alias.
+
+  Audio inputs always go to E4B (port 8080) regardless of dual_mode policy.
+
+  Memory at idle: ~5 GB; loaded + KV cache: ~16 GB.
+
+  Pair with ai.mercury.mlx-e4b.plist (port 8080).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>ai.mercury.mlx-26b</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/soumitlahiri/mlx-serve/start.sh</string>
+        <string>26b</string>
+    </array>
+    <key>WorkingDirectory</key><string>/Users/soumitlahiri/mlx-serve</string>
+    <key>RunAtLoad</key><true/>
+    <key>KeepAlive</key><true/>
+    <key>ThrottleInterval</key><integer>10</integer>
+    <key>StandardOutPath</key><string>/Users/soumitlahiri/.mlx-serve/logs/26b.log</string>
+    <key>StandardErrorPath</key><string>/Users/soumitlahiri/.mlx-serve/logs/26b.err.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key><string>/Users/soumitlahiri</string>
+    </dict>
+</dict>
+</plist>

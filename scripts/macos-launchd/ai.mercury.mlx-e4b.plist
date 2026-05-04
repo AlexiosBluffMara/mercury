@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  MLX VLM server for Gemma 4 E4B on Big Apple (M4 Max 48 GB).
+
+  Serves the natively multimodal E4B model (text + image + audio) on
+  http://0.0.0.0:8080/v1 (OpenAI-compatible). Audio uses the USM Conformer
+  encoder shipped in unsloth/gemma-4-E4B-it-UD-MLX-4bit — no Whisper shim
+  required.
+
+  Install (on Big Apple):
+    cp ai.mercury.mlx-e4b.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/ai.mercury.mlx-e4b.plist
+
+  Pair with ai.mercury.mlx-26b.plist (port 8081) for the deep model.
+
+  Memory at idle: ~3 GB; with KV cache + a few requests in flight: ~7 GB.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>ai.mercury.mlx-e4b</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/soumitlahiri/mlx-serve/start.sh</string>
+        <string>e4b</string>
+    </array>
+    <key>WorkingDirectory</key><string>/Users/soumitlahiri/mlx-serve</string>
+    <key>RunAtLoad</key><true/>
+    <key>KeepAlive</key><true/>
+    <key>ThrottleInterval</key><integer>10</integer>
+    <key>StandardOutPath</key><string>/Users/soumitlahiri/.mlx-serve/logs/e4b.log</string>
+    <key>StandardErrorPath</key><string>/Users/soumitlahiri/.mlx-serve/logs/e4b.err.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key><string>/Users/soumitlahiri</string>
+    </dict>
+</dict>
+</plist>
