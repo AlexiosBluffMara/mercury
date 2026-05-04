@@ -320,7 +320,28 @@ class WhatsAppAdapter(BasePlatformAdapter):
                 cleaned = re.sub(rf"@{re.escape(bare_id)}\b[,:\-]*\s*", "", cleaned)
         return cleaned.strip() or text
 
+    # Non-conversational JID suffixes — these are broadcast / news / status feeds,
+    # NOT chats the agent should ever try to reply in. WhatsApp uses the JID
+    # suffix to indicate channel type (https://docs.wmercuryeb.com/JIDs.html):
+    #   @s.whatsapp.net  individual user
+    #   @g.us            group chat
+    #   @newsletter      one-way broadcast channel (subscriber-only feed)
+    #   @broadcast       legacy broadcast list
+    #   status@broadcast Status / Stories
+    _IGNORED_JID_SUFFIXES = ("@newsletter", "@broadcast", "status@broadcast", "@lid")
+
+    def _is_ignored_chat(self, chat_id: str) -> bool:
+        cid = (chat_id or "").lower()
+        return any(cid.endswith(s) for s in self._IGNORED_JID_SUFFIXES)
+
     def _should_process_message(self, data: Dict[str, Any]) -> bool:
+        # Hard-skip newsletters / broadcast / status feeds before any allowlist
+        # check. These channels can deliver hundreds of messages a day; any
+        # 'allowed_users=*' setting would otherwise have us replying to news.
+        chat_id_check = str(data.get("chatId") or "")
+        if self._is_ignored_chat(chat_id_check):
+            return False
+
         is_group = data.get("isGroup", False)
         if is_group:
             chat_id = str(data.get("chatId") or "")
