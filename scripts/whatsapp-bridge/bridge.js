@@ -350,6 +350,7 @@ async function startSocket() {
         senderName: msg.pushName || senderNumber,
         chatName: isGroup ? (chatId.split('@')[0]) : (msg.pushName || senderNumber),
         isGroup,
+        fromMe: !!msg.key.fromMe,
         body,
         hasMedia,
         mediaType,
@@ -536,7 +537,7 @@ app.post('/send-media', async (req, res) => {
   }
 });
 
-// Typing indicator
+// Typing indicator (composing). Pair with /typing-stop when generation ends.
 app.post('/typing', async (req, res) => {
   if (!sock || connectionState !== 'connected') {
     return res.status(503).json({ error: 'Not connected' });
@@ -550,6 +551,76 @@ app.post('/typing', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.json({ success: false });
+  }
+});
+
+// Stop typing (paused). Baileys' composing presence auto-times out after
+// ~10 s, but explicitly clearing it makes the UI snap to "online" the
+// instant we begin sending the response.
+app.post('/typing-stop', async (req, res) => {
+  if (!sock || connectionState !== 'connected') {
+    return res.status(503).json({ error: 'Not connected' });
+  }
+  const { chatId } = req.body;
+  if (!chatId) return res.status(400).json({ error: 'chatId required' });
+  try {
+    await sock.sendPresenceUpdate('paused', chatId);
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false });
+  }
+});
+
+// Mark a message (or list of messages) as read. Baileys takes an array of
+// message keys and acks them. Body: { chatId, messageId, senderId? } or
+// { keys: [{remoteJid, id, participant?, fromMe?}, ...] }.
+app.post('/read', async (req, res) => {
+  if (!sock || connectionState !== 'connected') {
+    return res.status(503).json({ error: 'Not connected' });
+  }
+  let keys = req.body?.keys;
+  if (!Array.isArray(keys)) {
+    const { chatId, messageId, senderId, fromMe } = req.body || {};
+    if (!chatId || !messageId) {
+      return res.status(400).json({ error: 'chatId+messageId or keys[] required' });
+    }
+    keys = [{
+      remoteJid: chatId,
+      id: messageId,
+      participant: senderId || undefined,
+      fromMe: !!fromMe,
+    }];
+  }
+  try {
+    await sock.readMessages(keys);
+    res.json({ success: true, count: keys.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// React to a message with an emoji. WhatsApp supports a single reaction per
+// (sender, message); sending an empty string removes the reaction.
+// Body: { chatId, messageId, emoji, senderId?, fromMe? }
+app.post('/react', async (req, res) => {
+  if (!sock || connectionState !== 'connected') {
+    return res.status(503).json({ error: 'Not connected' });
+  }
+  const { chatId, messageId, emoji, senderId, fromMe } = req.body || {};
+  if (!chatId || !messageId || typeof emoji !== 'string') {
+    return res.status(400).json({ error: 'chatId, messageId, emoji required (emoji can be "" to remove)' });
+  }
+  try {
+    const key = {
+      remoteJid: chatId,
+      id: messageId,
+      fromMe: !!fromMe,
+      participant: senderId || undefined,
+    };
+    await sock.sendMessage(chatId, { react: { text: emoji, key } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

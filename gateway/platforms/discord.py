@@ -2019,6 +2019,43 @@ class DiscordAdapter(BasePlatformAdapter):
             except (asyncio.CancelledError, Exception):
                 pass
 
+    async def react(self, chat_id: str, message_id: str, emoji: str,
+                   sender_id: Optional[str] = None,
+                   from_me: bool = False) -> bool:
+        """Add an emoji reaction to a Discord message.
+
+        ``emoji`` accepts a unicode emoji ("👍") or a custom emoji string in
+        the form ``name:id`` (Discord's API requires that exact form for
+        custom emoji). Empty string clears the bot's own reaction.
+        """
+        if not self._client or not chat_id or not message_id:
+            return False
+        try:
+            channel = self._client.get_channel(int(chat_id))
+            if channel is None:
+                channel = await self._client.fetch_channel(int(chat_id))
+            if channel is None:
+                return False
+            msg = await channel.fetch_message(int(message_id))
+            if not emoji:
+                # Clear our own reaction
+                me = self._client.user
+                for reaction in msg.reactions:
+                    try:
+                        async for user in reaction.users():
+                            if me and user.id == me.id:
+                                await msg.remove_reaction(reaction.emoji, me)
+                                return True
+                    except Exception:
+                        continue
+                return True
+            await msg.add_reaction(emoji)
+            return True
+        except Exception as e:
+            logger.debug("Discord react failed (chat=%s msg=%s emoji=%r): %s",
+                        chat_id, message_id, emoji, e)
+            return False
+
     async def get_chat_info(self, chat_id: str) -> Dict[str, Any]:
         """Get information about a Discord channel."""
         if not self._client:
@@ -3552,7 +3589,20 @@ class DiscordAdapter(BasePlatformAdapter):
                     elif att.content_type.startswith("video/"):
                         msg_type = MessageType.VIDEO
                     elif att.content_type.startswith("audio/"):
-                        msg_type = MessageType.AUDIO
+                        # Discord voice messages have flags bit 8192
+                        # (IS_VOICE_MESSAGE). Use the more specific VOICE
+                        # type so the agent can prioritise transcription /
+                        # native audio understanding for them.
+                        att_flags = getattr(att, "flags", None)
+                        is_voice_msg = False
+                        try:
+                            if att_flags is not None and hasattr(att_flags, "value"):
+                                is_voice_msg = bool(att_flags.value & 8192)
+                            elif isinstance(att_flags, int):
+                                is_voice_msg = bool(att_flags & 8192)
+                        except Exception:
+                            pass
+                        msg_type = MessageType.VOICE if is_voice_msg else MessageType.AUDIO
                     else:
                         doc_ext = ""
                         if att.filename:

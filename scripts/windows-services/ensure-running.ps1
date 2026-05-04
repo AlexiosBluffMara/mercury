@@ -43,9 +43,11 @@ $cortexLogDir  = Join-Path $userProfile '.cortex\logs'
 $cortexLogOut  = Join-Path $cortexLogDir 'webapp.out.log'
 
 $mercuryPython = 'D:\mercury\.venv\Scripts\python.exe'
+$mercuryExe    = 'D:\mercury\.venv\Scripts\mercury.exe'
 $mercuryAppDir = 'D:\mercury'
 $mercuryLogDir = Join-Path $userProfile '.mercury\logs'
 $mercuryLogOut = Join-Path $mercuryLogDir 'gateway.out.log'
+$supervisorPs1 = Join-Path $mercuryAppDir 'scripts\windows-services\gateway-supervisor.ps1'
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 function Ensure-Dir { param([string]$Path); if (-not (Test-Path $Path)) { New-Item -ItemType Directory -Path $Path -Force | Out-Null } }
@@ -128,15 +130,23 @@ $gatewayRunning = Get-Process -Name 'python*' -ErrorAction SilentlyContinue |
 
 if ($gatewayRunning) {
     Write-Host '  mercury gateway: already running ✓' -ForegroundColor Green
-} elseif (Test-Path $mercuryPython) {
-    Write-Host '  mercury gateway: starting...' -ForegroundColor Yellow
+} elseif (Test-Path $mercuryExe) {
+    Write-Host '  mercury gateway: starting via supervisor (auto-restart on crash)...' -ForegroundColor Yellow
     Ensure-Dir $mercuryLogDir
-    $gwArgs = @('-m', 'mercury_cli', 'gateway', 'run', '-v')
-    Start-Detached -Exe $mercuryPython -Args $gwArgs -WorkDir $mercuryAppDir -LogFile $mercuryLogOut | Out-Null
+    # Use the supervisor instead of bare `python -m mercury_cli` (which is
+    # broken — mercury_cli has no __main__.py). The supervisor restarts the
+    # gateway with exponential backoff on crash and runs a config preflight.
+    if (Test-Path $supervisorPs1) {
+        $supArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$supervisorPs1`"")
+        Start-Detached -Exe 'powershell.exe' -Args $supArgs -WorkDir $mercuryAppDir -LogFile $mercuryLogOut | Out-Null
+    } else {
+        # Fallback: launch mercury directly without supervision.
+        Start-Detached -Exe $mercuryExe -Args @('gateway', 'run', '-v') -WorkDir $mercuryAppDir -LogFile $mercuryLogOut | Out-Null
+    }
     Start-Sleep -Milliseconds $WaitBetweenStartsMs
     Write-Host '  mercury gateway: started (check log for errors)' -ForegroundColor Green
 } else {
-    Write-Host "  mercury gateway: Python not found at $mercuryPython" -ForegroundColor Red
+    Write-Host "  mercury gateway: mercury.exe not found at $mercuryExe" -ForegroundColor Red
 }
 
 # ── Summary ───────────────────────────────────────────────────────────────────

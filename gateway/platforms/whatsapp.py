@@ -192,7 +192,10 @@ class WhatsAppAdapter(BasePlatformAdapter):
             if isinstance(configured, str):
                 return configured.lower() in ("true", "1", "yes", "on")
             return bool(configured)
-        return os.getenv("WHATSAPP_REQUIRE_MENTION", "false").lower() in ("true", "1", "yes", "on")
+        # Default ON: in groups we only respond when explicitly addressed.
+        # Without this default, every message in every group triggers a full
+        # agent turn — a behaviour Soumit explicitly reported as "spam".
+        return os.getenv("WHATSAPP_REQUIRE_MENTION", "true").lower() in ("true", "1", "yes", "on")
 
     def _whatsapp_free_response_chats(self) -> set[str]:
         raw = self.config.extra.get("free_response_chats")
@@ -229,6 +232,18 @@ class WhatsAppAdapter(BasePlatformAdapter):
         # "open" — all groups allowed
         return True
 
+    # Default name-mention regexes — case-insensitive whole-word matches for
+    # the bot's known names. Used in groups so the agent only chimes in when
+    # called. Override via config.extra.mention_patterns or the
+    # WHATSAPP_MENTION_PATTERNS env var (JSON list, newline list, or CSV).
+    _DEFAULT_MENTION_PATTERNS = [
+        r"\bmercury\b",
+        r"\bmara\b",
+        r"\bhermes\b",
+        r"\b@?bot\b",
+        r"\bhey,?\s+ai\b",   # "hey ai", "hey, ai" — bare "ai" is too noisy
+    ]
+
     def _compile_mention_patterns(self):
         patterns = self.config.extra.get("mention_patterns")
         if patterns is None:
@@ -241,7 +256,7 @@ class WhatsAppAdapter(BasePlatformAdapter):
                     if not patterns:
                         patterns = [part.strip() for part in raw.split(",") if part.strip()]
         if patterns is None:
-            return []
+            patterns = list(self._DEFAULT_MENTION_PATTERNS)
         if isinstance(patterns, str):
             patterns = [patterns]
         if not isinstance(patterns, list):
@@ -342,49 +357,54 @@ class WhatsAppAdapter(BasePlatformAdapter):
         if self._is_ignored_chat(chat_id_check):
             return False
 
-        # WHATSAPP_MODE=self-chat means "act as a personal assistant on the
-        # owner's own account" — only respond when the OWNER messages himself.
-        # That means: never participate in group chats, never reply to other
-        # people's DMs (even if they happen to message your number). The bridge
-        # marks owner-authored messages with fromMe=true and routes them to a
-        # chat whose JID equals the owner's own number.
         whatsapp_mode = os.getenv("WHATSAPP_MODE", "self-chat").strip().lower()
+        is_group = bool(data.get("isGroup", False))
+        from_me = bool(data.get("fromMe", False))
+        sender_id = str(data.get("senderId") or data.get("from") or "")
+        chat_id = str(data.get("chatId") or "")
+
+        if is_group:
+            # Allow groups when group_policy permits — but always require an
+            # explicit mention/reply/name-pattern/slash trigger so we don't
+            # reply to every line in a busy group.
+            if not self._is_group_allowed(chat_id):
+                return False
+            if chat_id in self._whatsapp_free_response_chats():
+                return True
+            body = str(data.get("body") or "").strip()
+            if body.startswith("/"):
+                return True
+            if self._message_is_reply_to_bot(data):
+                return True
+            if self._message_mentions_bot(data):
+                return True
+            if self._message_matches_mention_patterns(data):
+                return True
+            # In self-chat mode the bot's number == the user's number, so
+            # @-mentions of "myself" in a group also count as triggers.
+            if whatsapp_mode == "self-chat" and from_me:
+                # Owner can self-trigger by quoting their own bot reply
+                # or @-mentioning themselves; both already covered above.
+                # Plain owner messages in groups are NOT auto-processed.
+                return False
+            return False
+
+        # DM path
         if whatsapp_mode == "self-chat":
-            if data.get("isGroup"):
+            # Self-chat: only process when the owner is messaging themselves
+            # (fromMe=true into the owner's own JID). Random people DMing the
+            # owner's number are silently ignored regardless of allowlist.
+            if not from_me:
                 return False
-            if not data.get("fromMe", False):
-                return False
-            sender_id = str(data.get("senderId") or data.get("from") or "")
-            chat_id_self = str(data.get("chatId") or "")
-            if sender_id and chat_id_self and sender_id.split("@", 1)[0] != chat_id_self.split("@", 1)[0]:
+            if (sender_id and chat_id
+                    and sender_id.split("@", 1)[0] != chat_id.split("@", 1)[0]):
                 return False
             return True
 
-        is_group = data.get("isGroup", False)
-        if is_group:
-            chat_id = str(data.get("chatId") or "")
-            if not self._is_group_allowed(chat_id):
-                return False
-        else:
-            sender_id = str(data.get("senderId") or data.get("from") or "")
-            if not self._is_dm_allowed(sender_id):
-                return False
-            # DMs that pass the policy gate are always processed
-            return True
-        # Group messages: check mention / free-response settings
-        chat_id = str(data.get("chatId") or "")
-        if chat_id in self._whatsapp_free_response_chats():
-            return True
-        if not self._whatsapp_require_mention():
-            return True
-        body = str(data.get("body") or "").strip()
-        if body.startswith("/"):
-            return True
-        if self._message_is_reply_to_bot(data):
-            return True
-        if self._message_mentions_bot(data):
-            return True
-        return self._message_matches_mention_patterns(data)
+        # bot mode: standard DM allowlist
+        if not self._is_dm_allowed(sender_id):
+            return False
+        return True
     
     async def connect(self) -> bool:
         """
@@ -906,22 +926,89 @@ class WhatsAppAdapter(BasePlatformAdapter):
         )
 
     async def send_typing(self, chat_id: str, metadata=None) -> None:
-        """Send typing indicator via bridge."""
+        """Send typing (composing) indicator via bridge.
+
+        Baileys auto-times-out the composing presence after ~10s, so for long
+        agent turns the gateway should call this on a heartbeat (every ~8s)
+        until the response is sent. ``send_typing_stop`` flips it back to
+        'paused' explicitly so the UI snaps to 'online' the moment the reply
+        starts streaming.
+        """
         if not self._running or not self._http_session:
             return
         if await self._check_managed_bridge_exit():
             return
-        
         try:
             import aiohttp
-
             await self._http_session.post(
                 f"http://127.0.0.1:{self._bridge_port}/typing",
                 json={"chatId": chat_id},
-                timeout=aiohttp.ClientTimeout(total=5)
+                timeout=aiohttp.ClientTimeout(total=5),
             )
         except Exception:
             pass  # Ignore typing indicator failures
+
+    async def send_typing_stop(self, chat_id: str) -> None:
+        """Clear the composing presence (counterpart to send_typing)."""
+        if not self._running or not self._http_session:
+            return
+        try:
+            import aiohttp
+            await self._http_session.post(
+                f"http://127.0.0.1:{self._bridge_port}/typing-stop",
+                json={"chatId": chat_id},
+                timeout=aiohttp.ClientTimeout(total=5),
+            )
+        except Exception:
+            pass
+
+    async def mark_read(self, chat_id: str, message_id: str,
+                       sender_id: Optional[str] = None,
+                       from_me: bool = False) -> None:
+        """Mark an inbound message as read (blue ticks)."""
+        if not self._running or not self._http_session:
+            return
+        if not chat_id or not message_id:
+            return
+        try:
+            import aiohttp
+            payload = {"chatId": chat_id, "messageId": message_id, "fromMe": from_me}
+            if sender_id:
+                payload["senderId"] = sender_id
+            await self._http_session.post(
+                f"http://127.0.0.1:{self._bridge_port}/read",
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=5),
+            )
+        except Exception:
+            pass
+
+    async def react(self, chat_id: str, message_id: str, emoji: str,
+                   sender_id: Optional[str] = None,
+                   from_me: bool = False) -> bool:
+        """React to a message with an emoji. Empty string removes a reaction."""
+        if not self._running or not self._http_session:
+            return False
+        if not chat_id or not message_id:
+            return False
+        try:
+            import aiohttp
+            payload = {
+                "chatId": chat_id,
+                "messageId": message_id,
+                "emoji": emoji or "",
+                "fromMe": from_me,
+            }
+            if sender_id:
+                payload["senderId"] = sender_id
+            async with self._http_session.post(
+                f"http://127.0.0.1:{self._bridge_port}/react",
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=5),
+            ) as resp:
+                return resp.status == 200
+        except Exception:
+            return False
     
     async def get_chat_info(self, chat_id: str) -> Dict[str, Any]:
         """Get information about a WhatsApp chat."""
@@ -988,6 +1075,22 @@ class WhatsAppAdapter(BasePlatformAdapter):
         try:
             if not self._should_process_message(data):
                 return None
+
+            # Mark the inbound message as read immediately so the sender sees
+            # blue ticks while the agent is generating. Fire-and-forget; any
+            # failure is silent (typical when the bridge is mid-reconnect).
+            try:
+                msg_id = data.get("messageId")
+                chat_id_for_read = data.get("chatId")
+                if msg_id and chat_id_for_read:
+                    asyncio.create_task(self.mark_read(
+                        chat_id=str(chat_id_for_read),
+                        message_id=str(msg_id),
+                        sender_id=str(data.get("senderId") or ""),
+                        from_me=bool(data.get("fromMe", False)),
+                    ))
+            except Exception:
+                pass
 
             # Determine message type
             msg_type = MessageType.TEXT

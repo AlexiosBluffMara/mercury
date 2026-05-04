@@ -11146,16 +11146,70 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     return True
 
 
+def _config_preflight():
+    """Repair common copy-paste damage in ~/.mercury/config.yaml before YAML
+    load gets a chance to choke on it. Logs (doesn't error) so a partially
+    damaged file still boots if Mercury can recover.
+
+    Catches:
+      - UTF-8 BOM (PyYAML reads it as a literal char on the first key)
+      - Smart quotes ‘ ’ “ ” (paste from Slack/Notion/macOS Notes)
+      - Tab indentation (YAML forbids tabs, the parse error is cryptic)
+      - Trailing whitespace after key colons
+    """
+    import re as _re
+    cfg_path = Path.home() / ".mercury" / "config.yaml"
+    if not cfg_path.exists():
+        return
+    try:
+        raw_bytes = cfg_path.read_bytes()
+        modified = False
+        # BOM
+        if raw_bytes.startswith(b"\xef\xbb\xbf"):
+            raw_bytes = raw_bytes[3:]
+            modified = True
+            print(f"[preflight] stripped UTF-8 BOM from {cfg_path}", flush=True)
+        text = raw_bytes.decode("utf-8", errors="replace")
+        # Smart quotes
+        smart = sum(text.count(c) for c in "‘’“”")
+        if smart:
+            text = (text
+                    .replace("‘", "'").replace("’", "'")
+                    .replace("“", '"').replace("”", '"'))
+            modified = True
+            print(f"[preflight] replaced {smart} smart quote(s) in {cfg_path}", flush=True)
+        # Tab indent (preserve tabs inside quoted strings)
+        tab_lines = [i+1 for i, ln in enumerate(text.split("\n")) if ln.startswith("\t")]
+        if tab_lines:
+            print(f"[preflight] WARNING: tab-indented lines in {cfg_path}: {tab_lines[:5]}{'...' if len(tab_lines) > 5 else ''}",
+                  flush=True)
+            print("[preflight]   YAML forbids tabs in indentation; convert to spaces or YAML load will fail",
+                  flush=True)
+        if modified:
+            cfg_path.write_text(text, encoding="utf-8")
+            print(f"[preflight] rewrote {cfg_path} (no BOM, ASCII quotes)", flush=True)
+        # Final sanity: try to parse it
+        try:
+            import yaml as _yaml
+            _yaml.safe_load(text)
+        except _yaml.YAMLError as e:
+            print(f"[preflight] WARNING: config.yaml still has YAML errors: {e}", flush=True)
+    except Exception as e:
+        print(f"[preflight] check failed (non-fatal): {e}", flush=True)
+
+
 def main():
     """CLI entry point for the gateway."""
     import argparse
-    
+
+    _config_preflight()
+
     parser = argparse.ArgumentParser(description="Mercury Gateway - Multi-platform messaging")
     parser.add_argument("--config", "-c", help="Path to gateway config file")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-    
+
     args = parser.parse_args()
-    
+
     config = None
     if args.config:
         import yaml

@@ -6,11 +6,11 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=%h/mercury
-ExecStart=%h/mercury/.venv/bin/python -m mercury_cli gateway run -v
-Restart=on-failure
-RestartSec=60s
+ExecStart=%h/mercury/.venv/bin/mercury gateway run -v
+Restart=always
+RestartSec=10s
 StartLimitIntervalSec=3600
-StartLimitBurst=5
+StartLimitBurst=10
 StandardOutput=append:%h/.mercury/logs/gateway.out.log
 StandardError=append:%h/.mercury/logs/gateway.err.log
 

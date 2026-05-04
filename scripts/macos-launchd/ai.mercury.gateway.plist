@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Mercury gateway as a launchd user-agent on macOS (Big Apple).
+
+  Install:
+    cp ai.mercury.gateway.plist ~/Library/LaunchAgents/
+    # adjust the absolute paths below to match your install
+    launchctl load -w ~/Library/LaunchAgents/ai.mercury.gateway.plist
+
+  Verify:
+    launchctl list | grep ai.mercury.gateway
+    tail -f ~/.mercury/logs/gateway.out.log
+
+  KeepAlive=true means launchd restarts on any non-zero exit and on every
+  login. ThrottleInterval=10 means the minimum gap between restarts is 10s
+  so a crash loop can't pin a CPU core.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.mercury.gateway</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/soumitlahiri/mercury/.venv/bin/mercury</string>
+        <string>gateway</string>
+        <string>run</string>
+        <string>-v</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/soumitlahiri/mercury</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/soumitlahiri</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/soumitlahiri/.mercury/logs/gateway.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/soumitlahiri/.mercury/logs/gateway.err.log</string>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+</dict>
+</plist>
