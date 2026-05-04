@@ -21,7 +21,7 @@ def _restore_stdout():
 @pytest.fixture()
 def server():
     with patch.dict("sys.modules", {
-        "mercury_constants": MagicMock(get_hermes_home=MagicMock(return_value="/tmp/hermes_test")),
+        "mercury_constants": MagicMock(get_mercury_home=MagicMock(return_value="/tmp/mercury_test")),
         "mercury_cli.env_loader": MagicMock(),
         "mercury_cli.banner": MagicMock(),
         "mercury_state": MagicMock(),
@@ -205,12 +205,12 @@ def test_session_resume_returns_hydrated_messages(server, monkeypatch):
 
 
 def test_config_load_missing(server, tmp_path):
-    server._hermes_home = tmp_path
+    server._mercury_home = tmp_path
     assert server._load_cfg() == {}
 
 
 def test_config_roundtrip(server, tmp_path):
-    server._hermes_home = tmp_path
+    server._mercury_home = tmp_path
     server._save_cfg({"model": "test/model"})
     assert server._load_cfg()["model"] == "test/model"
 
@@ -247,13 +247,13 @@ def test_slash_exec_rejects_skill_commands(server):
     server._sessions[sid] = {"session_key": sid, "agent": None}
 
     # Mock scan_skill_commands to return a known skill
-    fake_skills = {"/hermes-agent-dev": {"name": "hermes-agent-dev", "description": "Dev workflow"}}
+    fake_skills = {"/mercury-agent-dev": {"name": "mercury-agent-dev", "description": "Dev workflow"}}
 
     with patch("agent.skill_commands.get_skill_commands", return_value=fake_skills):
         resp = server.handle_request({
             "id": "r1",
             "method": "slash.exec",
-            "params": {"command": "hermes-agent-dev", "session_id": sid},
+            "params": {"command": "mercury-agent-dev", "session_id": sid},
         })
 
     # Should return an error so the TUI's .catch() fires command.dispatch
@@ -417,7 +417,7 @@ def test_command_dispatch_returns_skill_payload(server):
     sid = "test-session"
     server._sessions[sid] = {"session_key": sid}
 
-    fake_skills = {"/hermes-agent-dev": {"name": "hermes-agent-dev", "description": "Dev workflow"}}
+    fake_skills = {"/mercury-agent-dev": {"name": "mercury-agent-dev", "description": "Dev workflow"}}
     fake_msg = "Loaded skill content here"
 
     with patch("agent.skill_commands.scan_skill_commands", return_value=fake_skills), \
@@ -425,14 +425,14 @@ def test_command_dispatch_returns_skill_payload(server):
         resp = server.handle_request({
             "id": "r2",
             "method": "command.dispatch",
-            "params": {"name": "hermes-agent-dev", "session_id": sid},
+            "params": {"name": "mercury-agent-dev", "session_id": sid},
         })
 
     assert "error" not in resp
     result = resp["result"]
     assert result["type"] == "skill"
     assert result["message"] == fake_msg
-    assert result["name"] == "hermes-agent-dev"
+    assert result["name"] == "mercury-agent-dev"
 
 
 # ── dispatch(): pool routing for long handlers (#12546) ──────────────

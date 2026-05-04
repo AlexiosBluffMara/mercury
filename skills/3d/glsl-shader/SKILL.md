@@ -5,7 +5,7 @@ version: 1.0.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [GLSL, shaders, fragment, vertex, three.js, R3F, WebGL]
     category: creative
     related_skills: [three-js-component, three-js-debug]

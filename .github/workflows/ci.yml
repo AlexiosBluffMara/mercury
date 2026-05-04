@@ -89,7 +89,7 @@ jobs:
           # Start container in detached mode with no API keys so it fails fast
           # but confirms the binary and entrypoint are healthy
           docker run --rm --name mercury-ci-smoke \
-            -e HERMES_UID=1001 -e HERMES_GID=1001 \
+            -e MERCURY_UID=1001 -e MERCURY_GID=1001 \
             mercury:ci-${{ github.sha }} \
             python -c "from agent import model_metadata; print('OK')" \
             || true

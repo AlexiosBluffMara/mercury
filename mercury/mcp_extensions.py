@@ -8,7 +8,7 @@ Mercury without leaving its own editor.
 Tools added:
 
   - errors_tail(lines=200)
-        Stream the last N lines of ~/.hermes/logs/errors.log.
+        Stream the last N lines of ~/.mercury/logs/errors.log.
         Includes session ids so the caller can drill into the
         offending JSONL via session_replay.
 
@@ -46,8 +46,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-LOGS_DIR = Path.home() / ".hermes" / "logs"
-SESSIONS_DIR = Path.home() / ".hermes" / "sessions"
+LOGS_DIR = Path.home() / ".mercury" / "logs"
+SESSIONS_DIR = Path.home() / ".mercury" / "sessions"
 
 
 def errors_tail(lines: int = 200) -> dict[str, Any]:
@@ -107,7 +107,7 @@ def session_replay(session_id: str) -> dict[str, Any]:
 
 def gateway_status() -> dict[str, Any]:
     """Cheap healthcheck — is the gateway process alive, Discord connected?"""
-    pid_file = Path.home() / ".hermes" / "gateway.pid"
+    pid_file = Path.home() / ".mercury" / "gateway.pid"
     pid = None
     if pid_file.exists():
         try:
@@ -156,7 +156,7 @@ def gateway_status() -> dict[str, Any]:
 
 def gateway_restart(reason: str = "manual") -> dict[str, Any]:
     """Stop the running gateway and respawn it. Cross-platform."""
-    pid_file = Path.home() / ".hermes" / "gateway.pid"
+    pid_file = Path.home() / ".mercury" / "gateway.pid"
     old_pid = None
     if pid_file.exists():
         try:

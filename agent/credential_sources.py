@@ -1,27 +1,27 @@
-"""Unified removal contract for every credential source Hermes reads from.
+"""Unified removal contract for every credential source Mercury reads from.
 
-Hermes seeds its credential pool from many places:
+Mercury seeds its credential pool from many places:
 
     env:<VAR>     — os.environ / ~/.mercury/.env
     claude_code   — ~/.claude/.credentials.json
-    hermes_pkce   — ~/.mercury/.anthropic_oauth.json
+    mercury_pkce   — ~/.mercury/.anthropic_oauth.json
     device_code   — auth.json providers.<provider> (nous, openai-codex, ...)
     qwen-cli      — ~/.qwen/oauth_creds.json
     gh_cli        — gh auth token
     config:<name> — custom_providers config entry
     model_config  — model.api_key when model.provider == "custom"
-    manual        — user ran `hermes auth add`
+    manual        — user ran `mercury auth add`
 
 Each source has its own reader inside ``agent.credential_pool._seed_from_*``
 (which keep their existing shape — we haven't restructured them).  What we
 unify here is **removal**:
 
-    ``hermes auth remove <provider> <N>`` must make the pool entry stay gone.
+    ``mercury auth remove <provider> <N>`` must make the pool entry stay gone.
 
 Before this module, every source had an ad-hoc removal branch in
 ``auth_remove_command``, and several sources had no branch at all — so
 ``auth remove`` silently reverted on the next ``load_pool()`` call for
-qwen-cli, nous device_code (partial), hermes_pkce, copilot gh_cli, and
+qwen-cli, nous device_code (partial), mercury_pkce, copilot gh_cli, and
 custom-config sources.
 
 Now every source registers a ``RemovalStep`` that does exactly three things
@@ -180,9 +180,9 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
             f"Note: {env_var} is still set in your shell environment "
             f"(not in ~/.mercury/.env).",
             "  Unset it there (shell profile, systemd EnvironmentFile, "
-            "launchd plist, etc.) or it will keep being visible to Hermes.",
-            f"  The pool entry is now suppressed — Hermes will ignore "
-            f"{env_var} until you run `hermes auth add {provider}`.",
+            "launchd plist, etc.) or it will keep being visible to Mercury.",
+            f"  The pool entry is now suppressed — Mercury will ignore "
+            f"{env_var} until you run `mercury auth add {provider}`.",
         ])
     else:
         result.hints.append(
@@ -196,25 +196,25 @@ def _remove_claude_code(provider: str, removed) -> RemovalResult:
     """~/.claude/.credentials.json is owned by Claude Code itself.
 
     We don't delete it — the user's Claude Code install still needs to
-    work.  We just suppress it so Hermes stops reading it.
+    work.  We just suppress it so Mercury stops reading it.
     """
     return RemovalResult(hints=[
         "Suppressed claude_code credential — it will not be re-seeded.",
         "Note: Claude Code credentials still live in ~/.claude/.credentials.json",
-        "Run `hermes auth add anthropic` to re-enable if needed.",
+        "Run `mercury auth add anthropic` to re-enable if needed.",
     ])
 
 
-def _remove_hermes_pkce(provider: str, removed) -> RemovalResult:
+def _remove_mercury_pkce(provider: str, removed) -> RemovalResult:
     """~/.mercury/.anthropic_oauth.json is ours — delete it outright."""
-    from mercury_constants import get_hermes_home
+    from mercury_constants import get_mercury_home
 
     result = RemovalResult()
-    oauth_file = get_hermes_home() / ".anthropic_oauth.json"
+    oauth_file = get_mercury_home() / ".anthropic_oauth.json"
     if oauth_file.exists():
         try:
             oauth_file.unlink()
-            result.cleaned.append("Cleared Hermes Anthropic OAuth credentials")
+            result.cleaned.append("Cleared Mercury Anthropic OAuth credentials")
         except OSError as exc:
             result.hints.append(f"Could not delete {oauth_file}: {exc}")
     return result
@@ -242,9 +242,9 @@ def _remove_nous_device_code(provider: str, removed) -> RemovalResult:
     """Nous OAuth lives in auth.json providers.nous — clear it and suppress.
 
     We suppress in addition to clearing because nothing else stops the
-    user's next `hermes login` run from writing providers.nous again
+    user's next `mercury login` run from writing providers.nous again
     before they decide to.  Suppression forces them to go through
-    `hermes auth add nous` to re-engage, which is the documented re-add
+    `mercury auth add nous` to re-engage, which is the documented re-add
     path and clears the suppression atomically.
     """
     result = RemovalResult()
@@ -257,7 +257,7 @@ def _remove_codex_device_code(provider: str, removed) -> RemovalResult:
     """Codex tokens live in TWO places: our auth store AND ~/.codex/auth.json.
 
     refresh_codex_oauth_pure() writes both every time, so clearing only
-    the Hermes auth store is not enough — _seed_from_singletons() would
+    the Mercury auth store is not enough — _seed_from_singletons() would
     re-import from ~/.codex/auth.json on the next load_pool() call and
     the removal would be instantly undone.  We suppress instead of
     deleting Codex CLI's file, so the Codex CLI itself keeps working.
@@ -265,7 +265,7 @@ def _remove_codex_device_code(provider: str, removed) -> RemovalResult:
     The canonical source name in ``_seed_from_singletons`` is
     ``"device_code"`` (no prefix).  Entries may show up in the pool as
     either ``"device_code"`` (seeded) or ``"manual:device_code"`` (added
-    via ``hermes auth add openai-codex``), but in both cases the re-seed
+    via ``mercury auth add openai-codex``), but in both cases the re-seed
     gate lives at the ``"device_code"`` suppression key.  We suppress
     that canonical key here; the central dispatcher also suppresses
     ``removed.source`` which is fine — belt-and-suspenders, idempotent.
@@ -282,7 +282,7 @@ def _remove_codex_device_code(provider: str, removed) -> RemovalResult:
     result.hints.extend([
         "Suppressed openai-codex device_code source — it will not be re-seeded.",
         "Note: Codex CLI credentials still live in ~/.codex/auth.json",
-        "Run `hermes auth add openai-codex` to re-enable if needed.",
+        "Run `mercury auth add openai-codex` to re-enable if needed.",
     ])
     return result
 
@@ -296,7 +296,7 @@ def _remove_qwen_cli(provider: str, removed) -> RemovalResult:
     return RemovalResult(hints=[
         "Suppressed qwen-cli credential — it will not be re-seeded.",
         "Note: Qwen CLI credentials still live in ~/.qwen/oauth_creds.json",
-        "Run `hermes auth add qwen-oauth` to re-enable if needed.",
+        "Run `mercury auth add qwen-oauth` to re-enable if needed.",
     ])
 
 
@@ -311,7 +311,7 @@ def _remove_copilot_gh(provider: str, removed) -> RemovalResult:
     user clicked.
 
     We don't touch the user's gh CLI or shell state — just suppress so
-    Hermes stops picking the token up.
+    Mercury stops picking the token up.
     """
     # Suppress ALL copilot source variants up-front so no path resurrects
     # the pool entry.  The central dispatcher in auth_remove_command will
@@ -325,7 +325,7 @@ def _remove_copilot_gh(provider: str, removed) -> RemovalResult:
     return RemovalResult(hints=[
         "Suppressed all copilot token sources (gh_cli + env vars) — they will not be re-seeded.",
         "Note: Your gh CLI / shell environment is unchanged.",
-        "Run `hermes auth add copilot` to re-enable if needed.",
+        "Run `mercury auth add copilot` to re-enable if needed.",
     ])
 
 
@@ -370,8 +370,8 @@ def _register_all_sources() -> None:
         description="~/.claude/.credentials.json",
     ))
     register(RemovalStep(
-        provider="anthropic", source_id="hermes_pkce",
-        remove_fn=_remove_hermes_pkce,
+        provider="anthropic", source_id="mercury_pkce",
+        remove_fn=_remove_mercury_pkce,
         description="~/.mercury/.anthropic_oauth.json",
     ))
     register(RemovalStep(

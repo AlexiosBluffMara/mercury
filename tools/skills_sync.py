@@ -26,24 +26,24 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from mercury_constants import get_hermes_home
+from mercury_constants import get_mercury_home
 from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
 
-HERMES_HOME = get_hermes_home()
-SKILLS_DIR = HERMES_HOME / "skills"
+MERCURY_HOME = get_mercury_home()
+SKILLS_DIR = MERCURY_HOME / "skills"
 MANIFEST_FILE = SKILLS_DIR / ".bundled_manifest"
 
 
 def _get_bundled_dir() -> Path:
     """Locate the bundled skills/ directory.
 
-    Checks HERMES_BUNDLED_SKILLS env var first (set by Nix wrapper),
+    Checks MERCURY_BUNDLED_SKILLS env var first (set by Nix wrapper),
     then falls back to the relative path from this source file.
     """
-    env_override = os.getenv("HERMES_BUNDLED_SKILLS")
+    env_override = os.getenv("MERCURY_BUNDLED_SKILLS")
     if env_override:
         return Path(env_override)
     return Path(__file__).parent.parent / "skills"
@@ -222,7 +222,7 @@ def sync_skills(quiet: bool = False) -> dict:
                         print(
                             f"  ⚠ {skill_name}: bundled version shipped but you "
                             f"already have a local skill by this name — yours "
-                            f"was kept. Run `hermes skills reset {skill_name}` "
+                            f"was kept. Run `mercury skills reset {skill_name}` "
                             f"to replace it with the bundled version."
                         )
                 else:
@@ -355,7 +355,7 @@ def reset_bundled_skill(name: str, restore: bool = False) -> dict:
             "action": "not_in_manifest",
             "message": (
                 f"'{name}' is not a tracked bundled skill. Nothing to reset. "
-                f"(Hub-installed skills use `hermes skills uninstall`.)"
+                f"(Hub-installed skills use `mercury skills uninstall`.)"
             ),
             "synced": None,
         }
@@ -408,7 +408,7 @@ def reset_bundled_skill(name: str, restore: bool = False) -> dict:
     else:
         action = "manifest_cleared"
         message = (
-            f"Cleared manifest entry for '{name}'. Future `hermes update` runs "
+            f"Cleared manifest entry for '{name}'. Future `mercury update` runs "
             f"will re-baseline against your current copy and accept upstream changes."
         )
 

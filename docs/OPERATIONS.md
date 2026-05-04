@@ -24,7 +24,7 @@ when something breaks.
    │  └─────────────────┘  └────────────────────┘    │
    │  ┌────────────────────────────────────────┐     │
    │  │ rtk-mercury-gateway                    │     │
-   │  │ Hermes-fork agent + Discord bot        │     │
+   │  │ Mercury-fork agent + Discord bot        │     │
    │  └────────────────────────────────────────┘     │
    │                  ▲                              │
    │                  │ probes every 60s             │
@@ -151,5 +151,5 @@ is the residential Internet + power, which is unrelated to this stack.
 - Scripts use absolute paths exclusively, so they work whether you call
   them from `cmd.exe`, PowerShell, or git-bash.
 - No secrets are committed. `DISCORD_BOT_TOKEN` lives in `~/.mercury/.env`
-  (or `~/.hermes/.env`), `MERCURY_ALERT_WEBHOOK_URL` lives in machine env
+  (or `~/.mercury/.env`), `MERCURY_ALERT_WEBHOOK_URL` lives in machine env
   vars, and `~/.cloudflared/cert.pem` stays on disk only.

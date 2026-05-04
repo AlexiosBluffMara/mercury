@@ -1,4 +1,4 @@
-"""hermes memory setup|status — configure memory provider plugins.
+"""mercury memory setup|status — configure memory provider plugins.
 
 Auto-detects installed memory providers via the plugin system.
 Interactive curses-based UI for provider selection, then walks through
@@ -12,11 +12,11 @@ import os
 import sys
 from pathlib import Path
 
-from mercury_constants import get_hermes_home
+from mercury_constants import get_mercury_home
 
 
 # ---------------------------------------------------------------------------
-# Curses-based interactive picker (same pattern as hermes tools)
+# Curses-based interactive picker (same pattern as mercury tools)
 # ---------------------------------------------------------------------------
 
 def _curses_select(title: str, items: list[tuple[str, str]], default: int = 0) -> int:
@@ -105,7 +105,7 @@ def _install_dependencies(provider_name: str) -> None:
     if not uv_path:
         print(f"  ⚠ uv not found — cannot install dependencies")
         print(f"  Install uv: curl -LsSf https://astral.sh/uv/install.sh | sh")
-        print(f"  Then re-run: hermes memory setup")
+        print(f"  Then re-run: mercury memory setup")
         return
 
     try:
@@ -195,7 +195,7 @@ def cmd_setup_provider(provider_name: str) -> None:
 
     if not match:
         print(f"\n  Memory provider '{provider_name}' not found.")
-        print("  Run 'hermes memory setup' to see available providers.\n")
+        print("  Run 'mercury memory setup' to see available providers.\n")
         return
 
     name, _, provider = match
@@ -207,8 +207,8 @@ def cmd_setup_provider(provider_name: str) -> None:
         config["memory"] = {}
 
     if hasattr(provider, "post_setup"):
-        hermes_home = str(get_hermes_home())
-        provider.post_setup(hermes_home, config)
+        mercury_home = str(get_mercury_home())
+        provider.post_setup(mercury_home, config)
         return
 
     # Fallback: generic schema-based setup (same as cmd_setup)
@@ -258,8 +258,8 @@ def cmd_setup(args) -> None:
     # If the provider has a post_setup hook, delegate entirely to it.
     # The hook handles its own config, connection test, and activation.
     if hasattr(provider, "post_setup"):
-        hermes_home = str(get_hermes_home())
-        provider.post_setup(hermes_home, config)
+        mercury_home = str(get_mercury_home())
+        provider.post_setup(mercury_home, config)
         return
 
     schema = provider.get_config_schema() if hasattr(provider, "get_config_schema") else []
@@ -268,7 +268,7 @@ def cmd_setup(args) -> None:
     if not isinstance(provider_config, dict):
         provider_config = {}
 
-    env_path = get_hermes_home() / ".env"
+    env_path = get_mercury_home() / ".env"
     env_writes = {}
 
     if schema:
@@ -335,10 +335,10 @@ def cmd_setup(args) -> None:
     save_config(config)
 
     # Write non-secret config to provider's native location
-    hermes_home = str(get_hermes_home())
+    mercury_home = str(get_mercury_home())
     if provider_config and hasattr(provider, "save_config"):
         try:
-            provider.save_config(provider_config, hermes_home)
+            provider.save_config(provider_config, mercury_home)
         except Exception as e:
             print(f"  Failed to write provider config: {e}")
 

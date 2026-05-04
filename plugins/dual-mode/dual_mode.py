@@ -22,7 +22,7 @@ intermediate `Response` objects with the platform-aware `edit_strategy`
 so the gateway's per-platform adapter can apply the right verb.
 
 Wire-up note: Mercury's plugin loader expects `entrypoint = dual_mode:run`
-or similar; if you're on a Hermes Agent build that doesn't have a hook for
+or similar; if you're on a Mercury Agent build that doesn't have a hook for
 `on_user_message` yet, this plugin still imports cleanly — it just sits
 idle until you wire `respond` into your gateway dispatcher.
 """

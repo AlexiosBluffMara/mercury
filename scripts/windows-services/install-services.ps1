@@ -200,7 +200,7 @@ Install-RtkService `
     -AppDirectory $mercuryAppDir `
     -StdoutLog (Join-Path $mercuryLogDir 'gateway.out.log') `
     -StderrLog (Join-Path $mercuryLogDir 'gateway.err.log') `
-    -Description 'Mercury gateway (Hermes-fork agent + Discord bot)'
+    -Description 'Mercury gateway (Mercury-fork agent + Discord bot)'
 
 # --- Start + verify ---------------------------------------------------------
 $services = @('rtk-cloudflared','rtk-cortex-webapp','rtk-mercury-gateway')

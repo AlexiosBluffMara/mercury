@@ -30,7 +30,7 @@ Mercury's office is in **your** building. The assistant lives on a single comput
 - **The email door** — `you@redteamkitchen.com` becomes a working address for the agent.
 - **The mobile door** — same chat, same memory, on the phone in your pocket.
 
-Walk through any door, and you're talking to the same person. Tell it something on Discord at noon, ask about it from the terminal at four — it remembers. The brain is **Gemma 4 E4B** running locally via Ollama at 194 tok/s on the 5090. The orchestration layer is **Hermes Agent** — Nous Research's open-source framework. Mercury is what we built on top: a multi-domain skill stack and a six-surface gateway, designed so a single human can run a single agent across every device they own without ever sending a token to a cloud they don't control.
+Walk through any door, and you're talking to the same person. Tell it something on Discord at noon, ask about it from the terminal at four — it remembers. The brain is **Gemma 4 E4B** running locally via Ollama at 194 tok/s on the 5090. The orchestration layer is **Mercury Agent** — Nous Research's open-source framework. Mercury is what we built on top: a multi-domain skill stack and a six-surface gateway, designed so a single human can run a single agent across every device they own without ever sending a token to a cloud they don't control.
 
 **Skills, not prompts.** Mercury ships with four specialist skill sets that compose tools out of a five-source data layer (filesystem, web search, browser MCP, Python exec, knowledge graph). The dispatcher auto-loads the right skill by domain context — no `/skill` slash commands, no manual routing. Add a fifth skill tomorrow without touching the agent loop.
 
@@ -57,7 +57,7 @@ The cost case isn't subtle. An RTX 5090 runs about $2,500–3,000 street price. 
 
 - **Not a chatbot wrapper.** Mercury runs an actual agent loop with tool use, memory, and skill dispatch — not a single-turn LLM call dressed up with a chat UI.
 - **Not a hosted service.** There is no `app.mercury.com`. To run Mercury, you need your own GPU. We ship the code; you ship the hardware.
-- **Not a Hermes Agent fork in name only.** Mercury is the Nous Research Hermes-agent codebase with a custom dispatcher, a six-surface gateway, four skill domains, and a Cortex-bridge — but the agent loop, tool router, and config schema are upstream Hermes. We send patches back when they're general-purpose.
+- **Not a Mercury Agent fork in name only.** Mercury is the Nous Research Mercury-agent codebase with a custom dispatcher, a six-surface gateway, four skill domains, and a Cortex-bridge — but the agent loop, tool router, and config schema are upstream Mercury. We send patches back when they're general-purpose.
 - **Not for production at scale.** Mercury is a personal agent for a single user (or a small group). It is not designed to serve a thousand concurrent sessions. The whole point is that the GPU is yours.
 - **Not a Kimi-only project.** Kimi K2.6 (via the Nous Portal) wrote the initial Cortex viewer in a 75-minute, 14-commit, $22.04 sprint — that is the Nous/Kimi track submission. The live agent runs entirely on Gemma 4 E4B locally. Kimi is acknowledged as the build collaborator, not a runtime dependency.
 
@@ -81,12 +81,12 @@ Why these four? They cover the four problems we needed solved while building Cor
 ## Architecture
 
 <p align="center">
-  <img src="assets/architecture_v2.png" alt="Mercury — Hermes Multi-Domain Agent Stack" width="100%">
+  <img src="assets/architecture_v2.png" alt="Mercury — Mercury Multi-Domain Agent Stack" width="100%">
 </p>
 
-Six client surfaces fan into a single Hermes Gateway. The gateway routes through a local Gemma 4 brain (Kimi K2.6 was used for the hackathon sprint), a tool router, a context-aware skill dispatcher, and a cross-session memory store. Four custom skill domains compose tools out of a five-source data layer. The whole stack runs across three nodes — a Mac Mini in Bloomington for skill authoring, a self-hosted RTX 5090 in Chicago for inference, and Google Cloud Run as managed fallback.
+Six client surfaces fan into a single Mercury Gateway. The gateway routes through a local Gemma 4 brain (Kimi K2.6 was used for the hackathon sprint), a tool router, a context-aware skill dispatcher, and a cross-session memory store. Four custom skill domains compose tools out of a five-source data layer. The whole stack runs across three nodes — a Mac Mini in Bloomington for skill authoring, a self-hosted RTX 5090 in Chicago for inference, and Google Cloud Run as managed fallback.
 
-| Custom skills (4 domains) | Multi-node infra | Hermes-native |
+| Custom skills (4 domains) | Multi-node infra | Mercury-native |
 |---|---|---|
 | **chicago-education** — 8 public + 5 private universities, MBA modalities, ROI analysis | **Mac Mini (M4 Pro, Bloomington)** — skill authoring, memory, dev | Auto-loading skills by domain context (no manual `/skill` needed) |
 | **chicago-tax-legal** — Cook County property taxes, RLTO, courts, legal aid orgs | **Chicago 5090 (RTX 5090)** — GPU inference, heavy compute, self-hosted | Persistent cross-session memory (user profile + environment facts) |
@@ -94,7 +94,7 @@ Six client surfaces fan into a single Hermes Gateway. The gateway routes through
 | **nous-hackathon** — demo scripts, deployment recipes, video storyboard | One-command `rsync` syncs skills + config across all nodes | Cron jobs + webhooks for scheduled monitoring tasks |
 
 ```
-Six doors           Hermes Gateway             Skills + Tools             Storage
+Six doors           Mercury Gateway             Skills + Tools             Storage
 ─────────           ──────────────             ──────────────             ───────
 terminal  ─┐                                                              ┌─ ~/.mercury/memory/
 discord    │                                   ┌─ chicago-education       │   (cross-session profile)
@@ -113,7 +113,7 @@ mobile    ─┘                           │           ↓                    
 
 | Surface | v1 (deprecated) | v2 (current) |
 |---|---|---|
-| Brain | Hermes 4 405B + Kimi K2.6 split-role planner/coder | Single Gemma 4 E4B locally (Kimi for build sprint only) — simpler, free, faster |
+| Brain | Mercury 4 405B + Kimi K2.6 split-role planner/coder | Single Gemma 4 E4B locally (Kimi for build sprint only) — simpler, free, faster |
 | Skill model | Three demo skills hard-coded into the agent loop | Skill Dispatcher auto-loads by domain context — 4 domains today, n+1 tomorrow without code change |
 | Nodes | Single 5090 with manual ssh fallback | 3-node mesh: Mac Mini (dev) ↔ 5090 (inference) ↔ Cloud Run (scale), one-command sync |
 | Clients | Discord-only | Six doors: terminal, Discord, web, iMessage, email, mobile |
@@ -128,12 +128,12 @@ The v1 diagram (preserved for reference) lives at [`assets/architecture_v1_depre
 
 | Component | What it is | Key numbers |
 |---|---|---|
-| Hermes Agent | Nous Research's open-source agent framework | MIT license, upstream codebase |
+| Mercury Agent | Nous Research's open-source agent framework | MIT license, upstream codebase |
 | Gemma 4 E4B | Local default brain (Ollama) | 194 tok/s on RTX 5090, multimodal, ~10 GB VRAM |
 | Gemma 4 26B MoE | Deep reasoning fallback | 132 tok/s, mixture-of-experts |
 | Kimi K2.6 | Build-sprint coder (Nous Portal) — sprint only, not runtime | 1,035 requests / $22.04 over 75-minute window |
 | Ollama | Local model server | `localhost:11434` — no outbound calls |
-| Skill dispatcher | Custom routing layer on top of Hermes | YAML manifests in `skills/` — auto-load by domain |
+| Skill dispatcher | Custom routing layer on top of Mercury | YAML manifests in `skills/` — auto-load by domain |
 | Hardware (local) | RTX 5090, 64 GB RAM, Windows 11 | MSRP ~$1,999, street ~$2,500–3,000 |
 | Cloud fallback | Google Cloud Run + Gemma 4 | ~$0.70/hr; ~$0 at scale-to-zero |
 | Cortex-bridge | Skill that drives the [Cortex](https://github.com/AlexiosBluffMara/cortex) brain-response viewer | `/scan <media_file>` from any surface |
@@ -161,7 +161,7 @@ The v1 diagram (preserved for reference) lives at [`assets/architecture_v1_depre
 | Cache reads | **39,529,312** |
 | Cache writes | 0 |
 
-Models hit on the account: `moonshotai/kimi-k2.6` *(the Apr 28-29 spike, ≈ $19.50)*, `moonshotai/kimi-k2`, `NousResearch/Hermes-4-405B`, plus a small non-inference line.
+Models hit on the account: `moonshotai/kimi-k2.6` *(the Apr 28-29 spike, ≈ $19.50)*, `moonshotai/kimi-k2`, `NousResearch/Mercury-4-405B`, plus a small non-inference line.
 
 ### What the $22 produced
 
@@ -275,13 +275,13 @@ Then point Mercury at it (`mercury config` → `cortex_url: http://localhost:876
 ## Repository layout
 
 ```
-D:/mercury/           <- this repo (Hermes agent fork)
+D:/mercury/           <- this repo (Mercury agent fork)
 ~/.mercury/           <- runtime config, memories, SOUL.md, state, knowledge graph
 D:/cortex/            <- TRIBE v2 + Gemma 4 brain-response system (sister project)
 ~/gemma4-pipeline/    <- LoRA training pipeline fork
 ```
 
-Persona lives in `~/.mercury/SOUL.md`. Mercury runs as **Snowy The Bot** (Discord: `abmsnowy`) on the Discord surface — direct, autonomous, dry-witted. Acts first, explains after. On other surfaces the bot may surface as **ABM Hermes** depending on gateway configuration.
+Persona lives in `~/.mercury/SOUL.md`. Mercury runs as **Snowy The Bot** (Discord: `abmsnowy`) on the Discord surface — direct, autonomous, dry-witted. Acts first, explains after. On other surfaces the bot may surface as **ABM Mercury** depending on gateway configuration.
 
 ---
 

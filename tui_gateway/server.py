@@ -15,8 +15,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from mercury_constants import get_hermes_home
-from mercury_cli.env_loader import load_hermes_dotenv
+from mercury_constants import get_mercury_home
+from mercury_cli.env_loader import load_mercury_dotenv
 from tui_gateway.transport import (
     StdioTransport,
     Transport,
@@ -27,9 +27,9 @@ from tui_gateway.transport import (
 
 logger = logging.getLogger(__name__)
 
-_hermes_home = get_hermes_home()
-load_hermes_dotenv(
-    hermes_home=_hermes_home, project_env=Path(__file__).parent.parent / ".env"
+_mercury_home = get_mercury_home()
+load_mercury_dotenv(
+    mercury_home=_mercury_home, project_env=Path(__file__).parent.parent / ".env"
 )
 
 
@@ -42,7 +42,7 @@ load_hermes_dotenv(
 # AND re-emits a one-line summary to stderr so the TUI can surface it in
 # Activity — exactly what was missing when the voice-mode turns started
 # exiting the gateway mid-TTS.
-_CRASH_LOG = os.path.join(_hermes_home, "logs", "tui_gateway_crash.log")
+_CRASH_LOG = os.path.join(_mercury_home, "logs", "tui_gateway_crash.log")
 
 
 def _panic_hook(exc_type, exc_value, exc_tb):
@@ -125,7 +125,7 @@ _cfg_lock = threading.Lock()
 _cfg_cache: dict | None = None
 _cfg_mtime: float | None = None
 _SLASH_WORKER_TIMEOUT_S = max(
-    5.0, float(os.environ.get("HERMES_TUI_SLASH_TIMEOUT_S", "45") or 45)
+    5.0, float(os.environ.get("MERCURY_TUI_SLASH_TIMEOUT_S", "45") or 45)
 )
 
 # ── Async RPC dispatch (#12546) ──────────────────────────────────────
@@ -149,7 +149,7 @@ _LONG_HANDLERS = frozenset(
 )
 
 _pool = concurrent.futures.ThreadPoolExecutor(
-    max_workers=max(2, int(os.environ.get("HERMES_TUI_RPC_POOL_WORKERS", "4") or 4)),
+    max_workers=max(2, int(os.environ.get("MERCURY_TUI_RPC_POOL_WORKERS", "4") or 4)),
     thread_name_prefix="tui-rpc",
 )
 atexit.register(lambda: _pool.shutdown(wait=False, cancel_futures=True))
@@ -167,7 +167,7 @@ _stdio_transport = StdioTransport(lambda: _real_stdout, _stdout_lock)
 
 
 class _SlashWorker:
-    """Persistent HermesCLI subprocess for slash commands."""
+    """Persistent MercuryCLI subprocess for slash commands."""
 
     def __init__(self, session_key: str, model: str):
         self._lock = threading.Lock()
@@ -447,7 +447,7 @@ def _load_cfg() -> dict:
     try:
         import yaml
 
-        p = _hermes_home / "config.yaml"
+        p = _mercury_home / "config.yaml"
         mtime = p.stat().st_mtime if p.exists() else None
         with _cfg_lock:
             if _cfg_cache is not None and _cfg_mtime == mtime:
@@ -470,7 +470,7 @@ def _save_cfg(cfg: dict):
     global _cfg_cache, _cfg_mtime
     import yaml
 
-    path = _hermes_home / "config.yaml"
+    path = _mercury_home / "config.yaml"
     with open(path, "w") as f:
         yaml.safe_dump(cfg, f)
     with _cfg_lock:
@@ -503,9 +503,9 @@ def _clear_session_context(tokens: list) -> None:
 
 def _enable_gateway_prompts() -> None:
     """Route approvals through gateway callbacks instead of CLI input()."""
-    os.environ["HERMES_GATEWAY_SESSION"] = "1"
-    os.environ["HERMES_EXEC_ASK"] = "1"
-    os.environ["HERMES_INTERACTIVE"] = "1"
+    os.environ["MERCURY_GATEWAY_SESSION"] = "1"
+    os.environ["MERCURY_EXEC_ASK"] = "1"
+    os.environ["MERCURY_INTERACTIVE"] = "1"
 
 
 # ── Blocking prompt factory ──────────────────────────────────────────
@@ -560,7 +560,7 @@ def resolve_skin() -> dict:
 
 
 def _resolve_model() -> str:
-    env = os.environ.get("HERMES_MODEL", "")
+    env = os.environ.get("MERCURY_MODEL", "")
     if env:
         return env
     m = _load_cfg().get("model", "")
@@ -735,13 +735,13 @@ def _apply_model_switch(sid: str, session: dict, raw_input: str) -> dict:
         _restart_slash_worker(session)
         _emit("session.info", sid, _session_info(agent))
 
-    os.environ["HERMES_MODEL"] = result.new_model
+    os.environ["MERCURY_MODEL"] = result.new_model
     # Keep the process-level provider env var in sync with the user's explicit
     # choice so any ambient re-resolution (credential pool refresh, compressor
     # rebuild, aux clients) resolves to the new provider instead of the
     # original one persisted in config or env.
     if result.target_provider:
-        os.environ["HERMES_INFERENCE_PROVIDER"] = result.target_provider
+        os.environ["MERCURY_INFERENCE_PROVIDER"] = result.target_provider
     if persist_global:
         _persist_model_switch(result)
     return {"value": result.new_model, "warning": result.warning_message or ""}
@@ -1763,7 +1763,7 @@ def _(rid, params: dict) -> dict:
     import time as _time
 
     filename = os.path.abspath(
-        f"hermes_conversation_{_time.strftime('%Y%m%d_%H%M%S')}.json"
+        f"mercury_conversation_{_time.strftime('%Y%m%d_%H%M%S')}.json"
     )
     try:
         with open(filename, "w") as f:
@@ -1925,15 +1925,15 @@ def _(rid, params: dict) -> dict:
 # from the event stream).  On turn-complete it posts the final tree here;
 # /replay and /replay-diff fetch past snapshots by session_id + filename.
 #
-# Layout:  $HERMES_HOME/spawn-trees/<session_id>/<timestamp>.json
+# Layout:  $MERCURY_HOME/spawn-trees/<session_id>/<timestamp>.json
 # Each file contains { session_id, started_at, finished_at, subagents: [...] }.
 
 
 def _spawn_trees_root():
     from pathlib import Path as _P
-    from mercury_constants import get_hermes_home
+    from mercury_constants import get_mercury_home
 
-    root = get_hermes_home() / "spawn-trees"
+    root = get_mercury_home() / "spawn-trees"
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -2326,7 +2326,7 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 5027, f"clipboard unavailable: {e}")
 
     session["image_counter"] = session.get("image_counter", 0) + 1
-    img_dir = _hermes_home / "images"
+    img_dir = _mercury_home / "images"
     img_dir.mkdir(parents=True, exist_ok=True)
     img_path = (
         img_dir
@@ -2665,12 +2665,12 @@ def _(rid, params: dict) -> dict:
                     enable_session_yolo(session["session_key"])
                     nv = "1"
             else:
-                current = bool(os.environ.get("HERMES_YOLO_MODE"))
+                current = bool(os.environ.get("MERCURY_YOLO_MODE"))
                 if current:
-                    os.environ.pop("HERMES_YOLO_MODE", None)
+                    os.environ.pop("MERCURY_YOLO_MODE", None)
                     nv = "0"
                 else:
-                    os.environ["HERMES_YOLO_MODE"] = "1"
+                    os.environ["MERCURY_YOLO_MODE"] = "1"
                     nv = "1"
             return _ok(rid, {"key": key, "value": nv})
         except Exception as e:
@@ -2865,9 +2865,9 @@ def _(rid, params: dict) -> dict:
         except Exception as e:
             return _err(rid, 5013, str(e))
     if key == "profile":
-        from mercury_constants import display_hermes_home
+        from mercury_constants import display_mercury_home
 
-        return _ok(rid, {"home": str(_hermes_home), "display": display_hermes_home()})
+        return _ok(rid, {"home": str(_mercury_home), "display": display_mercury_home()})
     if key == "full":
         return _ok(rid, {"config": _load_cfg()})
     if key == "prompt":
@@ -2939,7 +2939,7 @@ def _(rid, params: dict) -> dict:
         on = display.get("tui_mouse", True) if isinstance(display, dict) else True
         return _ok(rid, {"value": "on" if on else "off"})
     if key == "mtime":
-        cfg_path = _hermes_home / "config.yaml"
+        cfg_path = _mercury_home / "config.yaml"
         try:
             return _ok(
                 rid, {"mtime": cfg_path.stat().st_mtime if cfg_path.exists() else 0}
@@ -3123,16 +3123,16 @@ def _(rid, params: dict) -> dict:
 def _cli_exec_blocked(argv: list[str]) -> str | None:
     """Return user hint if this argv must not run headless in the gateway process."""
     if not argv:
-        return "bare `hermes` is interactive — use `/hermes chat -q …` or run `hermes` in another terminal"
+        return "bare `mercury` is interactive — use `/mercury chat -q …` or run `mercury` in another terminal"
     a0 = argv[0].lower()
     if a0 == "setup":
-        return "`hermes setup` needs a full terminal — run it outside the TUI"
+        return "`mercury setup` needs a full terminal — run it outside the TUI"
     if a0 == "gateway":
-        return "`hermes gateway` is long-running — run it in another terminal"
+        return "`mercury gateway` is long-running — run it in another terminal"
     if a0 == "sessions" and len(argv) > 1 and argv[1].lower() == "browse":
-        return "`hermes sessions browse` is interactive — use /resume here, or run browse in another terminal"
+        return "`mercury sessions browse` is interactive — use /resume here, or run browse in another terminal"
     if a0 == "config" and len(argv) > 1 and argv[1].lower() == "edit":
-        return "`hermes config edit` needs $EDITOR in a real terminal"
+        return "`mercury config edit` needs $EDITOR in a real terminal"
     return None
 
 
@@ -3342,7 +3342,7 @@ def _(rid, params: dict) -> dict:
 
     _paste_counter += 1
     line_count = text.count("\n") + 1
-    paste_dir = _hermes_home / "pastes"
+    paste_dir = _mercury_home / "pastes"
     paste_dir.mkdir(parents=True, exist_ok=True)
 
     from datetime import datetime
@@ -3713,7 +3713,7 @@ def _(rid, params: dict) -> dict:
         current_provider = getattr(agent, "provider", "") or ""
         current_model = getattr(agent, "model", "") or _resolve_model()
         # list_authenticated_providers already populates each provider's
-        # "models" with the curated list (same source as `hermes model` and
+        # "models" with the curated list (same source as `mercury model` and
         # classic CLI's /model picker). Do NOT overwrite with live
         # provider_model_ids() — that bypasses curation and pulls in
         # non-agentic models (e.g. Nous /models returns ~400 IDs including
@@ -3888,12 +3888,12 @@ def _voice_mode_enabled() -> bool:
     avoids the TUI auto-starting in REC the next time the user opens it
     just because they happened to enable voice in a prior session.
     """
-    return os.environ.get("HERMES_VOICE", "").strip() == "1"
+    return os.environ.get("MERCURY_VOICE", "").strip() == "1"
 
 
 def _voice_tts_enabled() -> bool:
     """Whether agent replies should be spoken back via TTS (runtime only)."""
-    return os.environ.get("HERMES_VOICE_TTS", "").strip() == "1"
+    return os.environ.get("MERCURY_VOICE_TTS", "").strip() == "1"
 
 
 @method("voice.toggle")
@@ -3940,7 +3940,7 @@ def _(rid, params: dict) -> dict:
         # Runtime-only flag (CLI parity) — no _write_config_key, so the
         # next TUI launch starts with voice OFF instead of auto-REC from a
         # persisted stale toggle.
-        os.environ["HERMES_VOICE"] = "1" if enabled else "0"
+        os.environ["MERCURY_VOICE"] = "1" if enabled else "0"
 
         if not enabled:
             # Disabling the mode must tear the continuous loop down; the
@@ -3961,7 +3961,7 @@ def _(rid, params: dict) -> dict:
             return _err(rid, 4014, "enable voice mode first: /voice on")
         new_value = not _voice_tts_enabled()
         # Runtime-only flag (CLI parity) — see voice.toggle on/off above.
-        os.environ["HERMES_VOICE_TTS"] = "1" if new_value else "0"
+        os.environ["MERCURY_VOICE_TTS"] = "1" if new_value else "0"
         return _ok(rid, {"enabled": True, "tts": new_value})
 
     return _err(rid, 4013, f"unknown voice action: {action}")
@@ -4246,9 +4246,9 @@ def _(rid, params: dict) -> dict:
     try:
         cfg = _load_cfg()
         model = _resolve_model()
-        api_key = os.environ.get("HERMES_API_KEY", "") or cfg.get("api_key", "")
+        api_key = os.environ.get("MERCURY_API_KEY", "") or cfg.get("api_key", "")
         masked = f"****{api_key[-4:]}" if len(api_key) > 4 else "(not set)"
-        base_url = os.environ.get("HERMES_BASE_URL", "") or cfg.get("base_url", "")
+        base_url = os.environ.get("MERCURY_BASE_URL", "") or cfg.get("base_url", "")
 
         sections = [
             {
@@ -4271,7 +4271,7 @@ def _(rid, params: dict) -> dict:
                 "title": "Environment",
                 "rows": [
                     ["Working Dir", os.getcwd()],
-                    ["Config File", str(_hermes_home / "config.yaml")],
+                    ["Config File", str(_mercury_home / "config.yaml")],
                 ],
             },
         ]

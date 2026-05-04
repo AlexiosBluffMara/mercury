@@ -6,7 +6,7 @@ description: "Schedule automated tasks with natural language, manage them with o
 
 # Scheduled Tasks (Cron)
 
-Schedule tasks to run automatically with natural language or cron expressions. Hermes exposes cron management through a single `cronjob` tool with action-style operations instead of separate schedule/list/remove tools.
+Schedule tasks to run automatically with natural language or cron expressions. Mercury exposes cron management through a single `cronjob` tool with action-style operations instead of separate schedule/list/remove tools.
 
 ## What cron can do now
 
@@ -19,7 +19,7 @@ Cron jobs can:
 - run in fresh agent sessions with the normal static tool list
 
 :::warning
-Cron-run sessions cannot recursively create more cron jobs. Hermes disables cron management tools inside cron executions to prevent runaway scheduling loops.
+Cron-run sessions cannot recursively create more cron jobs. Mercury disables cron management tools inside cron executions to prevent runaway scheduling loops.
 :::
 
 ## Creating scheduled tasks
@@ -36,9 +36,9 @@ Cron-run sessions cannot recursively create more cron jobs. Hermes disables cron
 ### From the standalone CLI
 
 ```bash
-hermes cron create "every 2h" "Check server status"
-hermes cron create "every 1h" "Summarize new feed items" --skill blogwatcher
-hermes cron create "every 1h" "Use both skills and combine the result" \
+mercury cron create "every 2h" "Check server status"
+mercury cron create "every 1h" "Summarize new feed items" --skill blogwatcher
+mercury cron create "every 1h" "Use both skills and combine the result" \
   --skill blogwatcher \
   --skill maps \
   --name "Skill combo"
@@ -46,13 +46,13 @@ hermes cron create "every 1h" "Use both skills and combine the result" \
 
 ### Through natural conversation
 
-Ask Hermes normally:
+Ask Mercury normally:
 
 ```text
 Every morning at 9am, check Hacker News for AI news and send me a summary on Telegram.
 ```
 
-Hermes will use the unified `cronjob` tool internally.
+Mercury will use the unified `cronjob` tool internally.
 
 ## Skill-backed cron jobs
 
@@ -92,7 +92,7 @@ Cron jobs default to running detached from any repo — no `AGENTS.md`, `CLAUDE.
 
 ```bash
 # Standalone CLI
-hermes cron create --schedule "every 1d at 09:00" \
+mercury cron create --schedule "every 1d at 09:00" \
   --workdir /home/me/projects/acme \
   --prompt "Audit open PRs, summarize CI health, and post to #eng"
 ```
@@ -135,12 +135,12 @@ You do not need to delete and recreate jobs just to change them.
 ### Standalone CLI
 
 ```bash
-hermes cron edit <job_id> --schedule "every 4h"
-hermes cron edit <job_id> --prompt "Use the revised task"
-hermes cron edit <job_id> --skill blogwatcher --skill maps
-hermes cron edit <job_id> --add-skill maps
-hermes cron edit <job_id> --remove-skill blogwatcher
-hermes cron edit <job_id> --clear-skills
+mercury cron edit <job_id> --schedule "every 4h"
+mercury cron edit <job_id> --prompt "Use the revised task"
+mercury cron edit <job_id> --skill blogwatcher --skill maps
+mercury cron edit <job_id> --add-skill maps
+mercury cron edit <job_id> --remove-skill blogwatcher
+mercury cron edit <job_id> --clear-skills
 ```
 
 Notes:
@@ -167,13 +167,13 @@ Cron jobs now have a fuller lifecycle than just create/remove.
 ### Standalone CLI
 
 ```bash
-hermes cron list
-hermes cron pause <job_id>
-hermes cron resume <job_id>
-hermes cron run <job_id>
-hermes cron remove <job_id>
-hermes cron status
-hermes cron tick
+mercury cron list
+mercury cron pause <job_id>
+mercury cron resume <job_id>
+mercury cron run <job_id>
+mercury cron remove <job_id>
+mercury cron status
+mercury cron tick
 ```
 
 What they do:
@@ -188,17 +188,17 @@ What they do:
 **Cron execution is handled by the gateway daemon.** The gateway ticks the scheduler every 60 seconds, running any due jobs in isolated agent sessions.
 
 ```bash
-hermes gateway install     # Install as a user service
-sudo hermes gateway install --system   # Linux: boot-time system service for servers
-hermes gateway             # Or run in foreground
+mercury gateway install     # Install as a user service
+sudo mercury gateway install --system   # Linux: boot-time system service for servers
+mercury gateway             # Or run in foreground
 
-hermes cron list
-hermes cron status
+mercury cron list
+mercury cron status
 ```
 
 ### Gateway scheduler behavior
 
-On each tick Hermes:
+On each tick Mercury:
 
 1. loads jobs from `~/.mercury/cron/jobs.json`
 2. checks `next_run_at` against the current time
@@ -284,7 +284,7 @@ cron:
   script_timeout_seconds: 300   # 5 minutes
 ```
 
-Or set the `HERMES_CRON_SCRIPT_TIMEOUT` environment variable. The resolution order is: env var → config.yaml → 120s default.
+Or set the `MERCURY_CRON_SCRIPT_TIMEOUT` environment variable. The resolution order is: env var → config.yaml → 120s default.
 
 ## Provider recovery
 
@@ -297,7 +297,7 @@ This means cron jobs that run at high frequency or during peak hours are more re
 
 ## Schedule formats
 
-The agent's final response is automatically delivered — you do **not** need to include `send_message` in the cron prompt for that same destination. If a cron run calls `send_message` to the exact target the scheduler will already deliver to, Hermes skips that duplicate send and tells the model to put the user-facing content in the final response instead. Use `send_message` only for additional or different targets.
+The agent's final response is automatically delivered — you do **not** need to include `send_message` in the cron prompt for that same destination. If a cron run calls `send_message` to the exact target the scheduler will already deliver to, Mercury skips that duplicate send and tells the model to put the user-facing content in the final response instead. Use `send_message` only for additional or different targets.
 
 ### Relative delays (one-shot)
 
@@ -370,7 +370,7 @@ For `update`, pass `skills=[]` to remove all attached skills.
 
 Jobs are stored in `~/.mercury/cron/jobs.json`. Output from job runs is saved to `~/.mercury/cron/output/{job_id}/{timestamp}.md`.
 
-Jobs may store `model` and `provider` as `null`. When those fields are omitted, Hermes resolves them at execution time from the global configuration. They only appear in the job record when a per-job override is set.
+Jobs may store `model` and `provider` as `null`. When those fields are omitted, Mercury resolves them at execution time from the global configuration. They only appear in the job record when a per-job override is set.
 
 The storage uses atomic file writes so interrupted writes do not leave a partially written job file behind.
 

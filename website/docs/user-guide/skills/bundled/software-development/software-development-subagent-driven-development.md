@@ -17,7 +17,7 @@ Use when executing implementation plans with independent tasks. Dispatches fresh
 | Source | Bundled (installed by default) |
 | Path | `skills/software-development/subagent-driven-development` |
 | Version | `1.1.0` |
-| Author | Hermes Agent (adapted from obra/superpowers) |
+| Author | Mercury Agent (adapted from obra/superpowers) |
 | License | MIT |
 | Tags | `delegation`, `subagent`, `implementation`, `workflow`, `parallel` |
 | Related skills | [`writing-plans`](/docs/user-guide/skills/bundled/software-development/software-development-writing-plans), [`requesting-code-review`](/docs/user-guide/skills/bundled/software-development/software-development-requesting-code-review), [`test-driven-development`](/docs/user-guide/skills/bundled/software-development/software-development-test-driven-development) |
@@ -25,7 +25,7 @@ Use when executing implementation plans with independent tasks. Dispatches fresh
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Subagent-Driven Development

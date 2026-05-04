@@ -1,7 +1,7 @@
 ---
 sidebar_position: 11
 title: "Cron Internals"
-description: "How Hermes stores, schedules, edits, pauses, skill-loads, and delivers cron jobs"
+description: "How Mercury stores, schedules, edits, pauses, skill-loads, and delivers cron jobs"
 ---
 
 # Cron Internals
@@ -16,7 +16,7 @@ The cron subsystem provides scheduled task execution — from simple one-shot de
 | `cron/scheduler.py` | Scheduler loop — due-job detection, execution, repeat tracking |
 | `tools/cronjob_tools.py` | Model-facing `cronjob` tool registration and handler |
 | `gateway/run.py` | Gateway integration — cron ticking in the long-running loop |
-| `mercury_cli/cron.py` | CLI `hermes cron` subcommands |
+| `mercury_cli/cron.py` | CLI `mercury cron` subcommands |
 
 ## Scheduling Model
 
@@ -104,7 +104,7 @@ tick()
 
 In gateway mode, the scheduler tick is integrated into the gateway's main event loop. The gateway calls `scheduler.tick()` on its periodic maintenance cycle, which runs alongside message handling.
 
-In CLI mode, cron jobs only fire when `hermes cron` commands are run or during active CLI sessions.
+In CLI mode, cron jobs only fire when `mercury cron` commands are run or during active CLI sessions.
 
 ### Fresh Session Isolation
 
@@ -144,7 +144,7 @@ import requests, json
 The script timeout defaults to 120 seconds. `_get_script_timeout()` resolves the limit through a three-layer chain:
 
 1. **Module-level override** — `_SCRIPT_TIMEOUT` (for tests/monkeypatching). Only used when it differs from the default.
-2. **Environment variable** — `HERMES_CRON_SCRIPT_TIMEOUT`
+2. **Environment variable** — `MERCURY_CRON_SCRIPT_TIMEOUT`
 3. **Config** — `cron.script_timeout_seconds` in `config.yaml` (read via `load_config()`)
 4. **Default** — 120 seconds
 
@@ -209,16 +209,16 @@ The scheduler uses file-based locking to prevent overlapping ticks from executin
 
 ## CLI Interface
 
-The `hermes cron` CLI provides direct job management:
+The `mercury cron` CLI provides direct job management:
 
 ```bash
-hermes cron list                    # Show all jobs
-hermes cron create                  # Interactive job creation (alias: add)
-hermes cron edit <job_id>           # Edit job configuration
-hermes cron pause <job_id>          # Pause a running job
-hermes cron resume <job_id>         # Resume a paused job
-hermes cron run <job_id>            # Trigger immediate execution
-hermes cron remove <job_id>         # Delete a job
+mercury cron list                    # Show all jobs
+mercury cron create                  # Interactive job creation (alias: add)
+mercury cron edit <job_id>           # Edit job configuration
+mercury cron pause <job_id>          # Pause a running job
+mercury cron resume <job_id>         # Resume a paused job
+mercury cron run <job_id>            # Trigger immediate execution
+mercury cron remove <job_id>         # Delete a job
 ```
 
 ## Related Docs

@@ -76,8 +76,8 @@ else
     echo "    Link one at console.cloud.google.com/billing then re-run this script."
 fi
 
-echo "==> writing env hints to ~/.hermes/.env (idempotent)"
-ENV_FILE="$HOME/.hermes/.env"
+echo "==> writing env hints to ~/.mercury/.env (idempotent)"
+ENV_FILE="$HOME/.mercury/.env"
 mkdir -p "$(dirname "$ENV_FILE")"
 touch "$ENV_FILE"
 chmod 600 "$ENV_FILE" 2>/dev/null || true

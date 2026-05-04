@@ -20,7 +20,7 @@ Set up a modded Minecraft server from a CurseForge/Modrinth server pack zip. Cov
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Minecraft Modpack Server Setup

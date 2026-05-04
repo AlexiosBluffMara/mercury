@@ -10,7 +10,7 @@ version: 1.2.0
 author: Mibayy
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [maps, geocoding, places, routing, distance, directions, nearby, location, openstreetmap, nominatim, overpass, osrm]
     category: productivity
     requires_toolsets: [terminal]

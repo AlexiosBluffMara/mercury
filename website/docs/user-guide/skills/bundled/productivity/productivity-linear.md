@@ -17,14 +17,14 @@ Manage Linear issues, projects, and teams via the GraphQL API. Create, update, s
 | Source | Bundled (installed by default) |
 | Path | `skills/productivity/linear` |
 | Version | `1.0.0` |
-| Author | Hermes Agent |
+| Author | Mercury Agent |
 | License | MIT |
 | Tags | `Linear`, `Project Management`, `Issues`, `GraphQL`, `API`, `Productivity` |
 
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Linear — Issue & Project Management
@@ -34,7 +34,7 @@ Manage Linear issues, projects, and teams directly via the GraphQL API using `cu
 ## Setup
 
 1. Get a personal API key from **Linear Settings > API > Personal API keys**
-2. Set `LINEAR_API_KEY` in your environment (via `hermes setup` or your env config)
+2. Set `LINEAR_API_KEY` in your environment (via `mercury setup` or your env config)
 
 ## API Basics
 

@@ -5,7 +5,7 @@ version: 1.0.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [3D, three.js, react-three-fiber, R3F, GLSL, WebGL, visualization]
     category: creative
     related_skills: [three-js-debug, glsl-shader, cortex-bridge]

@@ -1,4 +1,4 @@
-import type { ScrollBoxHandle } from '@hermes/ink'
+import type { ScrollBoxHandle } from '@mercury/ink'
 import {
   type RefObject,
   useCallback,

@@ -22,9 +22,9 @@ import threading
 
 logger = logging.getLogger("hooks.boot-md")
 
-from mercury_constants import get_hermes_home
-HERMES_HOME = get_hermes_home()
-BOOT_FILE = HERMES_HOME / "BOOT.md"
+from mercury_constants import get_mercury_home
+MERCURY_HOME = get_mercury_home()
+BOOT_FILE = MERCURY_HOME / "BOOT.md"
 
 
 def _build_boot_prompt(content: str) -> str:

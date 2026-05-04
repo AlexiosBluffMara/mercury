@@ -1,23 +1,23 @@
 ---
-title: "Hermes Atropos Environments — Build, test, and debug Hermes Agent RL environments for Atropos training"
-sidebar_label: "Hermes Atropos Environments"
-description: "Build, test, and debug Hermes Agent RL environments for Atropos training"
+title: "Mercury Atropos Environments — Build, test, and debug Mercury Agent RL environments for Atropos training"
+sidebar_label: "Mercury Atropos Environments"
+description: "Build, test, and debug Mercury Agent RL environments for Atropos training"
 ---
 
 {/* This page is auto-generated from the skill's SKILL.md by website/scripts/generate-skill-docs.py. Edit the source SKILL.md, not this page. */}
 
-# Hermes Atropos Environments
+# Mercury Atropos Environments
 
-Build, test, and debug Hermes Agent RL environments for Atropos training. Covers the HermesAgentBaseEnv interface, reward functions, agent loop integration, evaluation with tools, wandb logging, and the three CLI modes (serve/process/evaluate). Use when creating, reviewing, or fixing RL environments in the hermes-agent repo.
+Build, test, and debug Mercury Agent RL environments for Atropos training. Covers the MercuryAgentBaseEnv interface, reward functions, agent loop integration, evaluation with tools, wandb logging, and the three CLI modes (serve/process/evaluate). Use when creating, reviewing, or fixing RL environments in the mercury-agent repo.
 
 ## Skill metadata
 
 | | |
 |---|---|
-| Source | Optional — install with `hermes skills install official/mlops/hermes-atropos-environments` |
-| Path | `optional-skills/mlops/hermes-atropos-environments` |
+| Source | Optional — install with `mercury skills install official/mlops/mercury-atropos-environments` |
+| Path | `optional-skills/mlops/mercury-atropos-environments` |
 | Version | `1.1.0` |
-| Author | Hermes Agent |
+| Author | Mercury Agent |
 | License | MIT |
 | Tags | `atropos`, `rl`, `environments`, `training`, `reinforcement-learning`, `reward-functions` |
 | Related skills | [`axolotl`](/docs/user-guide/skills/bundled/mlops/mlops-training-axolotl), [`fine-tuning-with-trl`](/docs/user-guide/skills/bundled/mlops/mlops-training-trl-fine-tuning), `lm-evaluation-harness` |
@@ -25,18 +25,18 @@ Build, test, and debug Hermes Agent RL environments for Atropos training. Covers
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
-# Hermes Agent Atropos Environments
+# Mercury Agent Atropos Environments
 
-Guide for building RL environments in the hermes-agent repo that integrate with the Atropos training framework.
+Guide for building RL environments in the mercury-agent repo that integrate with the Atropos training framework.
 
 ## Architecture Overview
 
 ```
 Atropos BaseEnv (atroposlib/envs/base.py)
-    └── HermesAgentBaseEnv (environments/hermes_base_env.py)
+    └── MercuryAgentBaseEnv (environments/mercury_base_env.py)
             ├── Handles agent loop orchestration
             ├── Handles tool resolution per group
             ├── Handles ToolContext for reward verification
@@ -45,16 +45,16 @@ Atropos BaseEnv (atroposlib/envs/base.py)
                                     compute_reward, evaluate, wandb_log
 ```
 
-Hermes environments are special because they run a **multi-turn agent loop with tool calling** — not just single-turn completions. The base env handles the loop; you implement the task and scoring.
+Mercury environments are special because they run a **multi-turn agent loop with tool calling** — not just single-turn completions. The base env handles the loop; you implement the task and scoring.
 
 ## File Locations
 
 | File | Purpose |
 |------|---------|
-| `environments/hermes_base_env.py` | Base class with agent loop + tool resolution |
-| `environments/agent_loop.py` | `HermesAgentLoop` + `AgentResult` dataclass |
+| `environments/mercury_base_env.py` | Base class with agent loop + tool resolution |
+| `environments/agent_loop.py` | `MercuryAgentLoop` + `AgentResult` dataclass |
 | `environments/tool_context.py` | `ToolContext` for reward verification |
-| `environments/tool_call_parsers.py` | Phase 2 tool call parsers (hermes, mistral, etc.) |
+| `environments/tool_call_parsers.py` | Phase 2 tool call parsers (mercury, mistral, etc.) |
 | `environments/your_env.py` | Your environment implementation |
 
 ## Inference Setup — Ask the User First
@@ -164,12 +164,12 @@ return 1.0 if result["exit_code"] == 0 else 0.0
 ### 5. `evaluate()` — Periodic evaluation with full agent loop
 
 **MUST use the full agent loop with tools**, not single-turn chat_completion.
-The whole point of hermes-agent environments is agentic evaluation:
+The whole point of mercury-agent environments is agentic evaluation:
 
 ```python
 async def evaluate(self, *args, **kwargs) -> None:
     import time, uuid
-    from environments.agent_loop import HermesAgentLoop
+    from environments.agent_loop import MercuryAgentLoop
     from environments.tool_context import ToolContext
 
     start_time = time.time()
@@ -183,7 +183,7 @@ async def evaluate(self, *args, **kwargs) -> None:
             messages.append({"role": "system", "content": self.config.system_prompt})
         messages.append({"role": "user", "content": self.format_prompt(item)})
 
-        agent = HermesAgentLoop(
+        agent = MercuryAgentLoop(
             server=self.server,
             tool_schemas=tools,
             valid_tool_names=valid_names,
@@ -260,7 +260,7 @@ Config priority: CLI args > YAML file > config_init() defaults.
 
 1. **AgentResult has .messages, not .final_response** — Extract the final response by iterating reversed(result.messages) looking for the last assistant message with content.
 
-2. **evaluate() must use HermesAgentLoop, not chat_completion** — Single-turn chat_completion has no tools. The whole point of hermes-agent benchmarks is agentic evaluation with tool use.
+2. **evaluate() must use MercuryAgentLoop, not chat_completion** — Single-turn chat_completion has no tools. The whole point of mercury-agent benchmarks is agentic evaluation with tool use.
 
 3. **Don't call _llm_judge twice** — If compute_reward already calls it, extract the score from the buffer instead of calling judge separately in evaluate().
 
@@ -302,7 +302,7 @@ Weight correctness (0.6) + tool usage (0.2) + efficiency (0.2) + optional bonuse
 ## Minimum Implementation Checklist
 
 ```python
-class MyEnv(HermesAgentBaseEnv):
+class MyEnv(MercuryAgentBaseEnv):
     name = "my-env"
     env_config_cls = MyEnvConfig
 

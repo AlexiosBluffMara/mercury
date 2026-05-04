@@ -1,10 +1,10 @@
-# Mercury MCP servers — append into ~/.hermes/config.yaml under `mcp_servers:`
+# Mercury MCP servers — append into ~/.mercury/config.yaml under `mcp_servers:`
 #
 # Each block adds a tool family to the agent.  Tools auto-namespace as
 # `mcp_<server>_<tool>`.  Mercury merges them into the registry on agent
 # boot, so a `mercury gateway run` restart picks up new servers.
 #
-# Auth: most use environment variables; secrets live in ~/.hermes/.env
+# Auth: most use environment variables; secrets live in ~/.mercury/.env
 # and are forwarded via the `env:` block per server.
 
 mcp_servers:
@@ -32,7 +32,7 @@ mcp_servers:
     args: ["mcp"]
 
   # Notion — pages, databases, blocks.  Internal-tool / second-brain
-  # surface.  Needs NOTION_API_KEY (integration token) in ~/.hermes/.env.
+  # surface.  Needs NOTION_API_KEY (integration token) in ~/.mercury/.env.
   notion:
     command: "npx"
     args: ["-y", "@suekou/mcp-notion-server"]

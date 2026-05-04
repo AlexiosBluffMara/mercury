@@ -25,7 +25,7 @@ Expert guidance for fast fine-tuning with Unsloth - 2-5x faster training, 50-80%
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Unsloth Skill

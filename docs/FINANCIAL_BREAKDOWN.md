@@ -221,7 +221,7 @@ Goal: give the local Gemma 4 deployment a real-web tool without paying Gemini's 
 Mercury already routes through `agent/auxiliary_client.py`, which is more sophisticated than the GCP plan accounted for. The auto-resolution chain (text tasks):
 
 1. **OpenRouter** (`OPENROUTER_API_KEY`) — primary; aggregates DeepInfra/Together/Fireworks for Gemma SKUs
-2. **Nous Portal** — Hermes 4 405B / Kimi K2.6, OAuth-authed
+2. **Nous Portal** — Mercury 4 405B / Kimi K2.6, OAuth-authed
 3. **Custom OpenAI-compat endpoint** (`OPENAI_BASE_URL` + `OPENAI_API_KEY`) — **this is how Ollama on the 5090 plugs in**
 4. **Codex OAuth** (gpt-5.3-codex via chatgpt.com) — already wraps Responses API
 5. **Native Anthropic** (`ANTHROPIC_API_KEY`)

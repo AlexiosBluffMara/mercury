@@ -1,6 +1,6 @@
-"""Shared curses-based UI components for Hermes CLI.
+"""Shared curses-based UI components for Mercury CLI.
 
-Used by `hermes tools` and `hermes skills` for interactive checklists.
+Used by `mercury tools` and `mercury skills` for interactive checklists.
 Provides a curses multi-select with keyboard navigation, plus a
 text-based numbered fallback for terminals without curses support.
 """

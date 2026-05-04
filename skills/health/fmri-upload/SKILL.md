@@ -5,7 +5,7 @@ version: 1.0.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [fmri, brain, upload, gcs, signed-url, cortex, isu, research]
     category: health
     related_skills: [cortex-bridge, brain-viz]

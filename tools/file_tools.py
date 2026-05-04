@@ -413,7 +413,7 @@ def read_file_tool(path: str, offset: int = 1, limit: int = 500, task_id: str = 
                 ),
             })
 
-        # ── Hermes internal path guard ────────────────────────────────
+        # ── Mercury internal path guard ────────────────────────────────
         # Prevent prompt injection via catalog or hub metadata files.
         block_error = get_read_block_error(path)
         if block_error:

@@ -2,7 +2,7 @@ model:
   default: moonshotai/kimi-k2.6
   provider: nous-portal
   # Aliases mapped via runtime resolution: address with --model when needed.
-  # planner = hermes-4-405b   (agentic reasoning, tool selection)
+  # planner = mercury-4-405b   (agentic reasoning, tool selection)
   # coder   = kimi-k2.6       (long-horizon coding, default)
   # local   = embeddinggemma:300m via local Ollama  (free, on-device)
 

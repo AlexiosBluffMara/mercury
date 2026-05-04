@@ -1,12 +1,12 @@
 ---
 sidebar_position: 17
 title: "Extending the Dashboard"
-description: "Build themes and plugins for the Hermes web dashboard — palettes, typography, layouts, custom tabs, shell slots, page-scoped slots, and backend API routes"
+description: "Build themes and plugins for the Mercury web dashboard — palettes, typography, layouts, custom tabs, shell slots, page-scoped slots, and backend API routes"
 ---
 
 # Extending the Dashboard
 
-The Hermes web dashboard (`hermes dashboard`) is built to be reskinned and extended without forking the codebase. Three layers are exposed:
+The Mercury web dashboard (`mercury dashboard`) is built to be reskinned and extended without forking the codebase. Three layers are exposed:
 
 1. **Themes** — YAML files that repaint the dashboard's palette, typography, layout, and per-component chrome. Drop a file in `~/.mercury/dashboard-themes/`; it appears in the theme switcher.
 2. **UI plugins** — a directory with `manifest.json` + a JavaScript bundle that registers a tab, replaces a built-in page, augments one via page-scoped slots, or injects components into named shell slots.
@@ -256,7 +256,7 @@ customCSS: |
   }
 ```
 
-The CSS is injected as a single scoped `<style data-hermes-theme-css>` tag on theme apply and cleaned up on theme switch. **Capped at 32 KiB per theme.**
+The CSS is injected as a single scoped `<style data-mercury-theme-css>` tag on theme apply and cleaned up on theme switch. **Capped at 32 KiB per theme.**
 
 ### Built-in themes
 
@@ -264,14 +264,14 @@ Each built-in ships its own palette, typography, and layout — switching produc
 
 | Theme | Palette | Typography | Layout |
 |-------|---------|------------|--------|
-| **Hermes Teal** (`default`) | Dark teal + cream | System stack, 15px | 0.5rem radius, comfortable |
+| **Mercury Teal** (`default`) | Dark teal + cream | System stack, 15px | 0.5rem radius, comfortable |
 | **Midnight** (`midnight`) | Deep blue-violet | Inter + JetBrains Mono, 14px | 0.75rem radius, comfortable |
 | **Ember** (`ember`) | Warm crimson + bronze | Spectral (serif) + IBM Plex Mono, 15px | 0.25rem radius, comfortable |
 | **Mono** (`mono`) | Grayscale | IBM Plex Sans + IBM Plex Mono, 13px | 0 radius, compact |
 | **Cyberpunk** (`cyberpunk`) | Neon green on black | Share Tech Mono everywhere, 14px | 0 radius, compact |
 | **Rosé** (`rose`) | Pink + ivory | Fraunces (serif) + DM Mono, 16px | 1rem radius, spacious |
 
-Themes that reference Google Fonts (all except Hermes Teal) load the stylesheet on demand — the first time you switch to them a `<link>` tag is injected into `<head>`.
+Themes that reference Google Fonts (all except Mercury Teal) load the stylesheet on demand — the first time you switch to them a `<link>` tag is injected into `<head>`.
 
 ### Full theme YAML reference
 
@@ -340,9 +340,9 @@ Refresh the dashboard after creating the file. Switch themes live from the heade
 
 ## Plugins
 
-A dashboard plugin is a directory with a `manifest.json`, a pre-built JS bundle, and optionally a CSS file and a Python file with FastAPI routes. Plugins live next to other Hermes plugins in `~/.mercury/plugins/<name>/` — the dashboard extension is a `dashboard/` subfolder inside that plugin directory, so one plugin can extend both the CLI/gateway and the dashboard from a single install.
+A dashboard plugin is a directory with a `manifest.json`, a pre-built JS bundle, and optionally a CSS file and a Python file with FastAPI routes. Plugins live next to other Mercury plugins in `~/.mercury/plugins/<name>/` — the dashboard extension is a `dashboard/` subfolder inside that plugin directory, so one plugin can extend both the CLI/gateway and the dashboard from a single install.
 
-Plugins don't bundle React or UI components. They use the **Plugin SDK** exposed on `window.__HERMES_PLUGIN_SDK__`. This keeps plugin bundles tiny (typically a few KB) and avoids version conflicts.
+Plugins don't bundle React or UI components. They use the **Plugin SDK** exposed on `window.__MERCURY_PLUGIN_SDK__`. This keeps plugin bundles tiny (typically a few KB) and avoids version conflicts.
 
 ### Quick start — your first plugin
 
@@ -376,7 +376,7 @@ Write the JS bundle (a plain IIFE — no build step needed):
 (function () {
   "use strict";
 
-  const SDK = window.__HERMES_PLUGIN_SDK__;
+  const SDK = window.__MERCURY_PLUGIN_SDK__;
   const { React } = SDK;
   const { Card, CardHeader, CardTitle, CardContent } = SDK.components;
 
@@ -393,7 +393,7 @@ Write the JS bundle (a plain IIFE — no build step needed):
     );
   }
 
-  window.__HERMES_PLUGINS__.register("my-plugin", MyPage);
+  window.__MERCURY_PLUGINS__.register("my-plugin", MyPage);
 })();
 ```
 
@@ -473,10 +473,10 @@ Need a different icon? Open a PR to `web/src/App.tsx`'s `ICON_MAP` — pure addi
 
 ### The Plugin SDK
 
-Everything a plugin needs is on `window.__HERMES_PLUGIN_SDK__`. Plugins should never import React directly.
+Everything a plugin needs is on `window.__MERCURY_PLUGIN_SDK__`. Plugins should never import React directly.
 
 ```javascript
-const SDK = window.__HERMES_PLUGIN_SDK__;
+const SDK = window.__MERCURY_PLUGIN_SDK__;
 
 // React + hooks
 SDK.React                    // the React instance
@@ -505,7 +505,7 @@ SDK.components.TabsList
 SDK.components.TabsTrigger
 SDK.components.PluginSlot    // render a named slot (useful for nested plugin UIs)
 
-// Hermes API client + raw fetcher
+// Mercury API client + raw fetcher
 SDK.api                      // typed client — getStatus, getSessions, getConfig, ...
 SDK.fetchJSON                // raw fetch for custom endpoints (plugin-registered routes)
 
@@ -528,7 +528,7 @@ SDK.fetchJSON("/api/plugins/my-plugin/data")
 
 `fetchJSON` injects the session auth token, surfaces errors as thrown exceptions, and parses JSON automatically.
 
-#### Calling built-in Hermes endpoints
+#### Calling built-in Mercury endpoints
 
 ```javascript
 // Agent status
@@ -547,8 +547,8 @@ Slots let a plugin inject components into named locations of the app shell — t
 Register from inside the plugin bundle:
 
 ```javascript
-window.__HERMES_PLUGINS__.registerSlot("my-plugin", "sidebar", MySidebar);
-window.__HERMES_PLUGINS__.registerSlot("my-plugin", "header-left", MyCrest);
+window.__MERCURY_PLUGINS__.registerSlot("my-plugin", "sidebar", MySidebar);
+window.__MERCURY_PLUGINS__.registerSlot("my-plugin", "header-left", MyCrest);
 ```
 
 #### Slot catalogue
@@ -558,7 +558,7 @@ window.__HERMES_PLUGINS__.registerSlot("my-plugin", "header-left", MyCrest);
 | Slot | Location |
 |------|----------|
 | `backdrop` | Inside the `<Backdrop />` layer stack, above the noise layer. |
-| `header-left` | Before the Hermes brand in the top bar. |
+| `header-left` | Before the Mercury brand in the top bar. |
 | `header-right` | Before the theme/language switchers in the top bar. |
 | `header-banner` | Full-width strip below the nav. |
 | `sidebar` | Cockpit sidebar rail — **only rendered when `layoutVariant === "cockpit"`**. |
@@ -592,7 +592,7 @@ function PinnedSessionsBanner() {
   );
 }
 
-window.__HERMES_PLUGINS__.registerSlot("my-plugin", "sessions:top", PinnedSessionsBanner);
+window.__MERCURY_PLUGINS__.registerSlot("my-plugin", "sessions:top", PinnedSessionsBanner);
 ```
 
 Combine page-scoped slots with `tab.hidden: true` if your plugin only augments existing pages and doesn't need a sidebar tab of its own.
@@ -654,7 +654,7 @@ Minimal example — pin a banner to the top of the Sessions page:
 ```javascript
 // ~/.mercury/plugins/session-notes/dashboard/dist/index.js
 (function () {
-  const SDK = window.__HERMES_PLUGIN_SDK__;
+  const SDK = window.__MERCURY_PLUGIN_SDK__;
   const { React } = SDK;
   const { Card, CardContent } = SDK.components;
 
@@ -666,10 +666,10 @@ Minimal example — pin a banner to the top of the Sessions page:
   }
 
   // Placeholder for the hidden tab.
-  window.__HERMES_PLUGINS__.register("session-notes", function () { return null; });
+  window.__MERCURY_PLUGINS__.register("session-notes", function () { return null; });
 
   // The real work.
-  window.__HERMES_PLUGINS__.registerSlot("session-notes", "sessions:top", Banner);
+  window.__MERCURY_PLUGINS__.registerSlot("session-notes", "sessions:top", Banner);
 })();
 ```
 
@@ -728,9 +728,9 @@ Routes are mounted under `/api/plugins/<name>/`, so the above becomes:
 
 Plugin API routes bypass session-token authentication since the dashboard server binds to localhost by default. **Don't expose the dashboard on a public interface with `--host 0.0.0.0` if you run untrusted plugins** — their routes become reachable too.
 
-#### Accessing Hermes internals
+#### Accessing Mercury internals
 
-Backend routes run inside the dashboard process, so they can import from the hermes-agent codebase directly:
+Backend routes run inside the dashboard process, so they can import from the mercury-agent codebase directly:
 
 ```python
 from fastapi import APIRouter
@@ -790,7 +790,7 @@ The dashboard scans three directories for `dashboard/manifest.json`:
 | 1 (wins on conflict) | `~/.mercury/plugins/<name>/dashboard/` | `user` |
 | 2 | `<repo>/plugins/memory/<name>/dashboard/` | `bundled` |
 | 2 | `<repo>/plugins/<name>/dashboard/` | `bundled` |
-| 3 | `./.hermes/plugins/<name>/dashboard/` | `project` — only when `HERMES_ENABLE_PROJECT_PLUGINS` is set |
+| 3 | `./.mercury/plugins/<name>/dashboard/` | `project` — only when `MERCURY_ENABLE_PROJECT_PLUGINS` is set |
 
 Discovery results are cached per dashboard process. After adding a new plugin, either:
 
@@ -799,14 +799,14 @@ Discovery results are cached per dashboard process. After adding a new plugin, e
 curl http://127.0.0.1:9119/api/dashboard/plugins/rescan
 ```
 
-…or restart `hermes dashboard`.
+…or restart `mercury dashboard`.
 
 #### Plugin load lifecycle
 
-1. Dashboard loads. `main.tsx` exposes the SDK on `window.__HERMES_PLUGIN_SDK__` and the registry on `window.__HERMES_PLUGINS__`.
+1. Dashboard loads. `main.tsx` exposes the SDK on `window.__MERCURY_PLUGIN_SDK__` and the registry on `window.__MERCURY_PLUGINS__`.
 2. `App.tsx` calls `usePlugins()` → fetches `GET /api/dashboard/plugins`.
 3. For each manifest: CSS `<link>` is injected (if declared), then a `<script>` tag loads the JS bundle.
-4. The plugin's IIFE runs and calls `window.__HERMES_PLUGINS__.register(name, Component)` — and optionally `.registerSlot(name, slot, Component)` for each slot.
+4. The plugin's IIFE runs and calls `window.__MERCURY_PLUGINS__.register(name, Component)` — and optionally `.registerSlot(name, slot, Component)` for each slot.
 5. The dashboard resolves the registered component against the manifest, adds the tab to navigation (unless `hidden`), and mounts the component as a route.
 
 Plugins have up to **2 seconds** after their script loads to call `register()`. After that the dashboard stops waiting and finishes initial render. If a plugin later registers, it still appears — the nav is reactive.
@@ -839,7 +839,7 @@ cp plugins/strike-freedom-cockpit/theme/strike-freedom.yaml \
 cp -r plugins/strike-freedom-cockpit ~/.mercury/plugins/
 ```
 
-Open the dashboard, pick **Strike Freedom** from the theme switcher. The cockpit sidebar appears, the crest shows in the header, the tagline replaces the footer. Switch back to **Hermes Teal** and the plugin remains installed but invisible (the `sidebar` slot only renders under the `cockpit` layout variant).
+Open the dashboard, pick **Strike Freedom** from the theme switcher. The cockpit sidebar appears, the crest shows in the header, the tagline replaces the footer. Switch back to **Mercury Teal** and the plugin remains installed but invisible (the `sidebar` slot only renders under the `cockpit` layout variant).
 
 Read the plugin source (`plugins/strike-freedom-cockpit/dashboard/dist/index.js`) to see how it reads CSS vars, guards against older dashboards without slot support, and registers three slots from one bundle.
 
@@ -867,9 +867,9 @@ Read the plugin source (`plugins/strike-freedom-cockpit/dashboard/dist/index.js`
 
 | Global | Type | Provider |
 |--------|------|----------|
-| `window.__HERMES_PLUGIN_SDK__` | object | `registry.ts` — React, hooks, UI components, API client, utils. |
-| `window.__HERMES_PLUGINS__.register(name, Component)` | function | Register a plugin's main component. |
-| `window.__HERMES_PLUGINS__.registerSlot(name, slot, Component)` | function | Register into a named shell slot. |
+| `window.__MERCURY_PLUGIN_SDK__` | object | `registry.ts` — React, hooks, UI components, API client, utils. |
+| `window.__MERCURY_PLUGINS__.register(name, Component)` | function | Register a plugin's main component. |
+| `window.__MERCURY_PLUGINS__.registerSlot(name, slot, Component)` | function | Register into a named shell slot. |
 
 ---
 
@@ -882,15 +882,15 @@ Check that the file is in `~/.mercury/dashboard-themes/` and ends in `.yaml` or 
 1. Check the manifest is at `~/.mercury/plugins/<name>/dashboard/manifest.json` (note the `dashboard/` subdirectory).
 2. `curl http://127.0.0.1:9119/api/dashboard/plugins/rescan` to force re-discovery.
 3. Open browser dev tools → Network — confirm `manifest.json`, `index.js`, and any CSS loaded without 404s.
-4. Open browser dev tools → Console — look for errors during the IIFE or `window.__HERMES_PLUGINS__ is undefined` (indicates the SDK didn't initialize, usually a React render crash earlier).
-5. Verify your bundle calls `window.__HERMES_PLUGINS__.register(...)` with the **same name** as `manifest.json:name`.
+4. Open browser dev tools → Console — look for errors during the IIFE or `window.__MERCURY_PLUGINS__ is undefined` (indicates the SDK didn't initialize, usually a React render crash earlier).
+5. Verify your bundle calls `window.__MERCURY_PLUGINS__.register(...)` with the **same name** as `manifest.json:name`.
 
 **Slot-registered components don't render.**
 The `sidebar` slot only renders when the active theme has `layoutVariant: cockpit`. Other slots always render. If you're registering into a slot with no hits, add `console.log` inside `registerSlot` to confirm the plugin bundle ran at all.
 
 **Plugin backend routes return 404.**
 1. Confirm the manifest has `"api": "plugin_api.py"` pointing to an existing file inside `dashboard/`.
-2. Restart `hermes dashboard` — plugin API routes are mounted once at startup, **not** on rescan.
+2. Restart `mercury dashboard` — plugin API routes are mounted once at startup, **not** on rescan.
 3. Check that `plugin_api.py` exports a module-level `router = APIRouter()`. Other export names are not picked up.
 4. Tail `~/.mercury/logs/errors.log` for `Failed to load plugin <name> API routes` — import errors are logged there.
 

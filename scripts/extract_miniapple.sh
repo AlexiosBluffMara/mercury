@@ -6,7 +6,7 @@
 # Default destination: D:/miniapple_archive/<DATE>/   (override with --dest)
 #
 # What it captures:
-#   1. Mercury / Hermes runtime state    (~/.mercury, ~/.hermes)
+#   1. Mercury / Mercury runtime state    (~/.mercury, ~/.mercury)
 #   2. Claude Code state if any          (~/.claude, ~/Library/Application Support/Claude)
 #   3. Shell history + sessions          (~/.zsh_history, ~/.zsh_sessions, ~/.bash_history)
 #   4. Dev trees                         (~/dev, ~/Projects, ~/code, ~/work, ~/src)
@@ -107,7 +107,7 @@ echo "[ok] found ${GIT_REPO_COUNT} git repos"
   grep -ril --include=*.md --include=*.txt --include=*.py --include=*.json \
     -e kimi -e moonshot -e nous-portal -e NOUS_API_KEY \
     \$HOME/dev \$HOME/Projects \$HOME/code \$HOME/work \$HOME/src \
-    \$HOME/.mercury \$HOME/.hermes 2>/dev/null
+    \$HOME/.mercury \$HOME/.mercury 2>/dev/null
 "' > "${DEST}/manifest/kimi_touches.txt" || true
 
 KIMI_COUNT=$(wc -l < "${DEST}/manifest/kimi_touches.txt" | tr -d ' ')
@@ -161,7 +161,7 @@ stream_tar () {
 }
 
 stream_tar "01_mercury_state"   ".mercury"
-stream_tar "02_hermes_state"    ".hermes"
+stream_tar "02_mercury_state"    ".mercury"
 stream_tar "03_claude_state"    ".claude"
 stream_tar "04_appsupport_claude" "Library/Application\\ Support/Claude"
 stream_tar "05_appsupport_code"   "Library/Application\\ Support/Code"

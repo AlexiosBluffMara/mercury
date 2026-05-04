@@ -72,9 +72,9 @@ Add a first-class `gemini` provider that authenticates via Google OAuth, using t
 
 ## Prerequisites
 - Nous Research GCP project with Desktop OAuth client registered
-- OR: accept user-provided client_id via HERMES_GEMINI_CLIENT_ID env var
+- OR: accept user-provided client_id via MERCURY_GEMINI_CLIENT_ID env var
 
 ## Reference implementations
 - clawdbot: `extensions/google/oauth.flow.ts` (PKCE + localhost server)
 - pi-mono: `packages/ai/src/utils/oauth/google-gemini-cli.ts` (same flow)
-- hermes-agent Copilot OAuth: `mercury_cli/main.py` `_copilot_device_flow()` (different flow type but same lifecycle pattern)
+- mercury-agent Copilot OAuth: `mercury_cli/main.py` `_copilot_device_flow()` (different flow type but same lifecycle pattern)

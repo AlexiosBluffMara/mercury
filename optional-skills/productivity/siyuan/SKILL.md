@@ -5,7 +5,7 @@ version: 1.0.0
 author: FEUAZUR
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [SiYuan, Notes, Knowledge Base, PKM, API]
     related_skills: [obsidian, notion]
     homepage: https://github.com/siyuan-note/siyuan

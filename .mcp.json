@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "gmail-workspace": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@gongrzhe/server-gmail-autoauth-mcp"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\workspace\\.gmail-mcp\\gcp-oauth.keys.json",
+        "GMAIL_CREDENTIALS_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\workspace\\.gmail-mcp\\credentials.json"
+      }
+    },
+    "gmail-personal": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@gongrzhe/server-gmail-autoauth-mcp"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\personal\\.gmail-mcp\\gcp-oauth.keys.json",
+        "GMAIL_CREDENTIALS_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\personal\\.gmail-mcp\\credentials.json"
+      }
+    },
+    "gmail-legacy": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@gongrzhe/server-gmail-autoauth-mcp"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\legacy\\.gmail-mcp\\gcp-oauth.keys.json",
+        "GMAIL_CREDENTIALS_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\legacy\\.gmail-mcp\\credentials.json"
+      }
+    },
+    "gmail-quantum": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@gongrzhe/server-gmail-autoauth-mcp"],
+      "env": {
+        "GMAIL_OAUTH_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\quantum\\.gmail-mcp\\gcp-oauth.keys.json",
+        "GMAIL_CREDENTIALS_PATH": "C:\\Users\\soumi\\.gmail-mcp-accounts\\quantum\\.gmail-mcp\\credentials.json"
+      }
+    }
+  }
+}

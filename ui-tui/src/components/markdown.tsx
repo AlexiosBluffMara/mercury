@@ -1,4 +1,4 @@
-import { Box, Link, Text } from '@hermes/ink'
+import { Box, Link, Text } from '@mercury/ink'
 import { memo, type ReactNode, useMemo } from 'react'
 
 import { ensureEmojiPresentation } from '../lib/emoji.js'

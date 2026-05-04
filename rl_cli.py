@@ -29,12 +29,12 @@ import yaml
 
 # Load .env from ~/.mercury/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
-_hermes_home = get_hermes_home()
+_mercury_home = get_mercury_home()
 _project_env = Path(__file__).parent / '.env'
 
-from mercury_cli.env_loader import load_hermes_dotenv
+from mercury_cli.env_loader import load_mercury_dotenv
 
-_loaded_env_paths = load_hermes_dotenv(hermes_home=_hermes_home, project_env=_project_env)
+_loaded_env_paths = load_mercury_dotenv(mercury_home=_mercury_home, project_env=_project_env)
 for _env_path in _loaded_env_paths:
     print(f"✅ Loaded environment variables from {_env_path}")
 
@@ -43,12 +43,12 @@ for _env_path in _loaded_env_paths:
 tinker_atropos_dir = Path(__file__).parent / 'tinker-atropos'
 if tinker_atropos_dir.exists():
     os.environ['TERMINAL_CWD'] = str(tinker_atropos_dir)
-    os.environ['HERMES_QUIET'] = '1'  # Disable temp subdirectory creation
+    os.environ['MERCURY_QUIET'] = '1'  # Disable temp subdirectory creation
     print(f"📂 Terminal working directory: {tinker_atropos_dir}")
 else:
-    # Fall back to hermes-agent directory if submodule not found
+    # Fall back to mercury-agent directory if submodule not found
     os.environ['TERMINAL_CWD'] = str(Path(__file__).parent)
-    os.environ['HERMES_QUIET'] = '1'
+    os.environ['MERCURY_QUIET'] = '1'
     print(f"⚠️  tinker-atropos submodule not found, using: {Path(__file__).parent}")
 
 # Import agent and tools
@@ -60,20 +60,20 @@ from tools.rl_training_tool import get_missing_keys
 # Config Loading
 # ============================================================================
 
-from mercury_constants import get_hermes_home, OPENROUTER_BASE_URL
+from mercury_constants import get_mercury_home, OPENROUTER_BASE_URL
 
 DEFAULT_MODEL = "anthropic/claude-opus-4.5"
 DEFAULT_BASE_URL = OPENROUTER_BASE_URL
 
 
-def load_hermes_config() -> dict:
+def load_mercury_config() -> dict:
     """
     Load configuration from ~/.mercury/config.yaml.
     
     Returns:
         dict: Configuration with model, base_url, etc.
     """
-    config_path = _hermes_home / 'config.yaml'
+    config_path = _mercury_home / 'config.yaml'
     
     config = {
         "model": DEFAULT_MODEL,
@@ -273,7 +273,7 @@ def main(
         python rl_cli.py --check-server
     """
     # Load config from ~/.mercury/config.yaml
-    config = load_hermes_config()
+    config = load_mercury_config()
     
     # Use config values if not explicitly provided
     if model is None:

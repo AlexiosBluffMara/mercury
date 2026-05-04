@@ -5,7 +5,7 @@ version: 0.1.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [discord, bot, gateway, brain-viz, neuroscience, demo]
     category: platforms
     related_skills: [brain-viz, fmri-overlay, cortex-bridge, tailnet]
@@ -148,7 +148,7 @@ For the demo recording, Discord is the *delivery surface* of choice:
    slash commands are obvious, the bot's reply showcases the multi-modal
    output beautifully
 2. The recording captures the *agent doing things across surfaces* — the
-   slash-command flow shows Hermes Agent's gateway discipline (one process,
+   slash-command flow shows Mercury Agent's gateway discipline (one process,
    many platforms)
 3. **Kimi K2.6** does the planning step inside the gateway (visible in the
    bot's typing indicator: "thinking with kimi-k2.6…") — qualifies for the

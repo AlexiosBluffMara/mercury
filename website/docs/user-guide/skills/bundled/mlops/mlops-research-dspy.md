@@ -25,7 +25,7 @@ Build complex AI systems with declarative programming, optimize prompts automati
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # DSPy: Declarative Language Model Programming

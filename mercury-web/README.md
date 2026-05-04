@@ -1,6 +1,6 @@
 # Mercury — Web UI
 
-Mobile-first dashboard for the Mercury agent. Forked from the Hermes Agent
+Mobile-first dashboard for the Mercury agent. Forked from the Mercury Agent
 dashboard (MIT, Nous Research) and rebranded with the Mercury Silver theme.
 
 ## Stack

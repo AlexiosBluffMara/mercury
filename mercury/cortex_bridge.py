@@ -85,12 +85,12 @@ def register_cortex_tools() -> int:
         return 0
 
     try:
-        from cortex_hermes_tools import (  # type: ignore[import-not-found]
+        from cortex_mercury_tools import (  # type: ignore[import-not-found]
             brain_scan, describe_input, narrate, visualize,
         )
     except ImportError:
         try:
-            from hermes.tools import brain_scan, describe_input, narrate, visualize  # noqa: F401
+            from mercury.tools import brain_scan, describe_input, narrate, visualize  # noqa: F401
         except ImportError as exc:
             logger.warning("Cortex tool modules not importable: %s", exc)
             return 0

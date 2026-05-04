@@ -109,7 +109,7 @@ jobs:
   #        cd ~/actions-runner && ./run.sh
   #      Label it `self-hosted,mercury`.
   #
-  #   2. Ensure docker-compose.yml and ~/.hermes are set up on the host.
+  #   2. Ensure docker-compose.yml and ~/.mercury are set up on the host.
   #
   # The runner pulls the new image and restarts the gateway + dashboard
   # containers. Zero-downtime: docker-compose up -d waits for the new
@@ -135,7 +135,7 @@ jobs:
       - name: Restart gateway + dashboard
         run: |
           cd "${{ secrets.MERCURY_COMPOSE_DIR }}"
-          HERMES_UID=$(id -u) HERMES_GID=$(id -g) \
+          MERCURY_UID=$(id -u) MERCURY_GID=$(id -g) \
             docker-compose up -d --no-build --pull never
 
       - name: Wait for gateway health

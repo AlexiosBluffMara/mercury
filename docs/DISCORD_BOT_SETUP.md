@@ -65,17 +65,17 @@ servers exactly the way Mercury greets the operator in the terminal.
 
 ## 3. Wire the token into Mercury's environment
 
-Mercury reads the token from the env var **`DISCORD_BOT_TOKEN`** (Hermes
+Mercury reads the token from the env var **`DISCORD_BOT_TOKEN`** (Mercury
 fork convention; see `mercury_cli/config.py` and `gateway/config.py`).
 
 Two equivalent ways to set it:
 
-**Option A — `~/.hermes/.env` (preferred, this is what `mercury gateway`
+**Option A — `~/.mercury/.env` (preferred, this is what `mercury gateway`
 loads automatically):**
 
 ```bash
 # In a fresh git-bash shell:
-echo 'DISCORD_BOT_TOKEN=PASTE_THE_TOKEN_HERE' >> ~/.hermes/.env
+echo 'DISCORD_BOT_TOKEN=PASTE_THE_TOKEN_HERE' >> ~/.mercury/.env
 ```
 
 **Option B — set in the current shell only (transient):**
@@ -88,10 +88,10 @@ Verify the file looks right (token line should be the last line, no
 quotes around the value):
 
 ```bash
-tail -3 ~/.hermes/.env
+tail -3 ~/.mercury/.env
 ```
 
-> **Never commit the token.** `~/.hermes/.env` is outside the repo. If
+> **Never commit the token.** `~/.mercury/.env` is outside the repo. If
 > you ever leak a token, return to step 1 and reset.
 
 ## 4. Start the gateway and watch the bot connect
@@ -138,7 +138,7 @@ Common failure modes:
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `LoginFailure: Improper token has been passed` | Token typo, stray whitespace, or wrong env file | Re-copy from the developer portal; check `~/.hermes/.env` has no trailing spaces |
+| `LoginFailure: Improper token has been passed` | Token typo, stray whitespace, or wrong env file | Re-copy from the developer portal; check `~/.mercury/.env` has no trailing spaces |
 | Bot shows online but ignores messages | Message Content Intent off | Step 1.4 — enable, save, restart `mercury gateway run` |
 | Slash commands never appear | First-sync propagation delay | Wait 5–60 minutes; refresh client |
 | `403 Forbidden` on send | Missing channel permission | Re-generate invite URL with the perms in step 2.3 |
@@ -149,7 +149,7 @@ Find your Discord user ID:
 
 1. Discord → User Settings → Advanced → enable **Developer Mode**.
 2. Right-click your username anywhere → **Copy User ID**.
-3. Add to `~/.hermes/.env`:
+3. Add to `~/.mercury/.env`:
 
 ```
 DISCORD_OWNER_IDS=123456789012345678

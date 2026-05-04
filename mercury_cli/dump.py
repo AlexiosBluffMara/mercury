@@ -1,7 +1,7 @@
 """
-Dump command for hermes CLI.
+Dump command for mercury CLI.
 
-Outputs a compact, plain-text summary of the user's Hermes setup
+Outputs a compact, plain-text summary of the user's Mercury setup
 that can be copy-pasted into Discord/GitHub/Telegram for support context.
 No ANSI colors, no checkmarks — just data.
 """
@@ -13,8 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from mercury_cli.config import get_hermes_home, get_env_path, get_project_root, load_config
-from mercury_constants import display_hermes_home
+from mercury_cli.config import get_mercury_home, get_env_path, get_project_root, load_config
+from mercury_constants import display_mercury_home
 
 
 def _get_git_commit(project_root: Path) -> str:
@@ -59,9 +59,9 @@ def _gateway_status() -> str:
         return "unknown" if sys.platform.startswith(("linux", "darwin")) else "N/A"
 
 
-def _count_skills(hermes_home: Path) -> int:
+def _count_skills(mercury_home: Path) -> int:
     """Count installed skills."""
-    skills_dir = hermes_home / "skills"
+    skills_dir = mercury_home / "skills"
     if not skills_dir.is_dir():
         return 0
     count = 0
@@ -77,9 +77,9 @@ def _count_mcp_servers(config: dict) -> int:
     return len(servers)
 
 
-def _cron_summary(hermes_home: Path) -> str:
+def _cron_summary(mercury_home: Path) -> str:
     """Return cron jobs summary."""
-    jobs_file = hermes_home / "cron" / "jobs.json"
+    jobs_file = mercury_home / "cron" / "jobs.json"
     if not jobs_file.exists():
         return "0"
     try:
@@ -204,7 +204,7 @@ def run_dump(args):
     load_dotenv(get_project_root() / ".env", override=False, encoding="utf-8")
 
     project_root = get_project_root()
-    hermes_home = get_hermes_home()
+    mercury_home = get_mercury_home()
 
     try:
         from mercury_cli import __version__, __release_date__
@@ -243,7 +243,7 @@ def run_dump(args):
     os_info = f"{platform.system()} {platform.release()} {platform.machine()}"
 
     lines = []
-    lines.append("--- hermes dump ---")
+    lines.append("--- mercury dump ---")
     ver_str = f"{__version__}"
     if __release_date__:
         ver_str += f" ({__release_date__})"
@@ -253,7 +253,7 @@ def run_dump(args):
     lines.append(f"python:           {sys.version.split()[0]}")
     lines.append(f"openai_sdk:       {openai_ver}")
     lines.append(f"profile:          {profile}")
-    lines.append(f"hermes_home:      {display_hermes_home()}")
+    lines.append(f"mercury_home:      {display_mercury_home()}")
     lines.append(f"model:            {model}")
     lines.append(f"provider:         {provider}")
     lines.append(f"terminal:         {backend}")
@@ -301,7 +301,7 @@ def run_dump(args):
     lines.append("")
     lines.append("features:")
 
-    toolsets = config.get("toolsets", ["hermes-cli"])
+    toolsets = config.get("toolsets", ["mercury-cli"])
     lines.append(f"  toolsets:           {', '.join(toolsets) if toolsets else '(default)'}")
     lines.append(f"  mcp_servers:        {_count_mcp_servers(config)}")
     lines.append(f"  memory_provider:    {_memory_provider(config)}")
@@ -309,8 +309,8 @@ def run_dump(args):
 
     platforms = _configured_platforms()
     lines.append(f"  platforms:          {', '.join(platforms) if platforms else 'none'}")
-    lines.append(f"  cron_jobs:          {_cron_summary(hermes_home)}")
-    lines.append(f"  skills:             {_count_skills(hermes_home)}")
+    lines.append(f"  cron_jobs:          {_cron_summary(mercury_home)}")
+    lines.append(f"  skills:             {_count_skills(mercury_home)}")
 
     # Config overrides (non-default values)
     overrides = _config_overrides(config)

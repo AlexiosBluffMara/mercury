@@ -11,7 +11,7 @@ from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
 
-from mercury_constants import get_hermes_home
+from mercury_constants import get_mercury_home
 from tools.tool_backend_helpers import managed_nous_tools_enabled
 
 _DEFAULT_TOOL_GATEWAY_DOMAIN = "nousresearch.com"
@@ -28,8 +28,8 @@ class ManagedToolGatewayConfig:
 
 
 def auth_json_path():
-    """Return the Hermes auth store path, respecting HERMES_HOME overrides."""
-    return get_hermes_home() / "auth.json"
+    """Return the Mercury auth store path, respecting MERCURY_HOME overrides."""
+    return get_mercury_home() / "auth.json"
 
 
 def _read_nous_provider_state() -> Optional[dict]:

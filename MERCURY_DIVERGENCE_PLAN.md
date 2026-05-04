@@ -13,7 +13,7 @@ This document is a phased plan, not a "do it all in one PR" instruction. Each ph
 | Mercury branch | `main` at `c14931704` (~310 K LOC Python + ~25 K LOC TypeScript) |
 | Upstream tracked | `https://github.com/NousResearch/hermes-agent.git` |
 | Behind upstream | **1,262 commits** (`HEAD..upstream/main`) |
-| "hermes" in tree | 1,279 files, ~15 K occurrences, 287 paths contain `hermes` in the name |
+| "mercury" in tree | 1,279 files, ~15 K occurrences, 287 paths contain `mercury` in the name |
 | Largest modules | `run_agent.py` (12,647 LOC), `gateway/run.py` (11,147), `cli.py` (11,116), `mercury_cli/main.py` (9,309) |
 | TUI | TypeScript + Ink (`ui-tui/`) — separate package |
 | Web app | React + Vite (`mercury-web/`) — separate package |
@@ -39,7 +39,7 @@ Reconnaissance, no destructive changes.
    - `52882dade fix(agent): include name field on every role:tool message for Gemini compatibility (#16478)`
    - `5ec6baa40 feat(kanban): multi-project boards — one install, many kanbans (#19653)`
    - `a175f3957 feat(nous): persist Nous OAuth across profiles via shared token store (#19712)`
-4. **Skip** commits that bake the Hermes brand deeper (UI strings, CLI banners, telemetry endpoints, Hermes Atropos environments). Those will conflict with the rebrand anyway.
+4. **Skip** commits that bake the Mercury brand deeper (UI strings, CLI banners, telemetry endpoints, Mercury Atropos environments). Those will conflict with the rebrand anyway.
 
 ## Phase 1 — selective upstream merge (one workday)
 
@@ -54,13 +54,13 @@ Don't `git merge upstream/main` blindly — that's 1,262 commits including a lot
 
 Expected delta: ~60–100 commits cherry-picked, mostly bug fixes + 2–3 features. Not 1,262.
 
-**What we leave on the table from upstream**: the entire `hermes-` branding (UI strings, banner ASCII art, Sentry telemetry endpoints calling home to Nous), the `hermes-atropos-environments` skill (we don't run RL training), and any commits that introduce paid Nous Research API dependencies.
+**What we leave on the table from upstream**: the entire `mercury-` branding (UI strings, banner ASCII art, Sentry telemetry endpoints calling home to Nous), the `mercury-atropos-environments` skill (we don't run RL training), and any commits that introduce paid Nous Research API dependencies.
 
-## Phase 2 — hard rebrand (Hermes → Mercury everywhere) (one workday)
+## Phase 2 — hard rebrand (Mercury → Mercury everywhere) (one workday)
 
 This is mechanical. The blast radius is wide but each replacement is local.
 
-### What stays "Hermes"-shaped
+### What stays "Mercury"-shaped
 
 - `upstream` git remote — kept so we can keep cherry-picking. Branch `upstream/main` is read-only history; don't push to it.
 - `mercury_cli/` itself — already named, no change.
@@ -70,55 +70,55 @@ This is mechanical. The blast radius is wide but each replacement is local.
 
 | From | To | Why |
 |---|---|---|
-| `Hermes`, `hermes` (brand) | `Mercury`, `mercury` | The point of the divergence. |
-| `hermes-agent` (CLI invocation) | `mercury-agent` (alias for `mercury`) | Already mostly done. |
-| `~/.hermes/` (home dir) | `~/.mercury/` | Keep a symlink for one release cycle so existing users don't lose state. |
-| `HERMES_*` env vars | `MERCURY_*` | Read both during a 2-release deprecation window. |
-| `tests/hermes_cli/` | `tests/mercury_cli/` | Rename + fix imports. |
-| `tests/hermes_state/` | `tests/mercury_state/` | Same. |
-| `ui-tui/packages/hermes-ink` | `ui-tui/packages/mercury-ink` | Package rename + tsconfig path updates. |
-| `scripts/hermes-gateway` (binary symlink) | `scripts/mercury-gateway` | Plus shim that prints a deprecation warning. |
+| `Mercury`, `mercury` (brand) | `Mercury`, `mercury` | The point of the divergence. |
+| `mercury-agent` (CLI invocation) | `mercury-agent` (alias for `mercury`) | Already mostly done. |
+| `~/.mercury/` (home dir) | `~/.mercury/` | Keep a symlink for one release cycle so existing users don't lose state. |
+| `MERCURY_*` env vars | `MERCURY_*` | Read both during a 2-release deprecation window. |
+| `tests/mercury_cli/` | `tests/mercury_cli/` | Rename + fix imports. |
+| `tests/mercury_state/` | `tests/mercury_state/` | Same. |
+| `ui-tui/packages/mercury-ink` | `ui-tui/packages/mercury-ink` | Package rename + tsconfig path updates. |
+| `scripts/mercury-gateway` (binary symlink) | `scripts/mercury-gateway` | Plus shim that prints a deprecation warning. |
 | Nous Research telemetry endpoints | Either remove entirely OR self-host on `telemetry.redteamkitchen.com` | Don't keep calling home to a separate org's DNS for our forked product. |
-| `hermes-self-evolution` skill | `mercury-self-evolution` | If we keep it. |
+| `mercury-self-evolution` skill | `mercury-self-evolution` | If we keep it. |
 | README headers, banners, config snippets | All branded "Mercury" | One-shot sed per file, then human read-through. |
 
 ### Mechanical execution recipe
 
 ```bash
 # 1. Audit the scope (already done):
-git grep -lI -i 'hermes' | wc -l                  # 1279 files
+git grep -lI -i 'mercury' | wc -l                  # 1279 files
 
 # 2. Run a careful sed pass — case-preserving:
 git ls-files | xargs perl -p -i -e '
-    s/HERMES/MERCURY/g;
-    s/Hermes/Mercury/g;
-    s/hermes/mercury/g;
+    s/MERCURY/MERCURY/g;
+    s/Mercury/Mercury/g;
+    s/mercury/mercury/g;
 '
 
 # 3. Rename file paths separately (sed touches contents only):
-git mv hermes/                        mercury/
+git mv mercury/                        mercury/
 git mv mercury_cli/                   mercury_cli/        # already named
-git mv tests/hermes_cli/              tests/mercury_cli/
-git mv tests/hermes_state/            tests/mercury_state/
-git mv ui-tui/packages/hermes-ink/    ui-tui/packages/mercury-ink/
-git mv scripts/hermes-gateway         scripts/mercury-gateway
-git mv environments/hermes_swe_env/   environments/mercury_swe_env/
-git mv environments/hermes_base_env.py environments/mercury_base_env.py
-git mv skills/autonomous-ai-agents/hermes-agent/ skills/autonomous-ai-agents/mercury-agent/
-git mv skills/self-evolution/hermes-self-evolution/ skills/self-evolution/mercury-self-evolution/
+git mv tests/mercury_cli/              tests/mercury_cli/
+git mv tests/mercury_state/            tests/mercury_state/
+git mv ui-tui/packages/mercury-ink/    ui-tui/packages/mercury-ink/
+git mv scripts/mercury-gateway         scripts/mercury-gateway
+git mv environments/mercury_swe_env/   environments/mercury_swe_env/
+git mv environments/mercury_base_env.py environments/mercury_base_env.py
+git mv skills/autonomous-ai-agents/mercury-agent/ skills/autonomous-ai-agents/mercury-agent/
+git mv skills/self-evolution/mercury-self-evolution/ skills/self-evolution/mercury-self-evolution/
 
-# 4. Search for hand-curated "Hermes" references (skill descriptions, model
-#    names, OAuth scopes that include 'hermes' as a literal string) — those
+# 4. Search for hand-curated "Mercury" references (skill descriptions, model
+#    names, OAuth scopes that include 'mercury' as a literal string) — those
 #    might be intentional and need human review:
-git grep -nI 'hermes' | grep -vE '^(\.git/|.*\.lock:|.*\.json:|tests/)' | head -50
+git grep -nI 'mercury' | grep -vE '^(\.git/|.*\.lock:|.*\.json:|tests/)' | head -50
 
-# 5. Add ~/.hermes → ~/.mercury symlink shim:
-#    mercury_cli/config.py: HERMES_HOME = Path.home() / ".hermes"  →
+# 5. Add ~/.mercury → ~/.mercury symlink shim:
+#    mercury_cli/config.py: MERCURY_HOME = Path.home() / ".mercury"  →
 #                           MERCURY_HOME = Path.home() / ".mercury"
-#                           but also accept ~/.hermes if it exists, with one warning.
+#                           but also accept ~/.mercury if it exists, with one warning.
 
 # 6. Backward-compat env-var shim:
-#    For each HERMES_* env var, fall back to it ONCE with a DeprecationWarning.
+#    For each MERCURY_* env var, fall back to it ONCE with a DeprecationWarning.
 
 # 7. Update the README, AGENTS.md, CONTRIBUTING.md, LICENSE attribution
 #    (keep upstream credit but rename the product).
@@ -128,9 +128,9 @@ git grep -nI 'hermes' | grep -vE '^(\.git/|.*\.lock:|.*\.json:|tests/)' | head -
 
 ### Risks of the rebrand
 
-- **OAuth tokens with `hermes` in the path** stop being read until users re-authenticate (or the symlink shim covers them). Document loudly.
-- **Cron jobs / systemd units** that hard-coded `~/.hermes/...` will break. Provide a migrate script.
-- **Public mentions / reviews** still reference Hermes. Use the README to make the lineage explicit: "Mercury is a divergent fork of Hermes by Nous Research; we rewrote X, Y, Z and renamed for clarity."
+- **OAuth tokens with `mercury` in the path** stop being read until users re-authenticate (or the symlink shim covers them). Document loudly.
+- **Cron jobs / systemd units** that hard-coded `~/.mercury/...` will break. Provide a migrate script.
+- **Public mentions / reviews** still reference Mercury. Use the README to make the lineage explicit: "Mercury is a divergent fork of Mercury by Nous Research; we rewrote X, Y, Z and renamed for clarity."
 
 ---
 
@@ -195,7 +195,7 @@ Once the Go-based TUI is in:
 | Risk | Mitigation |
 |---|---|
 | Cherry-pick conflicts blow up | Pre-divergence-snapshot tag; merge each commit individually; back out anything that touches >5 files we've modified locally |
-| Rebrand breaks user OAuth | `~/.hermes` symlink shim + env-var fallbacks for one release |
+| Rebrand breaks user OAuth | `~/.mercury` symlink shim + env-var fallbacks for one release |
 | Telemetry endpoint removal silently breaks update checks | Either self-host or disable the update-check entirely; document |
 | Rust extension build fails on a user's machine | Ship pre-built wheels for win64/linux64/macOS arm64; pure-Python fallback always available |
 | Go TUI fragments the project (now 3 languages) | Worth it: Python core stays Python, TUI is a thin client over the daemon, and Bubble Tea binaries are trivial to distribute |
@@ -206,7 +206,7 @@ Once the Go-based TUI is in:
 ## TL;DR
 
 1. **Merge selectively, not bulk**: cherry-pick ~60–100 high-value commits from upstream, leave the brand-bake-in commits behind. ~1 day.
-2. **Rebrand mechanically**: sed pass + git mv pass + symlink shim for `~/.hermes`. 1 day, hold a backup tag.
+2. **Rebrand mechanically**: sed pass + git mv pass + symlink shim for `~/.mercury`. 1 day, hold a backup tag.
 3. **Profile before rewriting**: `py-spy` → top-2 hot paths → Rust PyO3 extension. Keep Python core.
 4. **Replace TUI with Go (Bubble Tea)** and React web dashboard with SolidJS/HTMX. Each ships independently.
 5. **TUI gets live GPU/queue/Discord panes** powered by the same WebSocket stream we'll add for the cortex frontend.

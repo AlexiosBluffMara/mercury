@@ -2,14 +2,14 @@
 sidebar_position: 11
 sidebar_label: "Plugins"
 title: "Plugins"
-description: "Extend Hermes with custom tools, hooks, and integrations via the plugin system"
+description: "Extend Mercury with custom tools, hooks, and integrations via the plugin system"
 ---
 
 # Plugins
 
-Hermes has a plugin system for adding custom tools, hooks, and integrations without modifying core code.
+Mercury has a plugin system for adding custom tools, hooks, and integrations without modifying core code.
 
-**→ [Build a Hermes Plugin](/docs/guides/build-a-hermes-plugin)** — step-by-step guide with a complete working example.
+**→ [Build a Mercury Plugin](/docs/guides/build-a-mercury-plugin)** — step-by-step guide with a complete working example.
 
 ## Quick overview
 
@@ -23,7 +23,7 @@ Drop a directory into `~/.mercury/plugins/` with a `plugin.yaml` and Python code
 └── tools.py         # tool handlers (what runs when called)
 ```
 
-Start Hermes — your tools appear alongside built-in tools. The model can call them immediately.
+Start Mercury — your tools appear alongside built-in tools. The model can call them immediately.
 
 ### Minimal working example
 
@@ -40,7 +40,7 @@ description: A minimal example plugin
 **`~/.mercury/plugins/hello-world/__init__.py`**
 
 ```python
-"""Minimal Hermes plugin — registers a tool and a hook."""
+"""Minimal Mercury plugin — registers a tool and a hook."""
 
 
 def register(ctx):
@@ -73,9 +73,9 @@ def register(ctx):
     ctx.register_hook("post_tool_call", on_tool_call)
 ```
 
-Drop both files into `~/.mercury/plugins/hello-world/`, restart Hermes, and the model can immediately call `hello_world`. The hook prints a log line after every tool invocation.
+Drop both files into `~/.mercury/plugins/hello-world/`, restart Mercury, and the model can immediately call `hello_world`. The hook prints a log line after every tool invocation.
 
-Project-local plugins under `./.hermes/plugins/` are disabled by default. Enable them only for trusted repositories by setting `HERMES_ENABLE_PROJECT_PLUGINS=true` before starting Hermes.
+Project-local plugins under `./.mercury/plugins/` are disabled by default. Enable them only for trusted repositories by setting `MERCURY_ENABLE_PROJECT_PLUGINS=true` before starting Mercury.
 
 ## What plugins can do
 
@@ -84,27 +84,27 @@ Project-local plugins under `./.hermes/plugins/` are disabled by default. Enable
 | Add tools | `ctx.register_tool(name, schema, handler)` |
 | Add hooks | `ctx.register_hook("post_tool_call", callback)` |
 | Add slash commands | `ctx.register_command(name, handler, description)` — adds `/name` in CLI and gateway sessions |
-| Add CLI commands | `ctx.register_cli_command(name, help, setup_fn, handler_fn)` — adds `hermes <plugin> <subcommand>` |
+| Add CLI commands | `ctx.register_cli_command(name, help, setup_fn, handler_fn)` — adds `mercury <plugin> <subcommand>` |
 | Inject messages | `ctx.inject_message(content, role="user")` — see [Injecting Messages](#injecting-messages) |
 | Ship data files | `Path(__file__).parent / "data" / "file.yaml"` |
 | Bundle skills | `ctx.register_skill(name, path)` — namespaced as `plugin:skill`, loaded via `skill_view("plugin:skill")` |
-| Gate on env vars | `requires_env: [API_KEY]` in plugin.yaml — prompted during `hermes plugins install` |
-| Distribute via pip | `[project.entry-points."hermes_agent.plugins"]` |
+| Gate on env vars | `requires_env: [API_KEY]` in plugin.yaml — prompted during `mercury plugins install` |
+| Distribute via pip | `[project.entry-points."mercury_agent.plugins"]` |
 
 ## Plugin discovery
 
 | Source | Path | Use case |
 |--------|------|----------|
-| Bundled | `<repo>/plugins/` | Ships with Hermes — see [Built-in Plugins](/docs/user-guide/features/built-in-plugins) |
+| Bundled | `<repo>/plugins/` | Ships with Mercury — see [Built-in Plugins](/docs/user-guide/features/built-in-plugins) |
 | User | `~/.mercury/plugins/` | Personal plugins |
-| Project | `.hermes/plugins/` | Project-specific plugins (requires `HERMES_ENABLE_PROJECT_PLUGINS=true`) |
-| pip | `hermes_agent.plugins` entry_points | Distributed packages |
+| Project | `.mercury/plugins/` | Project-specific plugins (requires `MERCURY_ENABLE_PROJECT_PLUGINS=true`) |
+| pip | `mercury_agent.plugins` entry_points | Distributed packages |
 
 Later sources override earlier ones on name collision, so a user plugin with the same name as a bundled plugin replaces it.
 
 ## Plugins are opt-in
 
-**Every plugin — user-installed, bundled, or pip — is disabled by default.** Discovery finds them (so they show up in `hermes plugins` and `/plugins`), but nothing loads until you add the plugin's name to `plugins.enabled` in `~/.mercury/config.yaml`. This stops anything with hooks or tools from running without your explicit consent.
+**Every plugin — user-installed, bundled, or pip — is disabled by default.** Discovery finds them (so they show up in `mercury plugins` and `/plugins`), but nothing loads until you add the plugin's name to `plugins.enabled` in `~/.mercury/config.yaml`. This stops anything with hooks or tools from running without your explicit consent.
 
 ```yaml
 plugins:
@@ -118,16 +118,16 @@ plugins:
 Three ways to flip state:
 
 ```bash
-hermes plugins                    # interactive toggle (space to check/uncheck)
-hermes plugins enable <name>      # add to allow-list
-hermes plugins disable <name>     # remove from allow-list + add to disabled
+mercury plugins                    # interactive toggle (space to check/uncheck)
+mercury plugins enable <name>      # add to allow-list
+mercury plugins disable <name>     # remove from allow-list + add to disabled
 ```
 
-After `hermes plugins install owner/repo`, you're asked `Enable 'name' now? [y/N]` — defaults to no. Skip the prompt for scripted installs with `--enable` or `--no-enable`.
+After `mercury plugins install owner/repo`, you're asked `Enable 'name' now? [y/N]` — defaults to no. Skip the prompt for scripted installs with `--enable` or `--no-enable`.
 
 ### Migration for existing users
 
-When you upgrade to a version of Hermes that has opt-in plugins (config schema v21+), any user plugins already installed under `~/.mercury/plugins/` that weren't already in `plugins.disabled` are **automatically grandfathered** into `plugins.enabled`. Your existing setup keeps working. Bundled plugins are NOT grandfathered — even existing users have to opt in explicitly.
+When you upgrade to a version of Mercury that has opt-in plugins (config schema v21+), any user plugins already installed under `~/.mercury/plugins/` that weren't already in `plugins.disabled` are **automatically grandfathered** into `plugins.enabled`. Your existing setup keeps working. Bundled plugins are NOT grandfathered — even existing users have to opt in explicitly.
 
 ## Available hooks
 
@@ -145,7 +145,7 @@ Plugins can register callbacks for these lifecycle events. See the **[Event Hook
 
 ## Plugin types
 
-Hermes has three kinds of plugins:
+Mercury has three kinds of plugins:
 
 | Type | What it does | Selection | Location |
 |------|-------------|-----------|----------|
@@ -158,20 +158,20 @@ Memory providers and context engines are **provider plugins** — only one of ea
 ## Managing plugins
 
 ```bash
-hermes plugins                               # unified interactive UI
-hermes plugins list                          # table: enabled / disabled / not enabled
-hermes plugins install user/repo             # install from Git, then prompt Enable? [y/N]
-hermes plugins install user/repo --enable    # install AND enable (no prompt)
-hermes plugins install user/repo --no-enable # install but leave disabled (no prompt)
-hermes plugins update my-plugin              # pull latest
-hermes plugins remove my-plugin              # uninstall
-hermes plugins enable my-plugin              # add to allow-list
-hermes plugins disable my-plugin             # remove from allow-list + add to disabled
+mercury plugins                               # unified interactive UI
+mercury plugins list                          # table: enabled / disabled / not enabled
+mercury plugins install user/repo             # install from Git, then prompt Enable? [y/N]
+mercury plugins install user/repo --enable    # install AND enable (no prompt)
+mercury plugins install user/repo --no-enable # install but leave disabled (no prompt)
+mercury plugins update my-plugin              # pull latest
+mercury plugins remove my-plugin              # uninstall
+mercury plugins enable my-plugin              # add to allow-list
+mercury plugins disable my-plugin             # remove from allow-list + add to disabled
 ```
 
 ### Interactive UI
 
-Running `hermes plugins` with no arguments opens a composite interactive screen:
+Running `mercury plugins` with no arguments opens a composite interactive screen:
 
 ```
 Plugins
@@ -211,7 +211,7 @@ Plugins occupy one of three states:
 | `disabled` | Explicitly off — won't load even if also in `enabled` | (irrelevant) | Yes |
 | `not enabled` | Discovered but never opted in | No | No |
 
-The default for a newly-installed or bundled plugin is `not enabled`. `hermes plugins list` shows all three distinct states so you can tell what's been explicitly turned off vs. what's just waiting to be enabled.
+The default for a newly-installed or bundled plugin is `not enabled`. `mercury plugins list` shows all three distinct states so you can tell what's been explicitly turned off vs. what's just waiting to be enabled.
 
 In a running session, `/plugins` shows which plugins are currently loaded.
 
@@ -238,4 +238,4 @@ This enables plugins like remote control viewers, messaging bridges, or webhook 
 `inject_message` is only available in CLI mode. In gateway mode, there is no CLI reference and the method returns `False`.
 :::
 
-See the **[full guide](/docs/guides/build-a-hermes-plugin)** for handler contracts, schema format, hook behavior, error handling, and common mistakes.
+See the **[full guide](/docs/guides/build-a-mercury-plugin)** for handler contracts, schema format, hook behavior, error handling, and common mistakes.

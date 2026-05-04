@@ -1,14 +1,14 @@
 ---
 name: autoresearch
-description: Run Andrej Karpathy's autoresearch loop on the 5090 to discover small training-recipe improvements overnight. Best fit when the user has a small-model training script (nanochat-style, ~600 LOC) and wants to harvest 10-30 micro-optimisations with no manual experimentation. Pairs cleanly with hermes-self-evolution and ml-intern.
+description: Run Andrej Karpathy's autoresearch loop on the 5090 to discover small training-recipe improvements overnight. Best fit when the user has a small-model training script (nanochat-style, ~600 LOC) and wants to harvest 10-30 micro-optimisations with no manual experimentation. Pairs cleanly with mercury-self-evolution and ml-intern.
 version: 1.0.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [self-evolution, autoresearch, karpathy, nanochat, microGPT, training, RTX5090]
     category: autonomous-ai-agents
-    related_skills: [hermes-self-evolution, ml-intern, cortex-bridge]
+    related_skills: [mercury-self-evolution, ml-intern, cortex-bridge]
 prerequisites:
   external_repos:
     - https://github.com/karpathy/autoresearch

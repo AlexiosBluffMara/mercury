@@ -1,6 +1,6 @@
 # Session Storage
 
-Hermes Agent uses a SQLite database (`~/.mercury/state.db`) to persist session
+Mercury Agent uses a SQLite database (`~/.mercury/state.db`) to persist session
 metadata, full message history, and model configuration across CLI and gateway
 sessions. This replaces the earlier per-session JSONL file approach.
 
@@ -149,7 +149,7 @@ each successful migration block.
 
 ## Write Contention Handling
 
-Multiple hermes processes (gateway + CLI sessions + worktree agents) share one
+Multiple mercury processes (gateway + CLI sessions + worktree agents) share one
 `state.db`. The `SessionDB` class handles write contention with:
 
 - **Short SQLite timeout** (1 second) instead of the default 30s
@@ -381,8 +381,8 @@ db.delete_session("sess_abc123")
 
 Default path: `~/.mercury/state.db`
 
-This is derived from `mercury_constants.get_hermes_home()` which resolves to
-`~/.mercury/` by default, or the value of `HERMES_HOME` environment variable.
+This is derived from `mercury_constants.get_mercury_home()` which resolves to
+`~/.mercury/` by default, or the value of `MERCURY_HOME` environment variable.
 
 The database file, WAL file (`state.db-wal`), and shared-memory file
 (`state.db-shm`) are all created in the same directory.

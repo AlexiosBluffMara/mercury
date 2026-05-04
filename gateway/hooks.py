@@ -25,10 +25,10 @@ from typing import Any, Callable, Dict, List, Optional
 
 import yaml
 
-from mercury_cli.config import get_hermes_home
+from mercury_cli.config import get_mercury_home
 
 
-HOOKS_DIR = get_hermes_home() / "hooks"
+HOOKS_DIR = get_mercury_home() / "hooks"
 
 
 class HookRegistry:
@@ -105,7 +105,7 @@ class HookRegistry:
 
                 # Dynamically load the handler module
                 spec = importlib.util.spec_from_file_location(
-                    f"hermes_hook_{hook_name}", handler_path
+                    f"mercury_hook_{hook_name}", handler_path
                 )
                 if spec is None or spec.loader is None:
                     print(f"[hooks] Skipping {hook_name}: could not load handler.py", flush=True)

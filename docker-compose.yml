@@ -1,12 +1,12 @@
 #
-# docker-compose.yml for Hermes Agent
+# docker-compose.yml for Mercury Agent
 #
 # Usage:
-#   HERMES_UID=$(id -u) HERMES_GID=$(id -g) docker compose up -d
+#   MERCURY_UID=$(id -u) MERCURY_GID=$(id -g) docker compose up -d
 #
-# Set HERMES_UID / HERMES_GID to the host user that owns ~/.hermes so
+# Set MERCURY_UID / MERCURY_GID to the host user that owns ~/.mercury so
 # files created inside the container stay readable/writable on the host.
-# The entrypoint remaps the internal `hermes` user to these values via
+# The entrypoint remaps the internal `mercury` user to these values via
 # usermod/groupmod + gosu.
 #
 # Security notes:
@@ -21,15 +21,15 @@
 services:
   gateway:
     build: .
-    image: hermes-agent
-    container_name: hermes
+    image: mercury-agent
+    container_name: mercury
     restart: unless-stopped
     network_mode: host
     volumes:
-      - ~/.hermes:/opt/data
+      - ~/.mercury:/opt/data
     environment:
-      - HERMES_UID=${HERMES_UID:-10000}
-      - HERMES_GID=${HERMES_GID:-10000}
+      - MERCURY_UID=${MERCURY_UID:-10000}
+      - MERCURY_GID=${MERCURY_GID:-10000}
       # To expose the OpenAI-compatible API server beyond localhost,
       # uncomment BOTH lines (API_SERVER_KEY is mandatory for auth):
       # - API_SERVER_HOST=0.0.0.0
@@ -37,16 +37,16 @@ services:
     command: ["gateway", "run"]
 
   dashboard:
-    image: hermes-agent
-    container_name: hermes-dashboard
+    image: mercury-agent
+    container_name: mercury-dashboard
     restart: unless-stopped
     network_mode: host
     depends_on:
       - gateway
     volumes:
-      - ~/.hermes:/opt/data
+      - ~/.mercury:/opt/data
     environment:
-      - HERMES_UID=${HERMES_UID:-10000}
-      - HERMES_GID=${HERMES_GID:-10000}
+      - MERCURY_UID=${MERCURY_UID:-10000}
+      - MERCURY_GID=${MERCURY_GID:-10000}
     # Localhost-only. For remote access, tunnel via `ssh -L 9119:localhost:9119`.
     command: ["dashboard", "--host", "127.0.0.1", "--no-open"]

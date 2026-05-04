@@ -5,7 +5,7 @@ version: 1.0.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [cortex, TRIBE, fMRI, BOLD, neuroscience, brain-scan, narration]
     category: research
     related_skills: [three-js-component, glsl-shader]

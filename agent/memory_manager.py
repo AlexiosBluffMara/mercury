@@ -397,13 +397,13 @@ class MemoryManager:
     def initialize_all(self, session_id: str, **kwargs) -> None:
         """Initialize all providers.
 
-        Automatically injects ``hermes_home`` into *kwargs* so that every
+        Automatically injects ``mercury_home`` into *kwargs* so that every
         provider can resolve profile-scoped storage paths without importing
-        ``get_hermes_home()`` themselves.
+        ``get_mercury_home()`` themselves.
         """
-        if "hermes_home" not in kwargs:
-            from mercury_constants import get_hermes_home
-            kwargs["hermes_home"] = str(get_hermes_home())
+        if "mercury_home" not in kwargs:
+            from mercury_constants import get_mercury_home
+            kwargs["mercury_home"] = str(get_mercury_home())
         for provider in self._providers:
             try:
                 provider.initialize(session_id=session_id, **kwargs)

@@ -256,7 +256,7 @@ class ChatCompletionsTransport(ProviderTransport):
                     extra_body["reasoning"] = {"enabled": True, "effort": "medium"}
 
         if is_nous:
-            extra_body["tags"] = ["product=hermes-agent"]
+            extra_body["tags"] = ["product=mercury-agent"]
 
         # Ollama num_ctx
         ollama_ctx = params.get("ollama_num_ctx")

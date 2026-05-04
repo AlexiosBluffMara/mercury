@@ -50,30 +50,30 @@ logger = logging.getLogger(__name__)
 # Non-agentic model warning
 # ---------------------------------------------------------------------------
 
-_HERMES_MODEL_WARNING = (
-    "Nous Research Hermes 3 & 4 models are NOT agentic and are not designed "
-    "for use with Hermes Agent. They lack the tool-calling capabilities "
+_MERCURY_MODEL_WARNING = (
+    "Nous Research Mercury 3 & 4 models are NOT agentic and are not designed "
+    "for use with Mercury Agent. They lack the tool-calling capabilities "
     "required for agent workflows. Consider using an agentic model instead "
     "(Claude, GPT, Gemini, DeepSeek, etc.)."
 )
 
-# Match only the real Nous Research Hermes 3 / Hermes 4 chat families.
-# The previous substring check (`"hermes" in name.lower()`) false-positived on
-# unrelated local Modelfiles like ``hermes-brain:qwen3-14b-ctx16k`` that just
-# happen to carry "hermes" in their tag but are fully tool-capable.
+# Match only the real Nous Research Mercury 3 / Mercury 4 chat families.
+# The previous substring check (`"mercury" in name.lower()`) false-positived on
+# unrelated local Modelfiles like ``mercury-brain:qwen3-14b-ctx16k`` that just
+# happen to carry "mercury" in their tag but are fully tool-capable.
 #
 # Positive examples the regex must match:
-#   NousResearch/Hermes-3-Llama-3.1-70B, hermes-4-405b, openrouter/hermes3:70b
+#   NousResearch/Mercury-3-Llama-3.1-70B, mercury-4-405b, openrouter/mercury3:70b
 # Negative examples it must NOT match:
-#   hermes-brain:qwen3-14b-ctx16k, qwen3:14b, claude-opus-4-6
-_NOUS_HERMES_NON_AGENTIC_RE = re.compile(
-    r"(?:^|[/:])hermes[-_ ]?[34](?:[-_.:]|$)",
+#   mercury-brain:qwen3-14b-ctx16k, qwen3:14b, claude-opus-4-6
+_NOUS_MERCURY_NON_AGENTIC_RE = re.compile(
+    r"(?:^|[/:])mercury[-_ ]?[34](?:[-_.:]|$)",
     re.IGNORECASE,
 )
 
 
-def is_nous_hermes_non_agentic(model_name: str) -> bool:
-    """Return True if *model_name* is a real Nous Hermes 3/4 chat model.
+def is_nous_mercury_non_agentic(model_name: str) -> bool:
+    """Return True if *model_name* is a real Nous Mercury 3/4 chat model.
 
     Used to decide whether to surface the non-agentic warning at startup.
     Callers in :mod:`cli.py` and here should go through this single helper
@@ -81,13 +81,13 @@ def is_nous_hermes_non_agentic(model_name: str) -> bool:
     """
     if not model_name:
         return False
-    return bool(_NOUS_HERMES_NON_AGENTIC_RE.search(model_name))
+    return bool(_NOUS_MERCURY_NON_AGENTIC_RE.search(model_name))
 
 
-def _check_hermes_model_warning(model_name: str) -> str:
-    """Return a warning string if *model_name* is a Nous Hermes 3/4 chat model."""
-    if is_nous_hermes_non_agentic(model_name):
-        return _HERMES_MODEL_WARNING
+def _check_mercury_model_warning(model_name: str) -> str:
+    """Return a warning string if *model_name* is a Nous Mercury 3/4 chat model."""
+    if is_nous_mercury_non_agentic(model_name):
+        return _MERCURY_MODEL_WARNING
     return ""
 
 
@@ -640,7 +640,7 @@ def switch_model(
         if pdef is None:
             _switch_err = (
                 f"Unknown provider '{explicit_provider}'. "
-                f"Check 'hermes model' for available providers, or define it "
+                f"Check 'mercury model' for available providers, or define it "
                 f"in config.yaml under 'providers:'."
             )
             # Check for common config issues that cause provider resolution failures
@@ -648,7 +648,7 @@ def switch_model(
                 from mercury_cli.config import validate_config_structure
                 _cfg_issues = validate_config_structure()
                 if _cfg_issues:
-                    _switch_err += "\n\nRun 'hermes doctor' — config issues detected:"
+                    _switch_err += "\n\nRun 'mercury doctor' — config issues detected:"
                     for _ci in _cfg_issues[:3]:
                         _switch_err += f"\n  • {_ci.message}"
             except Exception:
@@ -920,9 +920,9 @@ def switch_model(
     warnings: list[str] = []
     if validation.get("message"):
         warnings.append(validation["message"])
-    hermes_warn = _check_hermes_model_warning(new_model)
-    if hermes_warn:
-        warnings.append(hermes_warn)
+    mercury_warn = _check_mercury_model_warning(new_model)
+    if mercury_warn:
+        warnings.append(mercury_warn)
 
     # --- Build result ---
     return ModelSwitchResult(
@@ -988,7 +988,7 @@ def list_authenticated_providers(
 
     data = fetch_models_dev()
 
-    # Build curated model lists keyed by hermes provider ID
+    # Build curated model lists keyed by mercury provider ID
     curated: dict[str, list[str]] = dict(_PROVIDER_MODELS)
     curated["openrouter"] = [mid for mid, _ in OPENROUTER_MODELS]
     # "nous" shares OpenRouter's curated list if not separately defined
@@ -999,8 +999,8 @@ def list_authenticated_providers(
         from mercury_cli.models import fetch_ollama_cloud_models
         curated["ollama-cloud"] = fetch_ollama_cloud_models()
 
-    # --- 1. Check Hermes-mapped providers ---
-    for hermes_id, mdev_id in PROVIDER_TO_MODELS_DEV.items():
+    # --- 1. Check Mercury-mapped providers ---
+    for mercury_id, mdev_id in PROVIDER_TO_MODELS_DEV.items():
         # Skip aliases that map to the same models.dev provider (e.g.
         # kimi-coding and kimi-coding-cn both → kimi-for-coding).
         # The first one with valid credentials wins (#10526).
@@ -1013,9 +1013,9 @@ def list_authenticated_providers(
         # Prefer auth.py PROVIDER_REGISTRY for env var names — it's our
         # source of truth.  models.dev can have wrong mappings (e.g.
         # minimax-cn → MINIMAX_API_KEY instead of MINIMAX_CN_API_KEY).
-        pconfig = PROVIDER_REGISTRY.get(hermes_id)
+        pconfig = PROVIDER_REGISTRY.get(mercury_id)
         # Skip non-API-key auth providers here — they are handled in
-        # section 2 (HERMES_OVERLAYS) with proper auth store checking.
+        # section 2 (MERCURY_OVERLAYS) with proper auth store checking.
         if pconfig and pconfig.auth_type != "api_key":
             continue
         if pconfig and pconfig.api_key_env_vars:
@@ -1031,7 +1031,7 @@ def list_authenticated_providers(
             try:
                 from mercury_cli.auth import _load_auth_store
                 store = _load_auth_store()
-                if store and hermes_id in store.get("credential_pool", {}):
+                if store and mercury_id in store.get("credential_pool", {}):
                     has_creds = True
             except Exception:
                 pass
@@ -1041,14 +1041,14 @@ def list_authenticated_providers(
         # Use curated list, falling back to models.dev if no curated list.
         # For preferred providers, merge models.dev entries into the curated
         # catalog so newly released models (e.g. mimo-v2.5-pro on opencode-go)
-        # show up in the picker without requiring a Hermes release.
-        model_ids = curated.get(hermes_id, [])
-        if hermes_id in _MODELS_DEV_PREFERRED:
-            model_ids = _merge_with_models_dev(hermes_id, model_ids)
+        # show up in the picker without requiring a Mercury release.
+        model_ids = curated.get(mercury_id, [])
+        if mercury_id in _MODELS_DEV_PREFERRED:
+            model_ids = _merge_with_models_dev(mercury_id, model_ids)
         total = len(model_ids)
         top = model_ids[:max_models]
 
-        slug = hermes_id
+        slug = mercury_id
         pinfo = _mdev_pinfo(mdev_id)
         display_name = pinfo.name if pinfo else mdev_id
 
@@ -1064,22 +1064,22 @@ def list_authenticated_providers(
         seen_slugs.add(slug.lower())
         seen_mdev_ids.add(mdev_id)
 
-    # --- 2. Check Hermes-only providers (nous, openai-codex, copilot, opencode-go) ---
-    from mercury_cli.providers import HERMES_OVERLAYS
+    # --- 2. Check Mercury-only providers (nous, openai-codex, copilot, opencode-go) ---
+    from mercury_cli.providers import MERCURY_OVERLAYS
     from mercury_cli.auth import PROVIDER_REGISTRY as _auth_registry
 
-    # Build reverse mapping: models.dev ID → Hermes provider ID.
-    # HERMES_OVERLAYS keys may be models.dev IDs (e.g. "github-copilot")
-    # while _PROVIDER_MODELS and config.yaml use Hermes IDs ("copilot").
-    _mdev_to_hermes = {v: k for k, v in PROVIDER_TO_MODELS_DEV.items()}
+    # Build reverse mapping: models.dev ID → Mercury provider ID.
+    # MERCURY_OVERLAYS keys may be models.dev IDs (e.g. "github-copilot")
+    # while _PROVIDER_MODELS and config.yaml use Mercury IDs ("copilot").
+    _mdev_to_mercury = {v: k for k, v in PROVIDER_TO_MODELS_DEV.items()}
 
-    for pid, overlay in HERMES_OVERLAYS.items():
+    for pid, overlay in MERCURY_OVERLAYS.items():
         if pid.lower() in seen_slugs:
             continue
 
-        # Resolve Hermes slug — e.g. "github-copilot" → "copilot"
-        hermes_slug = _mdev_to_hermes.get(pid, pid)
-        if hermes_slug.lower() in seen_slugs:
+        # Resolve Mercury slug — e.g. "github-copilot" → "copilot"
+        mercury_slug = _mdev_to_mercury.get(pid, pid)
+        if mercury_slug.lower() in seen_slugs:
             continue
 
         # Check if credentials exist
@@ -1088,7 +1088,7 @@ def list_authenticated_providers(
             has_creds = any(os.environ.get(ev) for ev in overlay.extra_env_vars)
         # Also check api_key_env_vars from PROVIDER_REGISTRY for api_key auth_type
         if not has_creds and overlay.auth_type == "api_key":
-            for _key in (pid, hermes_slug):
+            for _key in (pid, mercury_slug):
                 pcfg = _auth_registry.get(_key)
                 if pcfg and pcfg.api_key_env_vars:
                     if any(os.environ.get(ev) for ev in pcfg.api_key_env_vars):
@@ -1105,8 +1105,8 @@ def list_authenticated_providers(
                 providers_store = store.get("providers", {})
                 pool_store = store.get("credential_pool", {})
                 if store and (
-                    pid in providers_store or hermes_slug in providers_store
-                    or pid in pool_store or hermes_slug in pool_store
+                    pid in providers_store or mercury_slug in providers_store
+                    or pid in pool_store or mercury_slug in pool_store
                 ):
                     has_creds = True
             except Exception as exc:
@@ -1118,11 +1118,11 @@ def list_authenticated_providers(
         if not has_creds:
             try:
                 from agent.credential_pool import load_pool
-                pool = load_pool(hermes_slug)
+                pool = load_pool(mercury_slug)
                 if pool.has_credentials():
                     has_creds = True
             except Exception as exc:
-                logger.debug("Credential pool check failed for %s: %s", hermes_slug, exc)
+                logger.debug("Credential pool check failed for %s: %s", mercury_slug, exc)
         # Fallback: check external credential files directly.
         # The credential pool gates anthropic behind
         # is_provider_explicitly_configured() to prevent auxiliary tasks
@@ -1130,15 +1130,15 @@ def list_authenticated_providers(
         # But the /model picker is discovery-oriented — we WANT to show
         # providers the user can switch to, even if they aren't currently
         # configured.
-        if not has_creds and hermes_slug == "anthropic":
+        if not has_creds and mercury_slug == "anthropic":
             try:
                 from agent.anthropic_adapter import (
                     read_claude_code_credentials,
-                    read_hermes_oauth_credentials,
+                    read_mercury_oauth_credentials,
                 )
-                hermes_creds = read_hermes_oauth_credentials()
+                mercury_creds = read_mercury_oauth_credentials()
                 cc_creds = read_claude_code_credentials()
-                if (hermes_creds and hermes_creds.get("accessToken")) or \
+                if (mercury_creds and mercury_creds.get("accessToken")) or \
                    (cc_creds and cc_creds.get("accessToken")):
                     has_creds = True
             except Exception as exc:
@@ -1146,33 +1146,33 @@ def list_authenticated_providers(
         if not has_creds:
             continue
 
-        if hermes_slug in {"copilot", "copilot-acp"}:
-            model_ids = provider_model_ids(hermes_slug)
+        if mercury_slug in {"copilot", "copilot-acp"}:
+            model_ids = provider_model_ids(mercury_slug)
         else:
-            # Use curated list — look up by Hermes slug, fall back to overlay key
-            model_ids = curated.get(hermes_slug, []) or curated.get(pid, [])
+            # Use curated list — look up by Mercury slug, fall back to overlay key
+            model_ids = curated.get(mercury_slug, []) or curated.get(pid, [])
             # Merge with models.dev for preferred providers (same rationale as above).
-            if hermes_slug in _MODELS_DEV_PREFERRED:
-                model_ids = _merge_with_models_dev(hermes_slug, model_ids)
+            if mercury_slug in _MODELS_DEV_PREFERRED:
+                model_ids = _merge_with_models_dev(mercury_slug, model_ids)
         total = len(model_ids)
         top = model_ids[:max_models]
 
         results.append({
-            "slug": hermes_slug,
-            "name": get_label(hermes_slug),
-            "is_current": hermes_slug == current_provider or pid == current_provider,
+            "slug": mercury_slug,
+            "name": get_label(mercury_slug),
+            "is_current": mercury_slug == current_provider or pid == current_provider,
             "is_user_defined": False,
             "models": top,
             "total_models": total,
-            "source": "hermes",
+            "source": "mercury",
         })
         seen_slugs.add(pid.lower())
-        seen_slugs.add(hermes_slug.lower())
+        seen_slugs.add(mercury_slug.lower())
 
     # --- 2b. Cross-check canonical provider list ---
     # Catches providers that are in CANONICAL_PROVIDERS but weren't found
-    # in PROVIDER_TO_MODELS_DEV or HERMES_OVERLAYS (keeps /model in sync
-    # with `hermes model`).
+    # in PROVIDER_TO_MODELS_DEV or MERCURY_OVERLAYS (keeps /model in sync
+    # with `mercury model`).
     try:
         from mercury_cli.models import CANONICAL_PROVIDERS as _canon_provs
     except ImportError:
@@ -1245,7 +1245,7 @@ def list_authenticated_providers(
             if ep_name.lower() in seen_slugs:
                 continue
             display_name = ep_cfg.get("name", "") or ep_name
-            # ``base_url`` is Hermes's canonical write key (matches
+            # ``base_url`` is Mercury's canonical write key (matches
             # custom_providers and _save_custom_provider); ``api`` / ``url``
             # remain as fallbacks for hand-edited / legacy configs.
             api_url = (
@@ -1263,7 +1263,7 @@ def list_authenticated_providers(
             if default_model:
                 models_list.append(default_model)
             # Also include the full models list from config.
-            # Hermes writes ``models:`` as a dict keyed by model id
+            # Mercury writes ``models:`` as a dict keyed by model id
             # (see mercury_cli/main.py::_save_custom_provider); older
             # configs or hand-edited files may still use a list.
             cfg_models = ep_cfg.get("models", [])
@@ -1346,7 +1346,7 @@ def list_authenticated_providers(
             if group_key not in groups:
                 # Strip per-model suffix so "Ollama — GLM 5.1" becomes
                 # "Ollama" for the grouped row. Em dash is the convention
-                # Hermes's own writer uses; a hyphen variant is accepted
+                # Mercury's own writer uses; a hyphen variant is accepted
                 # for hand-edited configs.
                 display_name = raw_name
                 for sep in ("—", " - "):
@@ -1373,7 +1373,7 @@ def list_authenticated_providers(
                 }
 
             # The singular ``model:`` field only holds the currently
-            # active model. Hermes's own writer (main.py::_save_custom_provider)
+            # active model. Mercury's own writer (main.py::_save_custom_provider)
             # stores every configured model as a dict under ``models:``;
             # downstream readers (agent/models_dev.py, gateway/run.py,
             # run_agent.py, mercury_cli/config.py) already consume that dict.

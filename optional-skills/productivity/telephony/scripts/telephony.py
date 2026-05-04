@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Telephony helper for the Hermes optional telephony skill.
+"""Telephony helper for the Mercury optional telephony skill.
 
 Capabilities:
 - Persist telephony provider credentials to ~/.mercury/.env
@@ -68,20 +68,20 @@ class OwnedTwilioNumber:
     capabilities: dict[str, Any]
 
 
-def _hermes_home() -> Path:
-    return Path(os.environ.get("HERMES_HOME", "~/.mercury")).expanduser()
+def _mercury_home() -> Path:
+    return Path(os.environ.get("MERCURY_HOME", "~/.mercury")).expanduser()
 
 
 def _env_path() -> Path:
-    return _hermes_home() / ".env"
+    return _mercury_home() / ".env"
 
 
 def _config_path() -> Path:
-    return _hermes_home() / "config.yaml"
+    return _mercury_home() / "config.yaml"
 
 
 def _state_path() -> Path:
-    return _hermes_home() / "telephony_state.json"
+    return _mercury_home() / "telephony_state.json"
 
 
 def _load_root_config() -> dict[str, Any]:
@@ -89,7 +89,7 @@ def _load_root_config() -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
-        import yaml  # optional dependency; Hermes already ships PyYAML
+        import yaml  # optional dependency; Mercury already ships PyYAML
     except Exception:
         return {}
     try:
@@ -1146,7 +1146,7 @@ def save_vapi(
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Hermes telephony helper")
+    parser = argparse.ArgumentParser(description="Mercury telephony helper")
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("diagnose", help="Show saved telephony state and provider readiness")

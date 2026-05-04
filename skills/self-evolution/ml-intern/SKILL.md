@@ -5,10 +5,10 @@ version: 1.0.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [self-evolution, ml-intern, fine-tuning, post-training, huggingface, qwen, gemma, training]
     category: autonomous-ai-agents
-    related_skills: [hermes-self-evolution, autoresearch, cortex-bridge]
+    related_skills: [mercury-self-evolution, autoresearch, cortex-bridge]
 prerequisites:
   external_repos:
     - https://github.com/huggingface/ml-intern

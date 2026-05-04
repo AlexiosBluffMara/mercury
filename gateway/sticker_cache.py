@@ -12,10 +12,10 @@ import json
 import time
 from typing import Optional
 
-from mercury_cli.config import get_hermes_home
+from mercury_cli.config import get_mercury_home
 
 
-CACHE_PATH = get_hermes_home() / "sticker_cache.json"
+CACHE_PATH = get_mercury_home() / "sticker_cache.json"
 
 # Vision prompt for describing stickers -- kept concise to save tokens
 STICKER_VISION_PROMPT = (

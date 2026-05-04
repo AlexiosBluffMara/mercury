@@ -5,7 +5,7 @@ version: 0.1.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [brain, fMRI, BOLD, three.js, R3F, neuroscience, creative, visualization]
     category: creative
     related_skills: [cortex-bridge, three-js-component, three-js-debug, glsl-shader]
@@ -195,15 +195,15 @@ the scan worked.
 ## Hackathon Submission Notes (Nous Creative 2026)
 
 This skill is the centerpiece of the Mercury submission to the **Nous
-Research Hermes Agent Creative Hackathon** (deadline May 3, 2026).
+Research Mercury Agent Creative Hackathon** (deadline May 3, 2026).
 
 For the demo recording:
 1. Pre-warm Gemma 4 E4B and the Cortex backend (see `D:/TRIBEV2/DEMO_SCRIPT.md`)
 2. Use a 20-second cat / animal-perception clip for visceral first-time
    wow factor
 3. Show the three tier narrations side-by-side
-4. Briefly switch the planner to `nousresearch/hermes-4-405b` to demonstrate
-   multi-model orchestration (`/model nous-portal:nousresearch/hermes-4-405b`)
+4. Briefly switch the planner to `nousresearch/mercury-4-405b` to demonstrate
+   multi-model orchestration (`/model nous-portal:nousresearch/mercury-4-405b`)
 5. Briefly switch to `moonshotai/kimi-k2.6` to demonstrate Kimi Track
    eligibility (`/model nous-portal:moonshotai/kimi-k2.6`)
 

@@ -137,7 +137,7 @@ def source_training(jsonl_path: Path) -> Iterator[dict]:
 
 
 def source_mercury_sessions() -> Iterator[dict]:
-    """Past Hermes/Mercury session memories (if SQLite store present)."""
+    """Past Mercury/Mercury session memories (if SQLite store present)."""
     if not MERCURY_STATE.exists():
         return
     try:

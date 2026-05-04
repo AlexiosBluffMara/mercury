@@ -5,7 +5,7 @@ version: 0.1.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [3D, fMRI, BOLD, vertex-colors, R3F, three.js, overlay, neuroscience]
     category: creative
     related_skills: [brain-viz, three-js-component, three-js-debug, glsl-shader, cortex-bridge]

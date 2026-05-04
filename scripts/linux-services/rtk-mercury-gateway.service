@@ -1,5 +1,5 @@
 [Unit]
-Description=Mercury gateway (Hermes-fork agent + Discord bot)
+Description=Mercury gateway (Mercury-fork agent + Discord bot)
 After=network-online.target rtk-cloudflared.service
 Wants=network-online.target
 

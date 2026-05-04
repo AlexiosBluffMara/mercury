@@ -32,9 +32,9 @@ from the upstream.
 
 ---
 
-## What is Hermes (the upstream)
+## What is Mercury (the upstream)
 
-Hermes Agent is a self-improving AI assistant developed by Nous
+Mercury Agent is a self-improving AI assistant developed by Nous
 Research. It runs as a single Python process that can talk to almost
 any LLM provider and connect to 17 messaging platforms, with a
 built-in skill system that lets the agent autonomously create and
@@ -45,7 +45,7 @@ many setups, with corresponding install size, dependency surface, and
 operational complexity. Currently around 116,000 GitHub stars, 17,000
 forks, MIT-licensed, written in Python with a TypeScript dashboard.
 
-Hermes optimizes for *generality*. A single binary should run on a
+Mercury optimizes for *generality*. A single binary should run on a
 $5 VPS, a Raspberry Pi, an iPhone via Termux, or a 32-core workstation.
 It supports six terminal sandboxes, eight memory providers, hundreds
 of LLM endpoints, a skills marketplace, and a plugin system that lets
@@ -61,7 +61,7 @@ options.
 Mercury is the same agent core, specialized for **one user, one
 machine, one ecosystem**:
 
-|  | Hermes (upstream) | Mercury (this fork) |
+|  | Mercury (upstream) | Mercury (this fork) |
 |---|---|---|
 | **Target hardware** | "Anywhere from a Raspberry Pi to a GPU cluster" | RTX 5090 desktop running Windows 11, with a Cortex sibling project at `D:/cortex` |
 | **Source of LLM** | 200+ providers via OpenRouter / Nous Portal | GitHub Copilot Pro+ for capable cloud calls; Ollama-served Gemma 4 E4B for local; Vertex AI for Google grounded search |
@@ -75,7 +75,7 @@ machine, one ecosystem**:
 | **Lines of code** | ~120,000 LOC of Python (excluding tests) | ~50,000 LOC after strip + Mercury additions |
 | **Deps installed** | Heavy (most extras) | Curated subset; Cortex's full ML stack including PyTorch 2.11+cu128 for Blackwell sm_120 |
 
-The result is a sharper tool. Hermes is the Swiss Army knife;
+The result is a sharper tool. Mercury is the Swiss Army knife;
 Mercury is the same blade ground specifically for what I'm
 actually doing in a given week.
 
@@ -85,7 +85,7 @@ actually doing in a given week.
 
 I considered building from scratch. Three reasons not to:
 
-1. **The agent loop is genuinely hard.** Hermes has solved problems
+1. **The agent loop is genuinely hard.** Mercury has solved problems
    that aren't visible until you've shipped something — context
    compression at 170k tokens, prompt-cache-friendly memory
    snapshots, autonomous skill creation, cross-platform conversation

@@ -13,7 +13,7 @@ Pricing (firecrawl.dev):
 Setup:
   1. Sign up at firecrawl.dev with a Google account
   2. Get the API key from dashboard
-  3. Add to ~/.hermes/.env: FIRECRAWL_API_KEY=fc-...
+  3. Add to ~/.mercury/.env: FIRECRAWL_API_KEY=fc-...
   4. Mercury picks it up automatically — no restart needed for new turns
 """
 from __future__ import annotations
@@ -74,7 +74,7 @@ def firecrawl_tool(args: dict | None = None, **_kw: Any) -> dict[str, Any]:
             "ok": False,
             "error": "no_credentials",
             "message": (
-                "Set FIRECRAWL_API_KEY in ~/.hermes/.env.  Free tier at "
+                "Set FIRECRAWL_API_KEY in ~/.mercury/.env.  Free tier at "
                 "firecrawl.dev gives 500 scrapes/month."
             ),
         }

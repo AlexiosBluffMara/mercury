@@ -5,7 +5,7 @@ version: 0.1.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [comfyui, image-generation, diffusion, sdxl, flux, wan, hunyuan, video-generation, workflows, creative]
     category: creative
     related_skills: [brain-viz, ascii-video, baoyu-infographic, creative-ideation]

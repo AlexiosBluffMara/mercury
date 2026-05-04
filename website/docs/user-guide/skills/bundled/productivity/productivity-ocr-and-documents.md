@@ -17,7 +17,7 @@ Extract text from PDFs and scanned documents. Use web_extract for remote URLs, p
 | Source | Bundled (installed by default) |
 | Path | `skills/productivity/ocr-and-documents` |
 | Version | `2.3.0` |
-| Author | Hermes Agent |
+| Author | Mercury Agent |
 | License | MIT |
 | Tags | `PDF`, `Documents`, `Research`, `Arxiv`, `Text-Extraction`, `OCR` |
 | Related skills | [`powerpoint`](/docs/user-guide/skills/bundled/productivity/productivity-powerpoint) |
@@ -25,7 +25,7 @@ Extract text from PDFs and scanned documents. Use web_extract for remote URLs, p
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # PDF & Document Extraction

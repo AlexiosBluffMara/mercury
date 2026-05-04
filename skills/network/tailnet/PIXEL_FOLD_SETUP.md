@@ -11,7 +11,7 @@ on-device Gemma 4 E4B for offline narration when the tailnet is unreachable.
 | Surface | Where it lives on the phone | Purpose |
 |---|---|---|
 | Mercury CLI | `~/mercury` (Termux pkg + venv) | The agent, talking to the GPU host over the tailnet |
-| Hermes Agent (full) | same venv | Skills runtime |
+| Mercury Agent (full) | same venv | Skills runtime |
 | WhatsApp gateway | Termux daemon under `mercury gateway up whatsapp` | Bridges WhatsApp → Mercury → brain pipeline |
 | Local Gemma 4 E4B | MediaPipe LLM Inference + Q4_K_XL `.task` file in `~/storage/shared/llm/` | Offline narration when tailnet is down |
 | Tailscale | Play Store Tailscale app | Mesh membership |
@@ -40,7 +40,7 @@ source .venv/bin/activate
 pip install -e .[termux]      # NOTE: `.[all]` pulls Android-incompat voice deps
 ```
 
-The `.[termux]` extra is the Mercury / Hermes Agent recommended set for
+The `.[termux]` extra is the Mercury / Mercury Agent recommended set for
 Android — it skips `pyaudio`, `whisper`, and similar deps that don't
 build on Termux.
 

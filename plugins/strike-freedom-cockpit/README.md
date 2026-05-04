@@ -17,7 +17,7 @@ Two pieces:
 
 ## Install
 
-1. **Theme** — copy the theme YAML into your Hermes home:
+1. **Theme** — copy the theme YAML into your Mercury home:
 
    ```
    cp theme/strike-freedom.yaml ~/.mercury/dashboard-themes/

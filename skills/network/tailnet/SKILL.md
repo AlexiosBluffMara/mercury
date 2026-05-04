@@ -5,7 +5,7 @@ version: 0.1.0
 author: Mercury
 license: MIT
 metadata:
-  hermes:
+  mercury:
     tags: [tailscale, network, security, identity, mesh, mtls, zero-trust]
     category: network
     related_skills: [whatsapp, discord-bot, brain-viz]
@@ -85,7 +85,7 @@ The full file lives next to this `SKILL.md`. Key sections:
     // Cloud failover: Cloud Run instance can call into GPU for inference
     { "action": "accept", "src": ["tag:cloud"], "dst": ["tag:gpu:8765"] },
 
-    // GPU host can push notifications to mobile via the Hermes gateway
+    // GPU host can push notifications to mobile via the Mercury gateway
     { "action": "accept", "src": ["tag:gpu"], "dst": ["tag:mobile:443"] },
 
     // Owner SSH everywhere for maintenance
@@ -114,11 +114,11 @@ tailscale up --auth-key=$TS_AUTHKEY --hostname=<choose>
 # 3) Tag it (admin → Machines → Edit Tags) — pick from gpu/mobile/cloud/mac
 # 4) Verify reachability
 tailscale ping <other-device>
-# 5) For mobile, install Hermes via Termux
-#    https://hermes-agent.nousresearch.com/docs/getting-started/termux
+# 5) For mobile, install Mercury via Termux
+#    https://mercury-agent.nousresearch.com/docs/getting-started/termux
 ```
 
-For the Pixel 9 Pro Fold specifically, see [`PIXEL_FOLD_SETUP.md`](./PIXEL_FOLD_SETUP.md) (in this directory) — covers Termux + Hermes Agent + the WhatsApp gateway init.
+For the Pixel 9 Pro Fold specifically, see [`PIXEL_FOLD_SETUP.md`](./PIXEL_FOLD_SETUP.md) (in this directory) — covers Termux + Mercury Agent + the WhatsApp gateway init.
 
 ## Output Contract
 

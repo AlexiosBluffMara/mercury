@@ -7,7 +7,7 @@
 # Tailscale taildrop — no port 22, no SMB share, no iCloud needed.
 #
 # What it captures:
-#   1. Mercury / Hermes runtime state    (~/.mercury, ~/.hermes)
+#   1. Mercury / Mercury runtime state    (~/.mercury, ~/.mercury)
 #   2. Claude Code state if any          (~/.claude)
 #   3. Shell history + sessions          (.zsh_history, .bash_history, .zsh_sessions)
 #   4. Dev trees                         (~/dev, ~/Projects, ~/code, ~/work, ~/src)
@@ -70,7 +70,7 @@ echo "  git repos:    $(wc -l < ${MANIFEST}/git_repos.txt)"
 grep -ril --include='*.md' --include='*.txt' --include='*.py' --include='*.json' \
   -e kimi -e moonshot -e nous-portal -e NOUS_API_KEY \
   "${HOME}/dev" "${HOME}/Projects" "${HOME}/code" "${HOME}/work" "${HOME}/src" \
-  "${HOME}/.mercury" "${HOME}/.hermes" 2>/dev/null \
+  "${HOME}/.mercury" "${HOME}/.mercury" 2>/dev/null \
   > "${MANIFEST}/kimi_touches.txt" || true
 echo "  kimi files:   $(wc -l < ${MANIFEST}/kimi_touches.txt)"
 
@@ -143,7 +143,7 @@ EXCLUDES=(
 )
 
 PUBLIC_PATHS=()
-for p in .mercury .hermes .claude .local .cargo .config dev Projects code work src \
+for p in .mercury .mercury .claude .local .cargo .config dev Projects code work src \
          "Library/LaunchAgents" \
          "Library/Application Support/Code" \
          "Library/Application Support/Cursor" \

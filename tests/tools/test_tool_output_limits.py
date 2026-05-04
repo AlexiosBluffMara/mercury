@@ -118,7 +118,7 @@ class TestShortcuts:
 
 class TestDefaultConfigHasSection:
     """The DEFAULT_CONFIG in mercury_cli.config must expose tool_output so
-    that ``hermes setup`` and default installs stay in sync with the
+    that ``mercury setup`` and default installs stay in sync with the
     helpers here."""
 
     def test_default_config_contains_tool_output_section(self):

@@ -1,22 +1,22 @@
 """
-Profile management for multiple isolated Hermes instances.
+Profile management for multiple isolated Mercury instances.
 
-Each profile is a fully independent HERMES_HOME directory with its own
+Each profile is a fully independent MERCURY_HOME directory with its own
 config.yaml, .env, memory, sessions, skills, gateway, cron, and logs.
 Profiles live under ``~/.mercury/profiles/<name>/`` by default.
 
-The "default" profile is ``~/.hermes`` itself — backward compatible,
+The "default" profile is ``~/.mercury`` itself — backward compatible,
 zero migration needed.
 
 Usage::
 
-    hermes profile create coder          # fresh profile + bundled skills
-    hermes profile create coder --clone  # also copy config, .env, SOUL.md
-    hermes profile create coder --clone-all  # full copy of source profile
+    mercury profile create coder          # fresh profile + bundled skills
+    mercury profile create coder --clone  # also copy config, .env, SOUL.md
+    mercury profile create coder --clone-all  # full copy of source profile
     coder chat                           # use via wrapper alias
-    hermes -p coder chat                 # or via flag
-    hermes profile use coder             # set as sticky default
-    hermes profile delete coder          # remove profile + alias + service
+    mercury -p coder chat                 # or via flag
+    mercury profile use coder             # set as sticky default
+    mercury profile delete coder          # remove profile + alias + service
 """
 
 import json
@@ -71,13 +71,13 @@ _CLONE_ALL_STRIP = [
     "processes.json",
 ]
 
-# Directories/files to exclude when exporting the default (~/.hermes) profile.
+# Directories/files to exclude when exporting the default (~/.mercury) profile.
 # The default profile contains infrastructure (repo checkout, worktrees, DBs,
 # caches, binaries) that named profiles don't have.  We exclude those so the
 # export is a portable, reasonable-size archive of actual profile data.
 _DEFAULT_EXPORT_EXCLUDE_ROOT = frozenset({
     # Infrastructure
-    "hermes-agent",         # repo checkout (multi-GB)
+    "mercury-agent",         # repo checkout (multi-GB)
     ".worktrees",           # git worktrees
     "profiles",             # other profiles — never recursive-export
     "bin",                  # installed binaries (tirith, etc.)
@@ -91,7 +91,7 @@ _DEFAULT_EXPORT_EXCLUDE_ROOT = frozenset({
     ".env",                 # API keys (dotenv)
     "auth.lock", "active_profile", ".update_check",
     "errors.log",
-    ".hermes_history",
+    ".mercury_history",
     # Caches (regenerated on use)
     "image_cache", "audio_cache", "document_cache",
     "browser_screenshots", "checkpoints",
@@ -101,11 +101,11 @@ _DEFAULT_EXPORT_EXCLUDE_ROOT = frozenset({
 
 # Names that cannot be used as profile aliases
 _RESERVED_NAMES = frozenset({
-    "hermes", "default", "test", "tmp", "root", "sudo",
+    "mercury", "default", "test", "tmp", "root", "sudo",
 })
 
-# Hermes subcommands that cannot be used as profile names/aliases
-_HERMES_SUBCOMMANDS = frozenset({
+# Mercury subcommands that cannot be used as profile names/aliases
+_MERCURY_SUBCOMMANDS = frozenset({
     "chat", "model", "gateway", "setup", "whatsapp", "login", "logout",
     "status", "cron", "doctor", "dump", "config", "pairing", "skills", "tools",
     "mcp", "sessions", "insights", "version", "update", "uninstall",
@@ -120,31 +120,31 @@ _HERMES_SUBCOMMANDS = frozenset({
 def _get_profiles_root() -> Path:
     """Return the directory where named profiles are stored.
 
-    Anchored to the hermes root, NOT to the current HERMES_HOME
+    Anchored to the mercury root, NOT to the current MERCURY_HOME
     (which may itself be a profile).  This ensures ``coder profile list``
     can see all profiles.
 
-    In Docker/custom deployments where HERMES_HOME points outside
-    ``~/.hermes``, profiles live under ``HERMES_HOME/profiles/`` so
+    In Docker/custom deployments where MERCURY_HOME points outside
+    ``~/.mercury``, profiles live under ``MERCURY_HOME/profiles/`` so
     they persist on the mounted volume.
     """
-    return _get_default_hermes_home() / "profiles"
+    return _get_default_mercury_home() / "profiles"
 
 
-def _get_default_hermes_home() -> Path:
-    """Return the default (pre-profile) HERMES_HOME path.
+def _get_default_mercury_home() -> Path:
+    """Return the default (pre-profile) MERCURY_HOME path.
 
-    In standard deployments this is ``~/.hermes``.
-    In Docker/custom deployments where HERMES_HOME is outside ``~/.hermes``
-    (e.g. ``/opt/data``), returns HERMES_HOME directly.
+    In standard deployments this is ``~/.mercury``.
+    In Docker/custom deployments where MERCURY_HOME is outside ``~/.mercury``
+    (e.g. ``/opt/data``), returns MERCURY_HOME directly.
     """
-    from mercury_constants import get_default_hermes_root
-    return get_default_hermes_root()
+    from mercury_constants import get_default_mercury_root
+    return get_default_mercury_root()
 
 
 def _get_active_profile_path() -> Path:
     """Return the path to the sticky active_profile file."""
-    return _get_default_hermes_home() / "active_profile"
+    return _get_default_mercury_home() / "active_profile"
 
 
 def _get_wrapper_dir() -> Path:
@@ -159,7 +159,7 @@ def _get_wrapper_dir() -> Path:
 def validate_profile_name(name: str) -> None:
     """Raise ``ValueError`` if *name* is not a valid profile identifier."""
     if name == "default":
-        return  # special alias for ~/.hermes
+        return  # special alias for ~/.mercury
     if not _PROFILE_ID_RE.match(name):
         raise ValueError(
             f"Invalid profile name {name!r}. Must match "
@@ -168,9 +168,9 @@ def validate_profile_name(name: str) -> None:
 
 
 def get_profile_dir(name: str) -> Path:
-    """Resolve a profile name to its HERMES_HOME directory."""
+    """Resolve a profile name to its MERCURY_HOME directory."""
     if name == "default":
-        return _get_default_hermes_home()
+        return _get_default_mercury_home()
     return _get_profiles_root() / name
 
 
@@ -188,12 +188,12 @@ def profile_exists(name: str) -> bool:
 def check_alias_collision(name: str) -> Optional[str]:
     """Return a human-readable collision message, or None if the name is safe.
 
-    Checks: reserved names, hermes subcommands, existing binaries in PATH.
+    Checks: reserved names, mercury subcommands, existing binaries in PATH.
     """
     if name in _RESERVED_NAMES:
         return f"'{name}' is a reserved name"
-    if name in _HERMES_SUBCOMMANDS:
-        return f"'{name}' conflicts with a hermes subcommand"
+    if name in _MERCURY_SUBCOMMANDS:
+        return f"'{name}' conflicts with a mercury subcommand"
 
     # Check existing commands in PATH
     wrapper_dir = _get_wrapper_dir()
@@ -207,7 +207,7 @@ def check_alias_collision(name: str) -> Optional[str]:
             if existing_path == str(wrapper_dir / name):
                 try:
                     content = (wrapper_dir / name).read_text()
-                    if "hermes -p" in content:
+                    if "mercury -p" in content:
                         return None  # it's our wrapper, safe to overwrite
                 except Exception:
                     pass
@@ -238,7 +238,7 @@ def create_wrapper_script(name: str) -> Optional[Path]:
 
     wrapper_path = wrapper_dir / name
     try:
-        wrapper_path.write_text(f'#!/bin/sh\nexec hermes -p {name} "$@"\n')
+        wrapper_path.write_text(f'#!/bin/sh\nexec mercury -p {name} "$@"\n')
         wrapper_path.chmod(wrapper_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
         return wrapper_path
     except OSError as e:
@@ -253,7 +253,7 @@ def remove_wrapper_script(name: str) -> bool:
         try:
             # Verify it's our wrapper before removing
             content = wrapper_path.read_text()
-            if "hermes -p" in content:
+            if "mercury -p" in content:
                 wrapper_path.unlink()
                 return True
         except Exception:
@@ -329,7 +329,7 @@ def list_profiles() -> List[ProfileInfo]:
     wrapper_dir = _get_wrapper_dir()
 
     # Default profile
-    default_home = _get_default_hermes_home()
+    default_home = _get_default_mercury_home()
     if default_home.is_dir():
         model, provider = _read_config_model(default_home)
         profiles.append(ProfileInfo(
@@ -401,7 +401,7 @@ def create_profile(
 
     if name == "default":
         raise ValueError(
-            "Cannot create a profile named 'default' — it is the built-in profile (~/.hermes)."
+            "Cannot create a profile named 'default' — it is the built-in profile (~/.mercury)."
         )
 
     profile_dir = get_profile_dir(name)
@@ -413,8 +413,8 @@ def create_profile(
     if clone_from is not None or clone_all or clone_config:
         if clone_from is None:
             # Default: clone from active profile
-            from mercury_constants import get_hermes_home
-            source_dir = get_hermes_home()
+            from mercury_constants import get_mercury_home
+            source_dir = get_mercury_home()
         else:
             validate_profile_name(clone_from)
             source_dir = get_profile_dir(clone_from)
@@ -466,7 +466,7 @@ def create_profile(
 def seed_profile_skills(profile_dir: Path, quiet: bool = False) -> Optional[dict]:
     """Seed bundled skills into a profile via subprocess.
 
-    Uses subprocess because sync_skills() caches HERMES_HOME at module level.
+    Uses subprocess because sync_skills() caches MERCURY_HOME at module level.
     Returns the sync result dict, or None on failure.
     """
     project_root = Path(__file__).parent.parent.resolve()
@@ -475,7 +475,7 @@ def seed_profile_skills(profile_dir: Path, quiet: bool = False) -> Optional[dict
             [sys.executable, "-c",
              "import json; from tools.skills_sync import sync_skills; "
              "r = sync_skills(quiet=True); print(json.dumps(r))"],
-            env={**os.environ, "HERMES_HOME": str(profile_dir)},
+            env={**os.environ, "MERCURY_HOME": str(profile_dir)},
             cwd=str(project_root),
             capture_output=True, text=True, timeout=60,
         )
@@ -508,8 +508,8 @@ def delete_profile(name: str, yes: bool = False) -> Path:
 
     if name == "default":
         raise ValueError(
-            "Cannot delete the default profile (~/.hermes).\n"
-            "To remove everything, use: hermes uninstall"
+            "Cannot delete the default profile (~/.mercury).\n"
+            "To remove everything, use: mercury uninstall"
         )
 
     profile_dir = get_profile_dir(name)
@@ -593,10 +593,10 @@ def _cleanup_gateway_service(name: str, profile_dir: Path) -> None:
     import platform as _platform
 
     # Derive service name for this profile
-    # Temporarily set HERMES_HOME so _profile_suffix resolves correctly
-    old_home = os.environ.get("HERMES_HOME")
+    # Temporarily set MERCURY_HOME so _profile_suffix resolves correctly
+    old_home = os.environ.get("MERCURY_HOME")
     try:
-        os.environ["HERMES_HOME"] = str(profile_dir)
+        os.environ["MERCURY_HOME"] = str(profile_dir)
         from mercury_cli.gateway import get_service_name, get_launchd_plist_path
 
         if _platform.system() == "Linux":
@@ -631,9 +631,9 @@ def _cleanup_gateway_service(name: str, profile_dir: Path) -> None:
         print(f"⚠ Service cleanup: {e}")
     finally:
         if old_home is not None:
-            os.environ["HERMES_HOME"] = old_home
-        elif "HERMES_HOME" in os.environ:
-            del os.environ["HERMES_HOME"]
+            os.environ["MERCURY_HOME"] = old_home
+        elif "MERCURY_HOME" in os.environ:
+            del os.environ["MERCURY_HOME"]
 
 
 def _stop_gateway_process(profile_dir: Path) -> None:
@@ -698,7 +698,7 @@ def set_active_profile(name: str) -> None:
     if name != "default" and not profile_exists(name):
         raise FileNotFoundError(
             f"Profile '{name}' does not exist. "
-            f"Create it with: hermes profile create {name}"
+            f"Create it with: mercury profile create {name}"
         )
 
     path = _get_active_profile_path()
@@ -714,17 +714,17 @@ def set_active_profile(name: str) -> None:
 
 
 def get_active_profile_name() -> str:
-    """Infer the current profile name from HERMES_HOME.
+    """Infer the current profile name from MERCURY_HOME.
 
-    Returns ``"default"`` if HERMES_HOME is not set or points to ``~/.hermes``.
-    Returns the profile name if HERMES_HOME points into ``~/.mercury/profiles/<name>``.
-    Returns ``"custom"`` if HERMES_HOME is set to an unrecognized path.
+    Returns ``"default"`` if MERCURY_HOME is not set or points to ``~/.mercury``.
+    Returns the profile name if MERCURY_HOME points into ``~/.mercury/profiles/<name>``.
+    Returns ``"custom"`` if MERCURY_HOME is set to an unrecognized path.
     """
-    from mercury_constants import get_hermes_home
-    hermes_home = get_hermes_home()
-    resolved = hermes_home.resolve()
+    from mercury_constants import get_mercury_home
+    mercury_home = get_mercury_home()
+    resolved = mercury_home.resolve()
 
-    default_resolved = _get_default_hermes_home().resolve()
+    default_resolved = _get_default_mercury_home().resolve()
     if resolved == default_resolved:
         return "default"
 
@@ -785,8 +785,8 @@ def export_profile(name: str, output_path: str) -> Path:
     base = str(output).removesuffix(".tar.gz").removesuffix(".tgz")
 
     if name == "default":
-        # The default profile IS ~/.hermes itself — its parent is ~/ and its
-        # directory name is ".hermes", not "default".  We stage a clean copy
+        # The default profile IS ~/.mercury itself — its parent is ~/ and its
+        # directory name is ".mercury", not "default".  We stage a clean copy
         # under a temp dir so the archive contains ``default/...``.
         with tempfile.TemporaryDirectory() as tmpdir:
             staged = Path(tmpdir) / "default"
@@ -906,7 +906,7 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
     if not inferred_name:
         raise ValueError(
             "Cannot determine profile name from archive. "
-            "Specify it explicitly: hermes profile import <archive> --name <name>"
+            "Specify it explicitly: mercury profile import <archive> --name <name>"
         )
     if archive_root is None:
         raise ValueError(
@@ -914,12 +914,12 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
         )
 
     # Archives exported from the default profile have "default/" as top-level
-    # dir.  Importing as "default" would target ~/.hermes itself — disallow
+    # dir.  Importing as "default" would target ~/.mercury itself — disallow
     # that and guide the user toward a named profile.
     if inferred_name == "default":
         raise ValueError(
-            "Cannot import as 'default' — that is the built-in root profile (~/.hermes). "
-            "Specify a different name: hermes profile import <archive> --name <name>"
+            "Cannot import as 'default' — that is the built-in root profile (~/.mercury). "
+            "Specify a different name: mercury profile import <archive> --name <name>"
         )
 
     validate_profile_name(inferred_name)
@@ -930,7 +930,7 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
     profiles_root = _get_profiles_root()
     profiles_root.mkdir(parents=True, exist_ok=True)
 
-    with tempfile.TemporaryDirectory(prefix="hermes_profile_import_") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="mercury_profile_import_") as tmpdir:
         staging_root = Path(tmpdir)
         _safe_extract_profile_archive(archive, staging_root)
 
@@ -1009,12 +1009,12 @@ def rename_profile(old_name: str, new_name: str) -> Path:
 # ---------------------------------------------------------------------------
 
 def generate_bash_completion() -> str:
-    """Generate a bash completion script for hermes profile names."""
-    return '''# Hermes Agent profile completion
-# Add to ~/.bashrc: eval "$(hermes completion bash)"
+    """Generate a bash completion script for mercury profile names."""
+    return '''# Mercury Agent profile completion
+# Add to ~/.bashrc: eval "$(mercury completion bash)"
 
-_hermes_profiles() {
-    local profiles_dir="$HOME/.hermes/profiles"
+_mercury_profiles() {
+    local profiles_dir="$HOME/.mercury/profiles"
     local profiles="default"
     if [ -d "$profiles_dir" ]; then
         profiles="$profiles $(ls "$profiles_dir" 2>/dev/null)"
@@ -1022,14 +1022,14 @@ _hermes_profiles() {
     echo "$profiles"
 }
 
-_hermes_completion() {
+_mercury_completion() {
     local cur prev
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Complete profile names after -p / --profile
     if [[ "$prev" == "-p" || "$prev" == "--profile" ]]; then
-        COMPREPLY=($(compgen -W "$(_hermes_profiles)" -- "$cur"))
+        COMPREPLY=($(compgen -W "$(_mercury_profiles)" -- "$cur"))
         return
     fi
 
@@ -1041,7 +1041,7 @@ _hermes_completion() {
                 return
                 ;;
             use|delete|show|alias|rename|export)
-                COMPREPLY=($(compgen -W "$(_hermes_profiles)" -- "$cur"))
+                COMPREPLY=($(compgen -W "$(_mercury_profiles)" -- "$cur"))
                 return
                 ;;
         esac
@@ -1054,21 +1054,21 @@ _hermes_completion() {
     fi
 }
 
-complete -F _hermes_completion hermes
+complete -F _mercury_completion mercury
 '''
 
 
 def generate_zsh_completion() -> str:
-    """Generate a zsh completion script for hermes profile names."""
-    return '''#compdef hermes
-# Hermes Agent profile completion
-# Add to ~/.zshrc: eval "$(hermes completion zsh)"
+    """Generate a zsh completion script for mercury profile names."""
+    return '''#compdef mercury
+# Mercury Agent profile completion
+# Add to ~/.zshrc: eval "$(mercury completion zsh)"
 
-_hermes() {
+_mercury() {
     local -a profiles
     profiles=(default)
-    if [[ -d "$HOME/.hermes/profiles" ]]; then
-        profiles+=("${(@f)$(ls $HOME/.hermes/profiles 2>/dev/null)}")
+    if [[ -d "$HOME/.mercury/profiles" ]]; then
+        profiles+=("${(@f)$(ls $HOME/.mercury/profiles 2>/dev/null)}")
     fi
 
     _arguments \\
@@ -1085,7 +1085,7 @@ _hermes() {
     esac
 }
 
-_hermes "$@"
+_mercury "$@"
 '''
 
 
@@ -1094,10 +1094,10 @@ _hermes "$@"
 # ---------------------------------------------------------------------------
 
 def resolve_profile_env(profile_name: str) -> str:
-    """Resolve a profile name to a HERMES_HOME path string.
+    """Resolve a profile name to a MERCURY_HOME path string.
 
-    Called early in the CLI entry point, before any hermes modules
-    are imported, to set the HERMES_HOME environment variable.
+    Called early in the CLI entry point, before any mercury modules
+    are imported, to set the MERCURY_HOME environment variable.
     """
     validate_profile_name(profile_name)
     profile_dir = get_profile_dir(profile_name)
@@ -1105,7 +1105,7 @@ def resolve_profile_env(profile_name: str) -> str:
     if profile_name != "default" and not profile_dir.is_dir():
         raise FileNotFoundError(
             f"Profile '{profile_name}' does not exist. "
-            f"Create it with: hermes profile create {profile_name}"
+            f"Create it with: mercury profile create {profile_name}"
         )
 
     return str(profile_dir)

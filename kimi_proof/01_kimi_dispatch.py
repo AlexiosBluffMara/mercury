@@ -15,10 +15,10 @@ Usage:
     --task   Path to a markdown file containing the spec/instructions.  Required.
     --out    Path to write the model's response.  Default: prints to stdout.
     --model  Override model.  Default: moonshotai/kimi-k2.6.  Other useful:
-             - nousresearch/hermes-4-405b  (planner / reasoning)
+             - nousresearch/mercury-4-405b  (planner / reasoning)
              - moonshotai/kimi-k2-thinking (longer reasoning, slower)
 
-    --planner   Convenience flag: use Hermes 4 405B instead of Kimi.
+    --planner   Convenience flag: use Mercury 4 405B instead of Kimi.
 
 API key: read from $NOUS_API_KEY (set via setx).  This script also falls back
 to reading the persisted user-env value via Windows registry, so it works in
@@ -53,7 +53,7 @@ NOUS_BASE_URL = "https://inference-api.nousresearch.com/v1"
 # returns clean code at half the cost.  Override via --model when you really
 # want K2.6's 256K context or its thinking trace.
 DEFAULT_MODEL_CODER   = "moonshotai/kimi-k2"
-DEFAULT_MODEL_PLANNER = "nousresearch/hermes-4-405b"
+DEFAULT_MODEL_PLANNER = "nousresearch/mercury-4-405b"
 
 CODER_SYSTEM_PROMPT = (
     "You are Kimi K2.6 acting as a senior software engineer in a Claude-led "
@@ -74,7 +74,7 @@ CODER_SYSTEM_PROMPT = (
 )
 
 PLANNER_SYSTEM_PROMPT = (
-    "You are Hermes 4 405B acting as the planner for a Claude-led engineering "
+    "You are Mercury 4 405B acting as the planner for a Claude-led engineering "
     "workflow.  Given a goal, output a numbered, atomic list of tasks ready "
     "to dispatch one-at-a-time to a code-generation model (Kimi K2.6).  Each "
     "task is one file or one test.  No fluff."
@@ -115,7 +115,7 @@ def _post_chat(api_key: str, model: str, messages: list[dict],
     Streaming halves the wall-clock for long generations and surfaces
     partial output if the connection breaks mid-flight.
 
-    Kimi K2.6 (and Hermes 4) are reasoning models — uncapped, they spend the
+    Kimi K2.6 (and Mercury 4) are reasoning models — uncapped, they spend the
     entire token budget on hidden chain-of-thought and return empty content.
     `reasoning_effort="low"` keeps their thinking compact so most tokens go
     to the actual answer.  Set to "minimal" / "medium" / "high" or pass
@@ -212,7 +212,7 @@ def main() -> None:
     ap.add_argument("--out",     default=None,   help="Path to write response (default stdout)")
     ap.add_argument("--model",   default=None,   help="Model override")
     ap.add_argument("--planner", action="store_true",
-                    help="Use Hermes 4 405B planner system prompt")
+                    help="Use Mercury 4 405B planner system prompt")
     ap.add_argument("--max-tokens", type=int, default=8192)
     ap.add_argument("--temperature", type=float, default=0.2)
     args = ap.parse_args()

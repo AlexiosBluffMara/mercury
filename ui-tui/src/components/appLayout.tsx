@@ -1,4 +1,4 @@
-import { AlternateScreen, Box, NoSelect, ScrollBox, Text } from '@hermes/ink'
+import { AlternateScreen, Box, NoSelect, ScrollBox, Text } from '@mercury/ink'
 import { useStore } from '@nanostores/react'
 import { memo } from 'react'
 

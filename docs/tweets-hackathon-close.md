@@ -82,7 +82,7 @@ Tone: accessible — common-culture metaphors, not AI insider language.
 > Submitting to @NousResearch / @Kimi_Moonshot tomorrow.
 >
 > The Nous Portal made dispatching Kimi from inside another agent
-> *trivial.* Hermes Agent gave us the body. Kimi K2.6 wrote the 3D viewer
+> *trivial.* Mercury Agent gave us the body. Kimi K2.6 wrote the 3D viewer
 > in one sitting. Gemma 4 narrates locally in real-time.
 >
 > Thank you for the framework. 🫡

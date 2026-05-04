@@ -121,13 +121,13 @@ docs(nous): .env.example Mercury section + BENCHMARKS.md
 
 .env.example: add a Nous-Portal-first preamble at the top documenting the
 NOUS_API_KEY env var and the ~/.mercury/config.yaml block users need.  The
-upstream Hermes documentation below stays untouched.
+upstream Mercury documentation below stays untouched.
 
 BENCHMARKS.md: measured numbers across the four-brain stack — Mercury CLI
 cold start (<1s), Kimi K2.6 dispatch round-trip (~3.2s, $0.0015), local
 Gemma 4 throughput, brain-pipeline end-to-end (~5–7min for 50s of video,
 TRIBE v2-bound), fmri-overlay frame times (<1ms), and the model-comparison
-matrix that justifies why Kimi is the default coder + Hermes 4 the planner.
+matrix that justifies why Kimi is the default coder + Mercury 4 the planner.
 
 
  .env.example  |  20 +++++++++
@@ -141,7 +141,7 @@ Soumit Lahiri <soumitlahiri@philanthropytraders.com>
 
 feat(skills): brain-viz creative skill + Kimi dispatch helper
 
-The brain-viz skill is the centerpiece for the Nous Research Hermes Agent
+The brain-viz skill is the centerpiece for the Nous Research Mercury Agent
 Creative Hackathon (May 3, 2026). It composes cortex-bridge (TRIBE v2 BOLD
 prediction) + three-js-component (R3F viewer) + three-tier Gemma narration
 into one user-facing capability: video → 3D cortex with explanation, in one
@@ -151,13 +151,13 @@ The skill itself is declarative — the implementation already exists across
 existing skills and Cortex's webapp. SKILL.md is the composition contract.
 
 tools/kimi_dispatch.py is the Claude→Kimi handoff helper used in the new
-meta-workflow (Claude as tech lead, Kimi K2.6 as senior dev, Hermes 4 405B
+meta-workflow (Claude as tech lead, Kimi K2.6 as senior dev, Mercury 4 405B
 as planner, local Gemma 4 as muscle). Reads NOUS_API_KEY from env or
 Windows registry, posts directly to inference-api.nousresearch.com/v1, and
 returns content with ### FILE: markers so the orchestrator can split it.
 
 CLAUDE.md updated to reflect the new defaults: nous-portal/kimi-k2.6 as
-the primary inference path, Hermes 4 405B as the planner, with the
+the primary inference path, Mercury 4 405B as the planner, with the
 existing Copilot / Gemini / Gemma 4 stack relegated to fallbacks.
 
 
@@ -333,11 +333,11 @@ resolver (not a mock) to guard the exact Quentin-repro scenario. Existing tests
 that mocked resolve_runtime_provider with 'lambda requested:' had their mock
 signatures widened to '**kwargs' to accept the new kwarg.
 
- hermes_cli/model_switch.py                         |  10 +-
- hermes_cli/runtime_provider.py                     |  29 ++++-
+ mercury_cli/model_switch.py                         |  10 +-
+ mercury_cli/runtime_provider.py                     |  29 ++++-
  .../test_model_switch_custom_providers.py          |   2 +-
  .../test_model_switch_opencode_anthropic.py        | 123 +++++++++++++++++++++
- tests/hermes_cli/test_ollama_cloud_auth.py         |   4 +-
+ tests/mercury_cli/test_ollama_cloud_auth.py         |   4 +-
  5 files changed, 160 insertions(+), 8 deletions(-)
 
 ================================================================
@@ -419,7 +419,7 @@ Transport integration:
   handle Kimi's top-level reasoning_effort vs OpenRouter's extra_body
 
 Auth types: api_key | oauth_device_code | oauth_external | copilot | aws
-(expanded from the lossy 'oauth' to match real Hermes auth modes).
+(expanded from the lossy 'oauth' to match real Mercury auth modes).
 
 64 new tests:
 - 30 profile unit tests (registry, all 8 profiles, auth types)
@@ -483,7 +483,7 @@ Closes #9210
 
 
  gateway/run.py                                     |   2 +
- hermes_cli/model_switch.py                         | 107 ++++++++++-----
+ mercury_cli/model_switch.py                         | 107 ++++++++++-----
  .../test_model_switch_custom_providers.py          | 145 +++++++++++++++++++++
  3 files changed, 225 insertions(+), 29 deletions(-)
 
@@ -495,15 +495,15 @@ Teknium <127238744+teknium1@users.noreply.github.com>
 feat(/model): merge models.dev entries for lesser-loved providers (#14221)
 
 New and newer models from models.dev now surface automatically in
-/model (both hermes model CLI and the gateway Telegram/Discord picker)
-for a curated set of secondary providers — no Hermes release required
+/model (both mercury model CLI and the gateway Telegram/Discord picker)
+for a curated set of secondary providers — no Mercury release required
 when the registry publishes a new model.
 
 Primary user-visible fix: on OpenCode Go, typing '/model mimo-v2.5-pro'
 no longer silently fuzzy-corrects to 'mimo-v2-pro'. The exact match
 against the merged models.dev catalog wins.
 
-Scope (opt-in frozenset _MODELS_DEV_PREFERRED in hermes_cli/models.py):
+Scope (opt-in frozenset _MODELS_DEV_PREFERRED in mercury_cli/models.py):
   opencode-go, opencode-zen, deepseek, kilocode, fireworks, mistral,
   togetherai, cohere, perplexity, groq, nvidia, huggingface, zai,
   gemini, google.
@@ -518,18 +518,18 @@ Explicitly NOT merged:
     paths already handle freshness themselves.
 
 Changes:
-  - hermes_cli/models.py: add _MODELS_DEV_PREFERRED + _merge_with_models_dev
+  - mercury_cli/models.py: add _MODELS_DEV_PREFERRED + _merge_with_models_dev
     helper. provider_model_ids() branches on the set at its curated-fallback
     return. Merge is models.dev-first, curated-only extras appended,
     case-insensitive dedup, graceful fallback when models.dev is offline.
-  - hermes_cli/model_switch.py: list_authenticated_providers() calls the
+  - mercury_cli/model_switch.py: list_authenticated_providers() calls the
     same merge in both its code paths (PROVIDER_TO_MODELS_DEV loop +
-    HERMES_OVERLAYS loop). Picker AND validation-fallback both see
+    MERCURY_OVERLAYS loop). Picker AND validation-fallback both see
     fresh entries.
-  - tests/hermes_cli/test_models_dev_preferred_merge.py (new): 13 tests —
+  - tests/mercury_cli/test_models_dev_preferred_merge.py (new): 13 tests —
     merge-helper unit tests (empty/raise/order/dedup), opencode-go/zen
     behavior, openrouter+nous explicitly guarded from merge.
-  - tests/hermes_cli/test_opencode_go_in_model_list.py: converted from
+  - tests/mercury_cli/test_opencode_go_in_model_list.py: converted from
     snapshot-style assertion to a behavior-based floor check, so it
     doesn't break when models.dev publishes additional opencode-go
     entries.
@@ -557,19 +557,19 @@ fix: follow-up for salvaged PR #8952
   main-model-first design in _resolve_auto() handles these providers
   already; entries were dead code in the normal flow
 - Add VOLCENGINE_API_KEY and BYTEPLUS_API_KEY to OPTIONAL_ENV_VARS in
-  config.py so they appear in hermes setup
+  config.py so they appear in mercury setup
 - Update docs: environment-variables.md, fallback-providers.md,
   configuration.md
 
 
  agent/auxiliary_client.py                          |  3 --
  agent/model_metadata.py                            |  2 +-
- hermes_cli/auth.py                                 |  2 +-
- hermes_cli/config.py                               | 14 ++++++++
- hermes_cli/main.py                                 |  2 +-
- hermes_cli/models.py                               | 37 +++++++---------------
- hermes_cli/providers.py                            |  2 +-
- hermes_cli/runtime_provider.py                     |  2 +-
+ mercury_cli/auth.py                                 |  2 +-
+ mercury_cli/config.py                               | 14 ++++++++
+ mercury_cli/main.py                                 |  2 +-
+ mercury_cli/models.py                               | 37 +++++++---------------
+ mercury_cli/providers.py                            |  2 +-
+ mercury_cli/runtime_provider.py                     |  2 +-
  ...rovider_contracts.py => volcengine_byteplus.py} |  5 ---
  scripts/release.py                                 |  1 +
  tests/agent/test_auxiliary_client.py               |  7 ++--
@@ -650,11 +650,11 @@ fix: preserve reasoning_content on Kimi replay
 
  gateway/run.py                    |  1 +
  gateway/session.py                |  5 +++
- hermes_state.py                   | 22 +++++++--
+ mercury_state.py                   | 22 +++++++--
  run_agent.py                      | 41 +++++++++++++----
  tests/gateway/test_session.py     |  3 ++
  tests/run_agent/test_run_agent.py | 93 +++++++++++++++++++++++++++++++++++++++
- tests/test_hermes_state.py        | 38 ++++++++++++++--
+ tests/test_mercury_state.py        | 38 ++++++++++++++--
  7 files changed, 187 insertions(+), 16 deletions(-)
 
 ================================================================
@@ -766,9 +766,9 @@ E2E verified:
   UA: claude-code/0.1.0, x-api-key: <sk-kimi-*>
 
 
- hermes_cli/auth.py                         | 17 +++++++++++++----
- hermes_cli/doctor.py                       | 12 ++++++++----
- tests/hermes_cli/test_api_key_providers.py |  6 +++++-
+ mercury_cli/auth.py                         | 17 +++++++++++++----
+ mercury_cli/doctor.py                       | 12 ++++++++----
+ tests/mercury_cli/test_api_key_providers.py |  6 +++++-
  3 files changed, 26 insertions(+), 9 deletions(-)
 
 ================================================================
@@ -780,8 +780,8 @@ fix: Enhance Kimi Coding API mode detection and User-Agent
 
 
 
- hermes_cli/model_switch.py |  1 +
- hermes_cli/providers.py    | 12 ++++++++++++
+ mercury_cli/model_switch.py |  1 +
+ mercury_cli/providers.py    | 12 ++++++++++++
  run_agent.py               |  4 ++--
  3 files changed, 15 insertions(+), 2 deletions(-)
 
@@ -795,7 +795,7 @@ fix: Update Kimi Coding API endpoint and User-Agent
 
 
  agent/auxiliary_client.py | 10 +++++-----
- hermes_cli/auth.py        |  2 +-
+ mercury_cli/auth.py        |  2 +-
  2 files changed, 6 insertions(+), 6 deletions(-)
 
 ================================================================
@@ -819,8 +819,8 @@ fix(kimi-coding): add KIMI_CODING_API_KEY fallback + api_mode detection for /cod
 
 
 
- hermes_cli/auth.py             | 2 +-
- hermes_cli/runtime_provider.py | 3 ++-
+ mercury_cli/auth.py             | 2 +-
+ mercury_cli/runtime_provider.py | 3 ++-
  2 files changed, 3 insertions(+), 2 deletions(-)
 
 ================================================================
@@ -832,7 +832,7 @@ fix: auto-detect anthropic_messages mode for Kimi /coding/v1 endpoints
 
 
 
- hermes_cli/runtime_provider.py | 8 +++++++-
+ mercury_cli/runtime_provider.py | 8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
 ================================================================
@@ -907,7 +907,7 @@ broken without grepping agent.log.
 API shapes (Anthropic / Codex Responses / OpenAI chat completions) into
 `cache_read_tokens` and `cache_write_tokens`. Drop the gate and read
 from there — now the footer fires whenever the provider reported any
-cached or written tokens, regardless of whether hermes injected markers.
+cached or written tokens, regardless of whether mercury injected markers.
 
 Also removes duplicated branch-per-API-shape extraction code.
 
@@ -923,7 +923,7 @@ fix(cache): enable prompt caching for Qwen on OpenCode/OpenCode-Go/Alibaba (#135
 
 Qwen models on OpenCode, OpenCode Go, and direct DashScope accept
 Anthropic-style cache_control markers on OpenAI-wire chat completions,
-but hermes only injected markers for Claude-named models. Result: zero
+but mercury only injected markers for Claude-named models. Result: zero
 cache hits on every turn, full prompt re-billed — a community user
 reported burning through their OpenCode Go subscription on Qwen3.6.
 
@@ -954,7 +954,7 @@ Kian Meng <xjtumj@gmail.com>
 
 fix(kimi): send max_tokens, reasoning_effort, and thinking for Kimi/Moonshot
 
-Kimi/Moonshot endpoints require explicit parameters that Hermes was not
+Kimi/Moonshot endpoints require explicit parameters that Mercury was not
 sending, causing 'Response truncated due to output length limit' errors
 and inconsistent reasoning behavior.
 
@@ -966,14 +966,14 @@ packages/kosong/src/kosong/chat_provider/kimi.py):
    thinking alone.  Send 32000, matching Kimi CLI's generate() default.
 
 2. reasoning_effort: Kimi CLI sends this as a top-level parameter (not
-   inside extra_body).  Hermes was not sending it at all because
+   inside extra_body).  Mercury was not sending it at all because
    _supports_reasoning_extra_body() returns False for non-OpenRouter
    endpoints.
 
 3. extra_body.thinking: Kimi CLI uses with_thinking() which sets
    extra_body.thinking={"type":"enabled"} alongside reasoning_effort.
    This is a separate control from the OpenAI-style reasoning extra_body
-   that Hermes sends for OpenRouter/GitHub.  Without it, the Kimi gateway
+   that Mercury sends for OpenRouter/GitHub.  Without it, the Kimi gateway
    may not activate reasoning mode correctly.
 
 Covers api.kimi.com (Kimi Code) and api.moonshot.ai/cn (Moonshot).
@@ -994,19 +994,19 @@ Teknium <127238744+teknium1@users.noreply.github.com>
 feat(opencode-go): add Kimi K2.6 and Qwen3.5/3.6 Plus to curated catalog (#13429)
 
 OpenCode Go's published model list (opencode.ai/docs/go) includes kimi-k2.6,
-qwen3.5-plus, and qwen3.6-plus, but Hermes' curated lists didn't carry them.
-When the live /models probe fails during `hermes model`, users fell back to
+qwen3.5-plus, and qwen3.6-plus, but Mercury' curated lists didn't carry them.
+When the live /models probe fails during `mercury model`, users fell back to
 the stale curated list and had to type newer models via 'Enter custom model
 name'.
 
 Adds kimi-k2.6 (now first in the Go list), qwen3.6-plus, and qwen3.5-plus
-to both the model picker (hermes_cli/models.py) and setup defaults
-(hermes_cli/setup.py). All routed through the existing opencode-go
+to both the model picker (mercury_cli/models.py) and setup defaults
+(mercury_cli/setup.py). All routed through the existing opencode-go
 chat_completions path — no api_mode changes needed.
 
- hermes_cli/models.py                               | 3 +++
- hermes_cli/setup.py                                | 2 +-
- tests/hermes_cli/test_opencode_go_in_model_list.py | 2 +-
+ mercury_cli/models.py                               | 3 +++
+ mercury_cli/setup.py                                | 2 +-
+ tests/mercury_cli/test_opencode_go_in_model_list.py | 2 +-
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 ================================================================
@@ -1014,9 +1014,9 @@ b341b19fff3518e7ea48ba3ac8bedaf7fe07fb54
 Teknium <127238744+teknium1@users.noreply.github.com>
 2026-04-21 01:34:50 -0700
 
-fix(auth): hermes auth remove sticks for shell-exported env vars (#13418)
+fix(auth): mercury auth remove sticks for shell-exported env vars (#13418)
 
-Removing an env-seeded credential only cleared ~/.hermes/.env and the
+Removing an env-seeded credential only cleared ~/.mercury/.env and the
 current process's os.environ, leaving shell-exported vars (shell profile,
 systemd EnvironmentFile, launchd plist) to resurrect the entry on the
 next load_pool() call.  This matched the pre-#11485 codex behaviour.
@@ -1029,11 +1029,11 @@ Applies to every env:* seeded credential (xai, deepseek, moonshot, zai,
 nvidia, openrouter, anthropic, etc.), not just xai.
 
 Reported by @teknium1 from community user 'Artificial Brain' — couldn't
-remove their xAI key via hermes auth remove.
+remove their xAI key via mercury auth remove.
 
  agent/credential_pool.py               |  14 +++
- hermes_cli/auth_commands.py            |  62 +++++++++++-
- tests/hermes_cli/test_auth_commands.py | 174 +++++++++++++++++++++++++++++++++
+ mercury_cli/auth_commands.py            |  62 +++++++++++-
+ tests/mercury_cli/test_auth_commands.py | 174 +++++++++++++++++++++++++++++++++
  3 files changed, 248 insertions(+), 2 deletions(-)
 
 ================================================================
@@ -1103,8 +1103,8 @@ fallback catalog stay in sync automatically. Also fixes
 `get_default_model_for_provider('ai-gateway')` to return kimi-k2.6
 (the curated recommendation) instead of claude-opus-4.6.
 
- hermes_cli/models.py                       | 24 ++++++++----------------
- tests/hermes_cli/test_ai_gateway_models.py | 14 +++++++-------
+ mercury_cli/models.py                       | 24 ++++++++----------------
+ tests/mercury_cli/test_ai_gateway_models.py | 14 +++++++-------
  2 files changed, 15 insertions(+), 23 deletions(-)
 
 ================================================================
@@ -1153,10 +1153,10 @@ agent/usage_pricing.py:
 agent/model_metadata.py:
 - _is_openrouter_base_url(), Bedrock context-length lookup
 
-hermes_cli/providers.py:
+mercury_cli/providers.py:
 - determine_api_mode Bedrock heuristic
 
-hermes_cli/runtime_provider.py:
+mercury_cli/runtime_provider.py:
 - _is_openrouter_url flag for API-key preference (issues #420, #560)
 
 ================================================================
@@ -1177,7 +1177,7 @@ match what Vercel actually hosts. Verified against the live
 - moonshotai/kimi-k2.5 → moonshotai/kimi-k2.6 (newest available)
 
 
- hermes_cli/models.py | 12 +++++++-----
+ mercury_cli/models.py | 12 +++++++-----
  1 file changed, 7 insertions(+), 5 deletions(-)
 
 ================================================================
@@ -1197,8 +1197,8 @@ Paid Moonshot models are unaffected; falls back to the normal curated
 recommended tag when no free Moonshot is live.
 
 
- hermes_cli/models.py                       | 20 +++++++++++++++++--
- tests/hermes_cli/test_ai_gateway_models.py | 32 ++++++++++++++++++++++++++++++
+ mercury_cli/models.py                       | 20 +++++++++++++++++--
+ tests/mercury_cli/test_ai_gateway_models.py | 32 ++++++++++++++++++++++++++++++
  2 files changed, 50 insertions(+), 2 deletions(-)
 
 ================================================================
@@ -1208,7 +1208,7 @@ jerilynzheng <zheng.jerilyn@gmail.com>
 
 feat: curated picker with live pricing for ai-gateway provider
 
-- Curated AI_GATEWAY_MODELS list in hermes_cli/models.py (OSS first,
+- Curated AI_GATEWAY_MODELS list in mercury_cli/models.py (OSS first,
   kimi-k2.5 as recommended default).
 - fetch_ai_gateway_models() filters the curated list against the live
   /v1/models catalog; falls back to the snapshot on network failure.
@@ -1221,9 +1221,9 @@ feat: curated picker with live pricing for ai-gateway provider
   of the generic api-key flow.
 
 
- hermes_cli/main.py                         |  61 +++++++++++-
- hermes_cli/models.py                       | 148 ++++++++++++++++++++++++++++-
- tests/hermes_cli/test_ai_gateway_models.py | 129 +++++++++++++++++++++++++
+ mercury_cli/main.py                         |  61 +++++++++++-
+ mercury_cli/models.py                       | 148 ++++++++++++++++++++++++++++-
+ tests/mercury_cli/test_ai_gateway_models.py | 129 +++++++++++++++++++++++++
  3 files changed, 335 insertions(+), 3 deletions(-)
 
 ================================================================
@@ -1235,7 +1235,7 @@ feat: add moonshotai/Kimi-K2.6 to HuggingFace provider models (#13169)
 
 
 
- hermes_cli/models.py | 1 +
+ mercury_cli/models.py | 1 +
  1 file changed, 1 insertion(+)
 
 ================================================================
@@ -1294,9 +1294,9 @@ Add kimi-k2.6 as the top model in kimi-coding, kimi-coding-cn, and
 moonshot static provider lists (models.py, setup.py, main.py).
 kimi-k2.5 retained alongside it.
 
- hermes_cli/main.py   | 3 ++-
- hermes_cli/models.py | 3 +++
- hermes_cli/setup.py  | 4 ++--
+ mercury_cli/main.py   | 3 ++-
+ mercury_cli/models.py | 3 +++
+ mercury_cli/setup.py  | 4 ++--
  3 files changed, 7 insertions(+), 3 deletions(-)
 
 ================================================================
@@ -1310,7 +1310,7 @@ feat: replace kimi-k2.5 with kimi-k2.6 on OpenRouter and Nous Portal (#13148)
 
 Port from nearai/ironclaw#2529.
 
-Hermes already has broad value-shape coverage in agent/redact.py
+Mercury already has broad value-shape coverage in agent/redact.py
 (30+ vendor prefixes, JWTs, DB connstrs, etc.) but missed three
 key-name-based patterns that catch opaque tokens without recognizable
 prefixes:
@@ -1403,7 +1403,7 @@ Also runs the provider name through resolve_provider() so aliases like
 Adds StefanIsMe to AUTHOR_MAP.
 
 
- hermes_cli/doctor.py | 37 ++++++++++++++++++++++---------------
+ mercury_cli/doctor.py | 37 ++++++++++++++++++++++---------------
  scripts/release.py   |  1 +
  2 files changed, 23 insertions(+), 15 deletions(-)
 
@@ -1491,7 +1491,7 @@ Five fixes:
   instead of silently downgrading to an OpenAI-wire client.  Degrades
   gracefully to OpenAI-wire when the anthropic SDK isn't installed.
 
-- Config hygiene: `_update_config_for_provider` (hermes_cli/auth.py)
+- Config hygiene: `_update_config_for_provider` (mercury_cli/auth.py)
   clears stale `api_key`/`api_mode` when switching to a built-in
   provider, so a previous MiniMax custom endpoint's credentials can't
   leak into a later OpenRouter session.
@@ -1528,8 +1528,8 @@ shape; fixed too.
 Test fixes:
 - tests/gateway/test_voice_command.py: _make_adapter helpers were missing
   self._voice_locks (added in PR #12644, 7 call sites — all updated).
-- tests/test_toolsets.py: test_hermes_platforms_share_core_tools asserted
-  equality, but hermes-discord has discord_server (DISCORD_BOT_TOKEN-gated,
+- tests/test_toolsets.py: test_mercury_platforms_share_core_tools asserted
+  equality, but mercury-discord has discord_server (DISCORD_BOT_TOKEN-gated,
   discord-only by design).  Switched to subset check.
 - tests/run_agent/test_streaming.py: test_tool_name_not_duplicated_when_resent_per_chunk
   missing api_key/base_url — classic pitfall (PR #11619 fixed 16 of
@@ -1543,11 +1543,11 @@ Test fixes:
 Validation:
   tests/cron + voice + agent_cache + streaming + toolsets + command_guards
   + discord_tool: 550/550 pass
-  tests/hermes_cli + tests/gateway: 5713/5713 pass
+  tests/mercury_cli + tests/gateway: 5713/5713 pass
   AIAgent construction without Z.AI creds: 2.2s → 0.24s (9x)
 
 
- hermes_cli/auth.py                  | 11 +++++++++++
+ mercury_cli/auth.py                  | 11 +++++++++++
  tests/gateway/test_voice_command.py |  7 +++++++
  tests/run_agent/test_streaming.py   |  2 ++
  tests/test_toolsets.py              | 18 ++++++++++++++----
@@ -1594,7 +1594,7 @@ different contract for kimi-k2.5: it only accepts temperature=1, and rejects
     HTTP 400 "invalid temperature: only 1 is allowed for this model"
 
 Users hit the public endpoint when KIMI_API_KEY is a legacy sk-* key (the
-sk-kimi-* prefix routes to Coding Plan — see hermes_cli/auth.py).  So for
+sk-kimi-* prefix routes to Coding Plan — see mercury_cli/auth.py).  So for
 Coding Plan subscribers the fix from #12144 is correct, but for public-API
 users it reintroduces the exact 400 reported in #9125.
 
@@ -1657,7 +1657,7 @@ Also makes the closed-pair regexes consistently case-insensitive so <THINK>...</
 
 6 new regression tests in TestStripThinkBlocks covering: unterminated <think>, unterminated <thought>, multi-line unterminated, line-start orphan with preserved prefix, prose-mention non-regression, mixed-case closed pairs.
 
-The implementation is inspired by @luinbytes's PR #10408 report of the NIM/MiniMax symptom.  This commit does not include the 💭/🧠 emoji regexes from that PR — those glyphs are Hermes CLI display decorations, not model content markers.
+The implementation is inspired by @luinbytes's PR #10408 report of the NIM/MiniMax symptom.  This commit does not include the 💭/🧠 emoji regexes from that PR — those glyphs are Mercury CLI display decorations, not model content markers.
 
 
  run_agent.py                      | 46 ++++++++++++++++++++++++++++-----
@@ -1725,7 +1725,7 @@ Addresses review feedback on PR #12144.
   share the fixed-temperature lock, so the preview-model mapping is no
   longer an assumption.
 - Drop the fragile `"thinking" in bare` substring test for a set lookup.
-- Log a debug line on each override so operators can see when Hermes
+- Log a debug line on each override so operators can see when Mercury
   silently rewrites temperature.
 - Update class docstring.  Extend the negative test to parametrize over
   kimi-k2-instruct, Kimi-K2-Instruct-0905, and a hypothetical future
@@ -1874,7 +1874,7 @@ commit 78a74bb promoted kimi-k2.5 to first position in model suggestion
 lists but didn't update this test, which has been failing on main since.
 Reorder expected list to match the new canonical order.
 
- tests/hermes_cli/test_opencode_go_in_model_list.py |  2 +-
+ tests/mercury_cli/test_opencode_go_in_model_list.py |  2 +-
  tests/run_agent/test_1630_context_overflow_loop.py |  1 +
  tests/run_agent/test_413_compression.py            |  1 +
  tests/run_agent/test_860_dedup.py                  |  6 +++
@@ -1904,8 +1904,8 @@ Move moonshotai/kimi-k2.5 to position #1 in every model picker list:
 
 kimi-coding-cn and moonshot lists already had kimi-k2.5 first.
 
- hermes_cli/main.py   |  4 ++--
- hermes_cli/models.py | 16 ++++++++--------
+ mercury_cli/main.py   |  4 ++--
+ mercury_cli/models.py | 16 ++++++++--------
  2 files changed, 10 insertions(+), 10 deletions(-)
 
 ================================================================
@@ -1934,17 +1934,17 @@ auth (route works), while POST /v1/v1/messages returns the exact HTML 404
 users reported.
 
 Fix mirrors runtime_provider.resolve_runtime_provider:
-- hermes_cli/model_switch.py::switch_model() strips /v1 after the OpenCode
+- mercury_cli/model_switch.py::switch_model() strips /v1 after the OpenCode
   api_mode override when the resolved mode is anthropic_messages.
 - run_agent.py::AIAgent.switch_model() applies the same strip as
   defense-in-depth, so any direct caller can't reintroduce the double-/v1.
 
-Tests: 9 new regression tests in tests/hermes_cli/test_model_switch_opencode_anthropic.py
+Tests: 9 new regression tests in tests/mercury_cli/test_model_switch_opencode_anthropic.py
 covering minimax on opencode-go, claude on opencode-zen, chat_completions
 (GLM/Kimi/Gemini) keeping /v1 intact, codex_responses (GPT) keeping /v1
 intact, trailing-slash handling, and the agent-level defense-in-depth.
 
- hermes_cli/model_switch.py                         |  16 ++
+ mercury_cli/model_switch.py                         |  16 ++
  run_agent.py                                       |  14 ++
  .../test_model_switch_opencode_anthropic.py        | 252 +++++++++++++++++++++
  3 files changed, 282 insertions(+)
@@ -1973,13 +1973,13 @@ Root causes fixed:
    _import_codex_cli_tokens to prevent real credentials from leaking into tests
 
 
- hermes_cli/runtime_provider.py                     |  1 +
+ mercury_cli/runtime_provider.py                     |  1 +
  tests/agent/test_auxiliary_client.py               | 23 +++++---
  .../agent/test_auxiliary_named_custom_providers.py |  2 +-
  tests/agent/test_credential_pool.py                |  5 ++
  tests/gateway/conftest.py                          | 66 ++++++++++++++++++++++
- tests/hermes_cli/test_gateway_service.py           |  4 ++
- tests/hermes_cli/test_model_validation.py          |  2 +-
+ tests/mercury_cli/test_gateway_service.py           |  4 ++
+ tests/mercury_cli/test_model_validation.py          |  2 +-
  .../test_invalid_context_length_warning.py         |  3 +
  tests/run_agent/test_provider_parity.py            |  5 +-
  tests/skills/test_google_workspace_api.py          | 49 +++++++++-------
@@ -1994,13 +1994,13 @@ fix: three CLI quality-of-life fixes (#10468, #10230, #10526, #9545) (#10599)
 
 Three independent fixes batched together:
 
-1. hermes auth add crashes on non-interactive stdin (#10468)
+1. mercury auth add crashes on non-interactive stdin (#10468)
    input() for the label prompt was called without checking isatty().
    In scripted/CI environments this raised EOFError. Fix: check
    sys.stdin.isatty() and fall back to the computed default label.
 
 2. Subcommand help prints twice (#10230)
-   'hermes dashboard -h' printed help text twice because the
+   'mercury dashboard -h' printed help text twice because the
    SystemExit(0) from argparse was caught by the fallback retry
    logic, which re-parsed and printed help again. Fix: re-raise
    SystemExit with code 0 (help/version) immediately.
@@ -2015,9 +2015,9 @@ Three independent fixes batched together:
 
 Closes #10468, #10230, #10526, #9545
 
- hermes_cli/auth_commands.py |  6 +++++-
- hermes_cli/main.py          |  7 ++++++-
- hermes_cli/model_switch.py  | 27 +++++++++++++++++----------
+ mercury_cli/auth_commands.py |  6 +++++-
+ mercury_cli/main.py          |  7 ++++++-
+ mercury_cli/model_switch.py  | 27 +++++++++++++++++----------
  3 files changed, 28 insertions(+), 12 deletions(-)
 
 ================================================================
@@ -2037,8 +2037,8 @@ dual-endpoint setup (Kimi Coding Plan + Moonshot API).
 
 Salvaged from PR #10525 by kkikione999.
 
- hermes_cli/auth.py   | 4 ++--
- hermes_cli/models.py | 2 +-
+ mercury_cli/auth.py   | 4 ++--
+ mercury_cli/models.py | 2 +-
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 ================================================================
@@ -2050,8 +2050,8 @@ fix(cli): fix doctor checks for Kimi China credentials
 
 
 
- hermes_cli/doctor.py            |  3 ++-
- tests/hermes_cli/test_doctor.py | 51 +++++++++++++++++++++++++++++++++++++++++
+ mercury_cli/doctor.py            |  3 ++-
+ tests/mercury_cli/test_doctor.py | 51 +++++++++++++++++++++++++++++++++++++++++
  2 files changed, 53 insertions(+), 1 deletion(-)
 
 ================================================================
@@ -2095,7 +2095,7 @@ their models still appear in the order the user listed them in
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 
 
- hermes_cli/model_switch.py | 35 +++++++++++++++++++++++++----------
+ mercury_cli/model_switch.py | 35 +++++++++++++++++++++++++----------
  1 file changed, 25 insertions(+), 10 deletions(-)
 
 ================================================================
@@ -2117,11 +2117,11 @@ Follow-up for salvaged PR #7637. Adds kimi-coding-cn to:
 
 
  agent/models_dev.py                    |  1 +
- hermes_cli/doctor.py                   |  1 +
- hermes_cli/model_normalize.py          |  1 +
- hermes_cli/providers.py                |  1 +
- hermes_cli/runtime_provider.py         |  2 +-
- hermes_cli/setup.py                    |  2 ++
+ mercury_cli/doctor.py                   |  1 +
+ mercury_cli/model_normalize.py          |  1 +
+ mercury_cli/providers.py                |  1 +
+ mercury_cli/runtime_provider.py         |  2 +-
+ mercury_cli/setup.py                    |  2 ++
  trajectory_compressor.py               |  2 +-
  website/docs/integrations/providers.md | 13 +++++++++----
  8 files changed, 17 insertions(+), 6 deletions(-)
@@ -2141,10 +2141,10 @@ and api.moonshot.cn/v1 endpoint for China-region Moonshot users.
  .env.example                                    |  1 +
  agent/auxiliary_client.py                       |  3 +++
  agent/model_metadata.py                         |  5 +++--
- hermes_cli/auth.py                              |  8 ++++++++
- hermes_cli/config.py                            | 10 ++++++++++
- hermes_cli/main.py                              |  6 ++++--
- hermes_cli/models.py                            | 11 ++++++++++-
+ mercury_cli/auth.py                              |  8 ++++++++
+ mercury_cli/config.py                            | 10 ++++++++++
+ mercury_cli/main.py                              |  6 ++++--
+ mercury_cli/models.py                            | 11 ++++++++++-
  website/docs/getting-started/quickstart.md      |  1 +
  website/docs/reference/environment-variables.md |  3 ++-
  website/docs/user-guide/configuration.md        |  2 +-
@@ -2201,15 +2201,15 @@ Teknium <127238744+teknium1@users.noreply.github.com>
 
 fix: resolve overlay provider slug mismatch in /model picker (#7373)
 
-HERMES_OVERLAYS keys use models.dev IDs (e.g. 'github-copilot') but
-_PROVIDER_MODELS curated lists and config.yaml use Hermes provider IDs
+MERCURY_OVERLAYS keys use models.dev IDs (e.g. 'github-copilot') but
+_PROVIDER_MODELS curated lists and config.yaml use Mercury provider IDs
 ('copilot'). list_authenticated_providers() Section 2 was using the
 overlay key directly for model lookups and is_current checks, causing:
 - 0 models shown for copilot, kimi, kilo, opencode, vercel
 - is_current never matching the config provider
 
 Fix: build reverse mapping from PROVIDER_TO_MODELS_DEV to translate
-overlay keys to Hermes slugs before curated list lookup and result
+overlay keys to Mercury slugs before curated list lookup and result
 construction. Also adds 'kimi-for-coding' alias in auth.py so the
 picker's returned slug resolves correctly in resolve_provider().
 
@@ -2218,9 +2218,9 @@ Fixes #5223. Based on work by HearthCore (#6492) and linxule (#6287).
 Co-authored-by: HearthCore <HearthCore@users.noreply.github.com>
 Co-authored-by: linxule <linxule@users.noreply.github.com>
 
- hermes_cli/auth.py                               |  2 +-
- hermes_cli/model_switch.py                       | 41 +++++++++---
- tests/hermes_cli/test_overlay_slug_resolution.py | 83 ++++++++++++++++++++++++
+ mercury_cli/auth.py                               |  2 +-
+ mercury_cli/model_switch.py                       | 41 +++++++++---
+ tests/mercury_cli/test_overlay_slug_resolution.py | 83 ++++++++++++++++++++++++
  3 files changed, 115 insertions(+), 11 deletions(-)
 
 ================================================================
@@ -2230,15 +2230,15 @@ Teknium <teknium1@gmail.com>
 
 fix: resolve overlay provider slug mismatch in /model picker
 
-HERMES_OVERLAYS keys use models.dev IDs (e.g. 'github-copilot') but
-_PROVIDER_MODELS curated lists and config.yaml use Hermes provider IDs
+MERCURY_OVERLAYS keys use models.dev IDs (e.g. 'github-copilot') but
+_PROVIDER_MODELS curated lists and config.yaml use Mercury provider IDs
 ('copilot'). list_authenticated_providers() Section 2 was using the
 overlay key directly for model lookups and is_current checks, causing:
 - 0 models shown for copilot, kimi, kilo, opencode, vercel
 - is_current never matching the config provider
 
 Fix: build reverse mapping from PROVIDER_TO_MODELS_DEV to translate
-overlay keys to Hermes slugs before curated list lookup and result
+overlay keys to Mercury slugs before curated list lookup and result
 construction. Also adds 'kimi-for-coding' alias in auth.py so the
 picker's returned slug resolves correctly in resolve_provider().
 
@@ -2248,9 +2248,9 @@ Co-authored-by: HearthCore <HearthCore@users.noreply.github.com>
 Co-authored-by: linxule <linxule@users.noreply.github.com>
 
 
- hermes_cli/auth.py                               |  2 +-
- hermes_cli/model_switch.py                       | 41 +++++++++---
- tests/hermes_cli/test_overlay_slug_resolution.py | 83 ++++++++++++++++++++++++
+ mercury_cli/auth.py                               |  2 +-
+ mercury_cli/model_switch.py                       | 41 +++++++++---
+ tests/mercury_cli/test_overlay_slug_resolution.py | 83 ++++++++++++++++++++++++
  3 files changed, 115 insertions(+), 11 deletions(-)
 
 ================================================================
@@ -2315,7 +2315,7 @@ doctor.py to 'KimiCLI/1.30.0' to match the current official Kimi CLI.
 
 
  agent/auxiliary_client.py | 10 +++++-----
- hermes_cli/doctor.py      |  2 +-
+ mercury_cli/doctor.py      |  2 +-
  run_agent.py              |  4 ++--
  3 files changed, 8 insertions(+), 8 deletions(-)
 
@@ -2335,7 +2335,7 @@ doctor.py to 'KimiCLI/1.30.0' to match the current official Kimi CLI.
 
 
  agent/auxiliary_client.py | 10 +++++-----
- hermes_cli/doctor.py      |  2 +-
+ mercury_cli/doctor.py      |  2 +-
  run_agent.py              |  4 ++--
  3 files changed, 8 insertions(+), 8 deletions(-)
 
@@ -2392,7 +2392,7 @@ Fixes #5561
 
 
  agent/credential_pool.py | 6 +++++-
- hermes_cli/auth.py       | 2 +-
+ mercury_cli/auth.py       | 2 +-
  2 files changed, 6 insertions(+), 2 deletions(-)
 
 ================================================================
@@ -2476,7 +2476,7 @@ Fixes #5561
 
 
  agent/credential_pool.py | 6 +++++-
- hermes_cli/auth.py       | 2 +-
+ mercury_cli/auth.py       | 2 +-
  2 files changed, 6 insertions(+), 2 deletions(-)
 
 ================================================================
@@ -2519,7 +2519,7 @@ fix(auth): kimi-coding pool base_url seeding + PKCE endpoint fallback
    Previously, sk-kimi- prefixed keys were seeded with the default
    moonshot.ai URL, causing 401 on first request. Fixes #5561.
 
-2. Hermes-native PKCE OAuth login (run_hermes_oauth_login_pure) now
+2. Mercury-native PKCE OAuth login (run_mercury_oauth_login_pure) now
    tries platform.claude.com first with console.anthropic.com fallback,
    consistent with refresh_anthropic_oauth_pure(). The old _OAUTH_TOKEN_URL
    constant hardcoded console.anthropic.com only.
@@ -2557,7 +2557,7 @@ Fixes the same class of bug as #5561 but for the zai provider.
 
 
  agent/credential_pool.py        |  3 +++
- hermes_cli/auth.py              | 43 ++++++++++++++++++++++++++++++++++
+ mercury_cli/auth.py              | 43 ++++++++++++++++++++++++++++++++++
  tests/test_api_key_providers.py | 52 ++++++++++++++++++++++++++++++++++++++++-
  3 files changed, 97 insertions(+), 1 deletion(-)
 
@@ -2584,7 +2584,7 @@ Fix:
 Co-authored-by: jacob3712 <jacob3712@users.noreply.github.com>
 
 
- hermes_cli/model_normalize.py |   4 +-
+ mercury_cli/model_normalize.py |   4 +-
  run_agent.py                  |   8 +--
  tests/test_model_normalize.py | 116 ++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 123 insertions(+), 5 deletions(-)
@@ -2612,7 +2612,7 @@ Fix:
 Co-authored-by: jacob3712 <jacob3712@users.noreply.github.com>
 
 
- hermes_cli/model_normalize.py |   4 +-
+ mercury_cli/model_normalize.py |   4 +-
  run_agent.py                  |   8 +--
  tests/test_model_normalize.py | 116 ++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 123 insertions(+), 5 deletions(-)
@@ -2632,13 +2632,13 @@ HIGH severity:
 - Add note that Honcho is available via plugin
 
 MEDIUM severity:
-- Add hermes memory command family to cli-commands.md (setup/status/off)
+- Add mercury memory command family to cli-commands.md (setup/status/off)
 - Add --clone-all, --clone-from to profile create in cli-commands.md
-- Add --max-turns option to hermes chat in cli-commands.md
+- Add --max-turns option to mercury chat in cli-commands.md
 - Add /btw slash command to slash-commands.md
 - Fix profile show example output (remove nonexistent disk usage,
   add .env and SOUL.md status lines)
-- Add missing hermes-webhook toolset to toolsets-reference.md
+- Add missing mercury-webhook toolset to toolsets-reference.md
 - Add 5 missing providers to fallback-providers.md table
 - Add 7 missing providers to providers.md fallback list
 - Fix outdated model examples: glm-4-plus→glm-5, moonshot-v1-auto→kimi-for-coding
@@ -2690,14 +2690,14 @@ Based on PR #3017 by SaM13997.
 Co-authored-by: SaM13997 <139419381+SaM13997@users.noreply.github.com>
 
  cli.py                                    |  22 +++++++
- hermes_cli/auth.py                        |   4 ++
- hermes_cli/main.py                        |  96 +++++-----------------------
- hermes_cli/model_switch.py                |  12 ++++
- hermes_cli/models.py                      |  53 ++++++++++++++++
- hermes_cli/runtime_provider.py            |  34 ++++++++--
- hermes_cli/setup.py                       |  17 +++++
- tests/hermes_cli/test_model_validation.py |  24 +++++++
- tests/hermes_cli/test_models.py           |   9 ++-
+ mercury_cli/auth.py                        |   4 ++
+ mercury_cli/main.py                        |  96 +++++-----------------------
+ mercury_cli/model_switch.py                |  12 ++++
+ mercury_cli/models.py                      |  53 ++++++++++++++++
+ mercury_cli/runtime_provider.py            |  34 ++++++++--
+ mercury_cli/setup.py                       |  17 +++++
+ tests/mercury_cli/test_model_validation.py |  24 +++++++
+ tests/mercury_cli/test_models.py           |   9 ++-
  tests/test_codex_models.py                |  16 +++++
  tests/test_model_provider_persistence.py  |  47 ++++++++++++++
  tests/test_runtime_provider_resolution.py | 100 ++++++++++++++++++++++++++++++
@@ -2739,14 +2739,14 @@ Based on PR #3017 by SaM13997.
 
 
  cli.py                                    |  22 +++++++
- hermes_cli/auth.py                        |   4 ++
- hermes_cli/main.py                        |  96 +++++-----------------------
- hermes_cli/model_switch.py                |  12 ++++
- hermes_cli/models.py                      |  53 ++++++++++++++++
- hermes_cli/runtime_provider.py            |  34 ++++++++--
- hermes_cli/setup.py                       |  17 +++++
- tests/hermes_cli/test_model_validation.py |  24 +++++++
- tests/hermes_cli/test_models.py           |   9 ++-
+ mercury_cli/auth.py                        |   4 ++
+ mercury_cli/main.py                        |  96 +++++-----------------------
+ mercury_cli/model_switch.py                |  12 ++++
+ mercury_cli/models.py                      |  53 ++++++++++++++++
+ mercury_cli/runtime_provider.py            |  34 ++++++++--
+ mercury_cli/setup.py                       |  17 +++++
+ tests/mercury_cli/test_model_validation.py |  24 +++++++
+ tests/mercury_cli/test_models.py           |   9 ++-
  tests/test_codex_models.py                |  16 +++++
  tests/test_model_provider_persistence.py  |  47 ++++++++++++++
  tests/test_runtime_provider_resolution.py | 100 ++++++++++++++++++++++++++++++
@@ -2800,7 +2800,7 @@ api_mode is always known.
 
 Reported by stefan171.
 
- hermes_cli/main.py | 6 +++---
+ mercury_cli/main.py | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 ================================================================
@@ -2808,9 +2808,9 @@ Reported by stefan171.
 Teknium <127238744+teknium1@users.noreply.github.com>
 2026-03-29 08:07:11 -0700
 
-fix: set api_mode when switching providers via hermes model (#3726)
+fix: set api_mode when switching providers via mercury model (#3726)
 
-When switching providers via 'hermes model', the previous provider's
+When switching providers via 'mercury model', the previous provider's
 api_mode persisted in config.yaml. Switching from Copilot
 (codex_responses) to a chat_completions provider like Z.AI would send
 requests to the wrong endpoint (404).
@@ -2820,7 +2820,7 @@ missing it: OpenRouter, custom endpoint, Kimi, and api_key_provider.
 
 Co-authored-by: Nour Eddine Hamaidi <HenkDz@users.noreply.github.com>
 
- hermes_cli/main.py | 4 ++++
+ mercury_cli/main.py | 4 ++++
  1 file changed, 4 insertions(+)
 
 ================================================================
@@ -2850,10 +2850,10 @@ fix: alibaba provider default endpoint and model list (#3484)
 - Update tests to match new default URL and test the anthropic override
   path instead.
 
- hermes_cli/auth.py                        |  2 +-
- hermes_cli/config.py                      |  4 ++--
- hermes_cli/main.py                        |  2 +-
- hermes_cli/models.py                      | 14 ++++++++++----
+ mercury_cli/auth.py                        |  2 +-
+ mercury_cli/config.py                      |  4 ++--
+ mercury_cli/main.py                        |  2 +-
+ mercury_cli/models.py                      | 14 ++++++++++----
  tests/test_runtime_provider_resolution.py | 18 +++++++++---------
  5 files changed, 23 insertions(+), 17 deletions(-)
 
@@ -2878,8 +2878,8 @@ Show only agentic models that map to OpenRouter defaults:
 Users can still pick any HF model via Enter custom model name.
 
  agent/model_metadata.py         | 12 +---------
- hermes_cli/main.py              | 49 +++++++++++++++++++----------------------
- hermes_cli/models.py            | 19 ++++------------
+ mercury_cli/main.py              | 49 +++++++++++++++++++----------------------
+ mercury_cli/models.py            | 19 ++++------------
  tests/test_api_key_providers.py |  4 ++--
  4 files changed, 30 insertions(+), 54 deletions(-)
 
@@ -2905,8 +2905,8 @@ Users can still pick any HF model via Enter custom model name.
 
 
  agent/model_metadata.py         | 12 +---------
- hermes_cli/main.py              | 49 +++++++++++++++++++----------------------
- hermes_cli/models.py            | 19 ++++------------
+ mercury_cli/main.py              | 49 +++++++++++++++++++----------------------
+ mercury_cli/models.py            | 19 ++++------------
  tests/test_api_key_providers.py |  4 ++--
  4 files changed, 30 insertions(+), 54 deletions(-)
 
@@ -2931,7 +2931,7 @@ Previously, all three existed in-memory during a single session but
 were lost on gateway reload.
 
 Changes:
-- hermes_state.py: schema v6 migration, append_message() accepts all
+- mercury_state.py: schema v6 migration, append_message() accepts all
   three fields, get_messages_as_conversation() restores them on
   assistant messages
 - run_agent.py: _flush_messages_to_session_db() passes all reasoning
@@ -2951,9 +2951,9 @@ Verified against:
 
  gateway/run.py             | 13 ++++++-
  gateway/session.py         | 12 +++++-
- hermes_state.py            | 65 ++++++++++++++++++++++++++++++---
+ mercury_state.py            | 65 ++++++++++++++++++++++++++++++---
  run_agent.py               |  3 ++
- tests/test_hermes_state.py | 91 ++++++++++++++++++++++++++++++++++++++++++++--
+ tests/test_mercury_state.py | 91 ++++++++++++++++++++++++++++++++++++++++++++--
  5 files changed, 173 insertions(+), 11 deletions(-)
 
 ================================================================
@@ -3004,7 +3004,7 @@ stay in place so the config object remains consistent during setup.
 Closes #1182
 
 
- hermes_cli/setup.py | 17 ++++++++++++-----
+ mercury_cli/setup.py | 17 ++++++++++++-----
  1 file changed, 12 insertions(+), 5 deletions(-)
 
 ================================================================
@@ -3012,11 +3012,11 @@ f549981293d043d86fc37d92dbe8b42895572017
 Teknium <127238744+teknium1@users.noreply.github.com>
 2026-03-14 20:46:51 -0700
 
-Merge pull request #1369 from NousResearch/hermes/hermes-aed06679
+Merge pull request #1369 from NousResearch/mercury/mercury-aed06679
 
 fix: exclude Coding Plan-only models from Moonshot model selection
 
- hermes_cli/main.py              | 10 ++++++++--
+ mercury_cli/main.py              | 10 ++++++++--
  tests/test_api_key_providers.py | 27 +++++++++++++++++++++++++++
  2 files changed, 35 insertions(+), 2 deletions(-)
 
@@ -3033,7 +3033,7 @@ kimi-k2-thinking-turbo which only work on the Coding Plan endpoint
 excludes plan-specific models.
 
 
- hermes_cli/main.py              | 10 ++++++++--
+ mercury_cli/main.py              | 10 ++++++++--
  tests/test_api_key_providers.py | 27 +++++++++++++++++++++++++++
  2 files changed, 35 insertions(+), 2 deletions(-)
 
@@ -3064,7 +3064,7 @@ across all providers instead of hardcoding 'requires OPENROUTER_API_KEY'.
 MoA still correctly requires OpenRouter (calls multiple frontier models).
 
 
- hermes_cli/setup.py | 156 ++++++++++++++++++++++++++++++++++++++++++----------
+ mercury_cli/setup.py | 156 ++++++++++++++++++++++++++++++++++++++++++----------
  1 file changed, 128 insertions(+), 28 deletions(-)
 
 ================================================================
@@ -3095,7 +3095,7 @@ Changes:
   default model instead of silently keeping the incompatible name.
 
 Reported by a user on Home Assistant whose gateway started sending
-'anthropic/claude-opus-4.6' to MiniMax's API after running hermes setup.
+'anthropic/claude-opus-4.6' to MiniMax's API after running mercury setup.
 
 * fix: auxiliary client uses main model for custom/local endpoints instead of gpt-4o-mini
 
@@ -3107,7 +3107,7 @@ mid-task.
 
 Changes:
 - _try_custom_endpoint() now reads the user's configured main model via
-  _read_main_model() (checks OPENAI_MODEL → HERMES_MODEL → LLM_MODEL →
+  _read_main_model() (checks OPENAI_MODEL → MERCURY_MODEL → LLM_MODEL →
   config.yaml model.default) instead of hardcoding 'gpt-4o-mini'.
 - resolve_provider_client() auto mode now detects when an OpenRouter-
   formatted model override (containing '/') would be sent to a non-
@@ -3145,10 +3145,10 @@ Changes:
   default model instead of silently keeping the incompatible name.
 
 Reported by a user on Home Assistant whose gateway started sending
-'anthropic/claude-opus-4.6' to MiniMax's API after running hermes setup.
+'anthropic/claude-opus-4.6' to MiniMax's API after running mercury setup.
 
- hermes_cli/auth.py  | 25 +++++++++++++++++++++++--
- hermes_cli/setup.py | 22 ++++++++++++++++------
+ mercury_cli/auth.py  | 25 +++++++++++++++++++++++--
+ mercury_cli/setup.py | 22 ++++++++++++++++------
  2 files changed, 39 insertions(+), 8 deletions(-)
 
 ================================================================
@@ -3177,11 +3177,11 @@ Changes:
   default model instead of silently keeping the incompatible name.
 
 Reported by a user on Home Assistant whose gateway started sending
-'anthropic/claude-opus-4.6' to MiniMax's API after running hermes setup.
+'anthropic/claude-opus-4.6' to MiniMax's API after running mercury setup.
 
 
- hermes_cli/auth.py  | 25 +++++++++++++++++++++++--
- hermes_cli/setup.py | 22 ++++++++++++++++------
+ mercury_cli/auth.py  | 25 +++++++++++++++++++++++--
+ mercury_cli/setup.py | 22 ++++++++++++++++------
  2 files changed, 39 insertions(+), 8 deletions(-)
 
 ================================================================
@@ -3198,7 +3198,7 @@ _setup_provider_model_selection() already handles these providers correctly
 via _DEFAULT_PROVIDER_MODELS dict.
 
 
- hermes_cli/setup.py                 |  50 ---------------
+ mercury_cli/setup.py                 |  50 ---------------
  tests/test_setup_model_selection.py | 124 ++++++++++++++++++++++++++++++++++++
  2 files changed, 124 insertions(+), 50 deletions(-)
 
@@ -3284,8 +3284,8 @@ Model catalog updates:
 
 
  agent/model_metadata.py |   2 +
- hermes_cli/main.py      | 112 +++++++++++++++++++++++++++++++++++++++++++++++-
- hermes_cli/models.py    |   2 +
+ mercury_cli/main.py      | 112 +++++++++++++++++++++++++++++++++++++++++++++++-
+ mercury_cli/models.py    |   2 +
  run_agent.py            |   2 +-
  4 files changed, 115 insertions(+), 3 deletions(-)
 
@@ -3324,11 +3324,11 @@ Users can see all authenticated providers and their models at a glance,
 making it easy to switch mid-conversation.
 
 Also added curated model lists for Nous Portal and OpenAI Codex to
-hermes_cli/models.py.
+mercury_cli/models.py.
 
 
  cli.py                          | 126 ++++++++++++++++++++++------------------
- hermes_cli/models.py            |  13 +++++
+ mercury_cli/models.py            |  13 +++++
  tests/test_cli_model_command.py |   4 +-
  3 files changed, 83 insertions(+), 60 deletions(-)
 
@@ -3359,7 +3359,7 @@ across all providers instead of hardcoding 'requires OPENROUTER_API_KEY'.
 MoA still correctly requires OpenRouter (calls multiple frontier models).
 
 
- hermes_cli/setup.py | 141 ++++++++++++++++++++++++++++++++++++++++++++++------
+ mercury_cli/setup.py | 141 ++++++++++++++++++++++++++++++++++++++++++++++------
  1 file changed, 126 insertions(+), 15 deletions(-)
 
 ================================================================
@@ -3389,7 +3389,7 @@ across all providers instead of hardcoding 'requires OPENROUTER_API_KEY'.
 MoA still correctly requires OpenRouter (calls multiple frontier models).
 
 
- hermes_cli/setup.py | 141 ++++++++++++++++++++++++++++++++++++++++++++++------
+ mercury_cli/setup.py | 141 ++++++++++++++++++++++++++++++++++++++++++++++------
  1 file changed, 126 insertions(+), 15 deletions(-)
 
 ================================================================
@@ -3409,7 +3409,7 @@ providers work out of the box: openrouter, nous, zai, kimi-coding,
 minimax, minimax-cn.
 
 Key design decisions:
-- Provider resolution uses hermes_cli.runtime_provider (single source of
+- Provider resolution uses mercury_cli.runtime_provider (single source of
   truth for credential resolution across CLI, gateway, cron, and now
   delegation)
 - When only delegation.model is set (no provider), the model name changes
@@ -3420,7 +3420,7 @@ Key design decisions:
   Nous Portal, subagents on OpenRouter)
 - Clear error messages if provider resolution fails (missing API key,
   unknown provider name)
-- _load_config() now falls back to hermes_cli.config.load_config() for
+- _load_config() now falls back to mercury_cli.config.load_config() for
   gateway/cron contexts where CLI_CONFIG is unavailable
 
 Based on PR #791 by 0xbyt4 (closes #609), reworked to use proper
@@ -3431,7 +3431,7 @@ Co-authored-by: 0xbyt4 <0xbyt4@users.noreply.github.com>
 
  cli-config.yaml.example                  |   4 +
  cli.py                                   |   2 +
- hermes_cli/config.py                     |  11 +-
+ mercury_cli/config.py                     |  11 +-
  tests/tools/test_delegate.py             | 283 +++++++++++++++++++++++++++++++
  tools/delegate_tool.py                   | 120 ++++++++++++-
  website/docs/user-guide/configuration.md |   8 +
@@ -3447,14 +3447,14 @@ fix: custom endpoint provider shows as openrouter in gateway
 Three issues caused the gateway to display 'openrouter' instead of
 'Custom endpoint' when users configured a custom OAI-compatible endpoint:
 
-1. hermes setup: custom endpoint path saved OPENAI_BASE_URL and
+1. mercury setup: custom endpoint path saved OPENAI_BASE_URL and
    OPENAI_API_KEY to .env but never wrote model.provider to config.yaml.
    All other providers (Codex, z.ai, Kimi, etc.) call
    _update_config_for_provider() which sets this — custom was the only
    path that skipped it. Now writes model.provider='custom' and
    model.base_url to config.yaml.
 
-2. hermes model: custom endpoint set model.provider='auto' in config.yaml.
+2. mercury model: custom endpoint set model.provider='auto' in config.yaml.
    The CLI display had a hack to detect OPENAI_BASE_URL and override to
    'custom', but the gateway didn't. Now sets model.provider='custom'
    directly.
@@ -3466,9 +3466,9 @@ Three issues caused the gateway to display 'openrouter' instead of
 
 
  gateway/run.py       |  9 +++++++++
- hermes_cli/main.py   |  2 +-
- hermes_cli/models.py |  2 +-
- hermes_cli/setup.py  | 22 ++++++++++++++++++++++
+ mercury_cli/main.py   |  2 +-
+ mercury_cli/models.py |  2 +-
+ mercury_cli/setup.py  | 22 ++++++++++++++++++++++
  4 files changed, 33 insertions(+), 2 deletions(-)
 
 ================================================================
@@ -3488,7 +3488,7 @@ New _resolve_fallback_credentials() method handles all three cases
 tuple. _try_activate_fallback() is now just validation + client build.
 
 Adds Nous Portal as a fallback provider — uses the same OAuth flow
-as the primary provider (hermes login), returns chat_completions mode.
+as the primary provider (mercury login), returns chat_completions mode.
 
 OAuth providers get credential refresh for free: the existing 401
 retry handlers (_try_refresh_codex/nous_client_credentials) check
@@ -3498,7 +3498,7 @@ self.provider, which is set correctly after fallback activation.
 27 total fallback tests passing, 2548 full suite.
 
 
- hermes_cli/config.py         |   1 +
+ mercury_cli/config.py         |   1 +
  run_agent.py                 | 112 ++++++++++++++++++++++++++-----------------
  tests/test_fallback_model.py |  34 +++++++++++++
  3 files changed, 102 insertions(+), 45 deletions(-)
@@ -3508,11 +3508,11 @@ b3765c28d0ac311764d9163062f8ecdddd252e99
 teknium1 <teknium1@gmail.com>
 2026-03-08 20:49:55 -0700
 
-fix: restrict fallback providers to actual hermes providers
+fix: restrict fallback providers to actual mercury providers
 
 Remove hallucinated providers (openai, deepseek, together, groq,
 fireworks, mistral, gemini, nous) from the fallback provider map.
-These don't exist in hermes-agent's provider system.
+These don't exist in mercury-agent's provider system.
 
 The real supported providers for fallback are:
   openrouter   (OPENROUTER_API_KEY)
@@ -3528,7 +3528,7 @@ Also adds Kimi User-Agent header for kimi fallback (matching
 the main provider system).
 
 
- hermes_cli/config.py         | 18 ++++-------
+ mercury_cli/config.py         | 18 ++++-------
  run_agent.py                 | 16 ++++-----
  tests/test_fallback_model.py | 77 ++++++++++++++++++++++++++++----------------
  3 files changed, 65 insertions(+), 46 deletions(-)
@@ -3549,7 +3549,7 @@ is set. Falls back to openrouter only if resolution fails.
 
  cli.py               | 15 ++++++++++++++-
  gateway/run.py       |  7 +++++++
- hermes_cli/models.py |  9 ++++++---
+ mercury_cli/models.py |  9 ++++++---
  3 files changed, 27 insertions(+), 4 deletions(-)
 
 ================================================================
@@ -3561,7 +3561,7 @@ feat: provider switching via /model + enhanced model display
 
 Add provider:model syntax to /model command for runtime provider switching:
   /model zai:glm-5           → switch to Z.AI provider with glm-5
-  /model nous:hermes-3       → switch to Nous Portal with hermes-3
+  /model nous:mercury-3       → switch to Nous Portal with mercury-3
   /model openrouter:anthropic/claude-sonnet-4.5  → explicit OpenRouter
 
 When switching providers, credentials are resolved via resolve_runtime_provider
@@ -3578,8 +3578,8 @@ provider switching (success + credential failure), and display output.
 
 
  cli.py                                    |  85 +++++++++++++++------
- hermes_cli/models.py                      |  32 ++++++++
- tests/hermes_cli/test_model_validation.py | 120 +++++++++++++++++-------------
+ mercury_cli/models.py                      |  32 ++++++++
+ tests/mercury_cli/test_model_validation.py | 120 +++++++++++++++++-------------
  tests/test_cli_model_command.py           |  68 ++++++++++++-----
  4 files changed, 213 insertions(+), 92 deletions(-)
 
@@ -3597,8 +3597,8 @@ compatibility. Legacy Moonshot keys continue to work unchanged.
 
  .env.example                    | 10 +++--
  agent/auxiliary_client.py       | 18 +++++++--
- hermes_cli/auth.py              | 46 ++++++++++++++++++---
- hermes_cli/doctor.py            |  8 +++-
+ mercury_cli/auth.py              | 46 ++++++++++++++++++---
+ mercury_cli/doctor.py            |  8 +++-
  run_agent.py                    |  6 +++
  tests/test_api_key_providers.py | 88 ++++++++++++++++++++++++++++++++++++++++-
  6 files changed, 161 insertions(+), 15 deletions(-)
@@ -3630,8 +3630,8 @@ Reference: https://github.com/MoonshotAI/kimi-cli (platforms.py)
 
  .env.example                    | 10 +++--
  agent/auxiliary_client.py       | 18 +++++++--
- hermes_cli/auth.py              | 46 ++++++++++++++++++---
- hermes_cli/doctor.py            |  8 +++-
+ mercury_cli/auth.py              | 46 ++++++++++++++++++---
+ mercury_cli/doctor.py            |  8 +++-
  run_agent.py                    |  6 +++
  tests/test_api_key_providers.py | 88 ++++++++++++++++++++++++++++++++++++++++-
  6 files changed, 161 insertions(+), 15 deletions(-)
@@ -3714,7 +3714,7 @@ Core changes:
 - runtime_provider.py: Added generic API-key provider branch in
   resolve_runtime_provider() — any provider with auth_type='api_key'
   is automatically handled.
-- main.py: Added providers to hermes model menu with generic
+- main.py: Added providers to mercury model menu with generic
   _model_flow_api_key_provider() flow. Updated _has_any_provider_configured()
   to check all provider env vars. Updated argparse --provider choices.
 - setup.py: Added providers to setup wizard with API key prompts and
@@ -3740,11 +3740,11 @@ provider improvements merged earlier in this changeset.
  README.md                                       |   2 +-
  cli-config.yaml.example                         |   4 +
  cli.py                                          |   4 +-
- hermes_cli/auth.py                              | 130 ++++++++-
- hermes_cli/config.py                            |  80 ++++++
- hermes_cli/doctor.py                            |  43 ++-
- hermes_cli/main.py                              | 134 +++++++++-
- hermes_cli/runtime_provider.py                  |  15 ++
+ mercury_cli/auth.py                              | 130 ++++++++-
+ mercury_cli/config.py                            |  80 ++++++
+ mercury_cli/doctor.py                            |  43 ++-
+ mercury_cli/main.py                              | 134 +++++++++-
+ mercury_cli/runtime_provider.py                  |  15 ++
 
 ================================================================
 f172f7d4aa145913dca40a7871c693495b3840f2
@@ -3758,7 +3758,7 @@ Add skills tools and enhance model integration
 - Enhanced `batch_runner.py` to recognize and validate skills tools during batch processing.
 - Added comprehensive tool definitions for skills tools, ensuring compatibility with OpenAI's expected format.
 - Created new shell script `test_skills_kimi.sh` for testing skills tool functionality with Kimi K2.5.
-- Added example skill files demonstrating the structure and usage of skills within the Hermes-Agent framework, including `SKILL.md` for example and audiocraft skills.
+- Added example skill files demonstrating the structure and usage of skills within the Mercury-Agent framework, including `SKILL.md` for example and audiocraft skills.
 - Improved documentation for skills tools and their integration into the existing tool framework, ensuring clarity for future development and usage.
 
 

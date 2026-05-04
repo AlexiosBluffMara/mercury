@@ -4,7 +4,7 @@ sidebar_position: 9
 
 # Adding a Platform Adapter
 
-This guide covers adding a new messaging platform to the Hermes gateway. A platform adapter connects Hermes to an external messaging service (Telegram, Discord, WeCom, etc.) so users can interact with the agent through that service.
+This guide covers adding a new messaging platform to the Mercury gateway. A platform adapter connects Mercury to an external messaging service (Telegram, Discord, WeCom, etc.) so users can interact with the agent through that service.
 
 :::tip
 Adding a platform adapter touches 20+ files across code, config, and docs. Use this guide as a checklist — the adapter file itself is typically only 40% of the work.
@@ -135,8 +135,8 @@ Five touchpoints:
 
 ### 8. Toolsets
 
-1. **`toolsets.py`** — Add `"hermes-newplat"` toolset definition with `_HERMES_CORE_TOOLS`
-2. **`toolsets.py`** — Add `"hermes-newplat"` to the `"hermes-gateway"` includes list
+1. **`toolsets.py`** — Add `"mercury-newplat"` toolset definition with `_MERCURY_CORE_TOOLS`
+2. **`toolsets.py`** — Add `"mercury-newplat"` to the `"mercury-gateway"` includes list
 
 ### 9. Optional: Platform Hints
 
@@ -170,7 +170,7 @@ Create `tests/gateway/test_newplat.py` covering:
 | `website/docs/user-guide/messaging/newplat.md` | Full platform setup page |
 | `website/docs/user-guide/messaging/index.md` | Platform comparison table, architecture diagram, toolsets table, security section, next-steps link |
 | `website/docs/reference/environment-variables.md` | All NEWPLAT_* env vars |
-| `website/docs/reference/toolsets-reference.md` | hermes-newplat toolset |
+| `website/docs/reference/toolsets-reference.md` | mercury-newplat toolset |
 | `website/docs/integrations/index.md` | Platform link |
 | `website/sidebars.ts` | Sidebar entry for the docs page |
 | `website/docs/developer-guide/architecture.md` | Adapter count + listing |

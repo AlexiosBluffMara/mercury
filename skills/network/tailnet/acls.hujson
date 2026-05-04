@@ -35,7 +35,7 @@
       "dst":    ["tag:gpu:8765"],
     },
 
-    // GPU host → mobile (push notifications via Hermes gateway, e.g. Discord/WhatsApp)
+    // GPU host → mobile (push notifications via Mercury gateway, e.g. Discord/WhatsApp)
     {
       "action": "accept",
       "src":    ["tag:gpu"],

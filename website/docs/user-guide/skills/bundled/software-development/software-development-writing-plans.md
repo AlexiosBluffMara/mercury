@@ -17,7 +17,7 @@ Use when you have a spec or requirements for a multi-step task. Creates comprehe
 | Source | Bundled (installed by default) |
 | Path | `skills/software-development/writing-plans` |
 | Version | `1.1.0` |
-| Author | Hermes Agent (adapted from obra/superpowers) |
+| Author | Mercury Agent (adapted from obra/superpowers) |
 | License | MIT |
 | Tags | `planning`, `design`, `implementation`, `workflow`, `documentation` |
 | Related skills | [`subagent-driven-development`](/docs/user-guide/skills/bundled/software-development/software-development-subagent-driven-development), [`test-driven-development`](/docs/user-guide/skills/bundled/software-development/software-development-test-driven-development), [`requesting-code-review`](/docs/user-guide/skills/bundled/software-development/software-development-requesting-code-review) |
@@ -25,7 +25,7 @@ Use when you have a spec or requirements for a multi-step task. Creates comprehe
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Writing Implementation Plans
@@ -88,7 +88,7 @@ Every plan MUST start with:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
+> **For Mercury:** Use subagent-driven-development skill to implement this plan task-by-task.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -158,7 +158,7 @@ Read and understand:
 
 ### Step 2: Explore the Codebase
 
-Use Hermes tools to understand the project:
+Use Mercury tools to understand the project:
 
 ```python
 # Understand project structure

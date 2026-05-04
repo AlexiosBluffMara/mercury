@@ -17,7 +17,7 @@ Generate dark-themed SVG diagrams of software systems and cloud infrastructure a
 | Source | Bundled (installed by default) |
 | Path | `skills/creative/architecture-diagram` |
 | Version | `1.0.0` |
-| Author | Cocoon AI (hello@cocoon-ai.com), ported by Hermes Agent |
+| Author | Cocoon AI (hello@cocoon-ai.com), ported by Mercury Agent |
 | License | MIT |
 | Tags | `architecture`, `diagrams`, `SVG`, `HTML`, `visualization`, `infrastructure`, `cloud` |
 | Related skills | [`concept-diagrams`](/docs/user-guide/skills/optional/creative/creative-concept-diagrams), [`excalidraw`](/docs/user-guide/skills/bundled/creative/creative-excalidraw) |
@@ -25,7 +25,7 @@ Generate dark-themed SVG diagrams of software systems and cloud infrastructure a
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Architecture Diagram Skill

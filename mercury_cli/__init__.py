@@ -1,14 +1,14 @@
 """
-Hermes CLI - Unified command-line interface for Hermes Agent.
+Mercury CLI - Unified command-line interface for Mercury Agent.
 
 Provides subcommands for:
-- hermes chat          - Interactive chat (same as ./hermes)
-- hermes gateway       - Run gateway in foreground
-- hermes gateway start - Start gateway service
-- hermes gateway stop  - Stop gateway service  
-- hermes setup         - Interactive setup wizard
-- hermes status        - Show status of all components
-- hermes cron          - Manage cron jobs
+- mercury chat          - Interactive chat (same as ./mercury)
+- mercury gateway       - Run gateway in foreground
+- mercury gateway start - Start gateway service
+- mercury gateway stop  - Stop gateway service  
+- mercury setup         - Interactive setup wizard
+- mercury status        - Show status of all components
+- mercury cron          - Manage cron jobs
 """
 
 __version__ = "0.11.0"

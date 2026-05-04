@@ -11,7 +11,7 @@ controlled by the ``checkpoints`` config flag or ``--checkpoints`` CLI flag.
 Architecture:
     ~/.mercury/checkpoints/{sha256(abs_dir)[:16]}/   — shadow git repo
         HEAD, refs/, objects/                        — standard git internals
-        HERMES_WORKDIR                               — original dir path
+        MERCURY_WORKDIR                               — original dir path
         info/exclude                                 — default excludes
 
 The shadow repo uses GIT_DIR + GIT_WORK_TREE so no git state leaks
@@ -25,7 +25,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
-from mercury_constants import get_hermes_home
+from mercury_constants import get_mercury_home
 from typing import Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-CHECKPOINT_BASE = get_hermes_home() / "checkpoints"
+CHECKPOINT_BASE = get_mercury_home() / "checkpoints"
 
 DEFAULT_EXCLUDES = [
     "node_modules/",
@@ -60,7 +60,7 @@ DEFAULT_EXCLUDES = [
 ]
 
 # Git subprocess timeout (seconds).
-_GIT_TIMEOUT: int = max(10, min(60, int(os.getenv("HERMES_CHECKPOINT_TIMEOUT", "30"))))
+_GIT_TIMEOUT: int = max(10, min(60, int(os.getenv("MERCURY_CHECKPOINT_TIMEOUT", "30"))))
 
 # Max files to snapshot — skip huge directories to avoid slowdowns.
 _MAX_FILES = 50_000
@@ -128,7 +128,7 @@ def _shadow_repo_path(working_dir: str) -> Path:
 def _git_env(shadow_repo: Path, working_dir: str) -> dict:
     """Build env dict that redirects git to the shadow repo.
 
-    The shadow repo is internal Hermes infrastructure — it must NOT inherit
+    The shadow repo is internal Mercury infrastructure — it must NOT inherit
     the user's global or system git config.  User-level settings like
     ``commit.gpgsign = true``, signing hooks, or credential helpers would
     either break background snapshots or, worse, spawn interactive prompts
@@ -231,8 +231,8 @@ def _init_shadow_repo(shadow_repo: Path, working_dir: str) -> Optional[str]:
     if not ok:
         return f"Shadow repo init failed: {err}"
 
-    _run_git(["config", "user.email", "hermes@local"], shadow_repo, working_dir)
-    _run_git(["config", "user.name", "Hermes Checkpoint"], shadow_repo, working_dir)
+    _run_git(["config", "user.email", "mercury@local"], shadow_repo, working_dir)
+    _run_git(["config", "user.name", "Mercury Checkpoint"], shadow_repo, working_dir)
     # Explicitly disable commit/tag signing in the shadow repo.  _git_env
     # already isolates from the user's global config, but writing these into
     # the shadow's own config is belt-and-suspenders — it guarantees the
@@ -247,7 +247,7 @@ def _init_shadow_repo(shadow_repo: Path, working_dir: str) -> Optional[str]:
         "\n".join(DEFAULT_EXCLUDES) + "\n", encoding="utf-8"
     )
 
-    (shadow_repo / "HERMES_WORKDIR").write_text(
+    (shadow_repo / "MERCURY_WORKDIR").write_text(
         str(_normalize_path(working_dir)) + "\n", encoding="utf-8"
     )
 

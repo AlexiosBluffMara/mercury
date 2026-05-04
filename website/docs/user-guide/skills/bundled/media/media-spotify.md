@@ -8,7 +8,7 @@ description: "Control Spotify — play music, search the catalog, manage playlis
 
 # Spotify
 
-Control Spotify — play music, search the catalog, manage playlists and library, inspect devices and playback state. Loads when the user asks to play/pause/queue music, search tracks/albums/artists, manage playlists, or check what's playing. Assumes the Hermes Spotify toolset is enabled and `hermes auth spotify` has been run.
+Control Spotify — play music, search the catalog, manage playlists and library, inspect devices and playback state. Loads when the user asks to play/pause/queue music, search tracks/albums/artists, manage playlists, or check what's playing. Assumes the Mercury Spotify toolset is enabled and `mercury auth spotify` has been run.
 
 ## Skill metadata
 
@@ -17,7 +17,7 @@ Control Spotify — play music, search the catalog, manage playlists and library
 | Source | Bundled (installed by default) |
 | Path | `skills/media/spotify` |
 | Version | `1.0.0` |
-| Author | Hermes Agent |
+| Author | Mercury Agent |
 | License | MIT |
 | Tags | `spotify`, `music`, `playback`, `playlists`, `media` |
 | Related skills | [`gif-search`](/docs/user-guide/skills/bundled/media/media-gif-search) |
@@ -25,12 +25,12 @@ Control Spotify — play music, search the catalog, manage playlists and library
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Mercury loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Spotify
 
-Control the user's Spotify account via the Hermes Spotify toolset (7 tools). Setup guide: https://hermes-agent.nousresearch.com/docs/user-guide/features/spotify
+Control the user's Spotify account via the Mercury Spotify toolset (7 tools). Setup guide: https://mercury-agent.nousresearch.com/docs/user-guide/features/spotify
 
 ## When to use this skill
 
@@ -127,7 +127,7 @@ spotify_devices({"action": "transfer", "device_id": "<id>", "play": true})
 
 **`429 Too Many Requests`** = rate limit. Wait and retry once. If it keeps happening, you're looping — stop.
 
-**`401 Unauthorized` after a retry** — refresh token revoked. Tell the user to run `hermes auth spotify` again.
+**`401 Unauthorized` after a retry** — refresh token revoked. Tell the user to run `mercury auth spotify` again.
 
 ## URI and ID formats
 

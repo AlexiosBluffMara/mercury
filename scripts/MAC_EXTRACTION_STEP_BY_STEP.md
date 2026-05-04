@@ -1,7 +1,7 @@
 # Mac Mini extraction — pick one path, ~10 minutes start to finish
 
 The Mac Mini's name is `miniapple` (Tailscale IP `100.75.223.113`).
-You used Hermes directly on it — every Kimi K2.6 call has a paper trail
+You used Mercury directly on it — every Kimi K2.6 call has a paper trail
 in `~/.mercury/logs/`, `~/.mercury/sessions/`, your shell history, and
 each git repo's commit log. Below are three paths, ranked by friction.
 
@@ -28,7 +28,7 @@ tar --exclude='*/node_modules/*' --exclude='*/.venv/*' \
     --exclude='*/Library/Music/*' --exclude='Pictures/*' \
     --exclude='Music/*' --exclude='Movies/*' \
     -czf "$DUMP" \
-    .mercury .hermes .claude .local .cargo .config .zsh_history \
+    .mercury .mercury .claude .local .cargo .config .zsh_history \
     .zsh_sessions .bash_history .python_history \
     dev Projects code work src \
     Library/LaunchAgents \
@@ -55,7 +55,7 @@ done < ~/Desktop/miniapple_manifest_${DATE}/git_repos.txt
 # kimi authorship trail — every file mentioning kimi/moonshot/nous
 grep -ril --include='*.md' --include='*.txt' --include='*.py' --include='*.json' \
   -e kimi -e moonshot -e nous-portal \
-  ~/dev ~/Projects ~/code ~/.mercury ~/.hermes 2>/dev/null \
+  ~/dev ~/Projects ~/code ~/.mercury ~/.mercury 2>/dev/null \
   > ~/Desktop/miniapple_manifest_${DATE}/kimi_touches.txt
 
 ls -lh "$DUMP" "$PRIV"
@@ -149,7 +149,7 @@ re-run the command.
 1. `manifest/git_repos.txt` — full list of repos. Walk these to find Kimi commits.
 2. `manifest/gitlogs/*.log` — `grep -i kimi` across these reveals Kimi-authored commits.
 3. `manifest/kimi_touches.txt` — every file referencing kimi/moonshot/nous-portal.
-4. `~/.mercury/sessions/*.json` (inside the tarball) — full Hermes conversation
+4. `~/.mercury/sessions/*.json` (inside the tarball) — full Mercury conversation
    history; each Kimi call has the model name in the metadata.
 5. `~/.mercury/logs/agent.log` — the agent's own log of which model each
    tool call routed to.

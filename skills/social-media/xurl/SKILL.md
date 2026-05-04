@@ -2,13 +2,13 @@
 name: xurl
 description: Interact with X/Twitter via xurl, the official X API CLI. Use for posting, replying, quoting, searching, timelines, mentions, likes, reposts, bookmarks, follows, DMs, media upload, and raw v2 endpoint access.
 version: 1.1.1
-author: xdevplatform + openclaw + Hermes Agent
+author: xdevplatform + openclaw + Mercury Agent
 license: MIT
 platforms: [linux, macos]
 prerequisites:
   commands: [xurl]
 metadata:
-  hermes:
+  mercury:
     tags: [twitter, x, social-media, xurl, official-api]
     homepage: https://github.com/xdevplatform/xurl
     upstream_skill: https://github.com/openclaw/openclaw/blob/main/skills/xurl/SKILL.md
@@ -411,4 +411,4 @@ xurl --app staging /2/users/me             # one-off against staging
 
 - Upstream CLI: https://github.com/xdevplatform/xurl (X developer platform team, Chris Park et al.)
 - Upstream agent skill: https://github.com/openclaw/openclaw/blob/main/skills/xurl/SKILL.md
-- Hermes adaptation: reformatted for Hermes skill conventions; safety guardrails preserved verbatim.
+- Mercury adaptation: reformatted for Mercury skill conventions; safety guardrails preserved verbatim.

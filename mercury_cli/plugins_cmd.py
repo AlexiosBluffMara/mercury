@@ -1,4 +1,4 @@
-"""``hermes plugins`` CLI subcommand — install, update, remove, and list plugins.
+"""``mercury plugins`` CLI subcommand — install, update, remove, and list plugins.
 
 Plugins are installed from Git repositories into ``~/.mercury/plugins/``.
 Supports full URLs and ``owner/repo`` shorthand (resolves to GitHub).
@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from mercury_constants import get_hermes_home
+from mercury_constants import get_mercury_home
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ _SUPPORTED_MANIFEST_VERSION = 1
 
 def _plugins_dir() -> Path:
     """Return the user plugins directory, creating it if needed."""
-    plugins = get_hermes_home() / "plugins"
+    plugins = get_mercury_home() / "plugins"
     plugins.mkdir(parents=True, exist_ok=True)
     return plugins
 
@@ -174,7 +174,7 @@ def _prompt_plugin_env_vars(manifest: dict, console) -> None:
         return
 
     from mercury_cli.config import get_env_value, save_env_value  # noqa: F811
-    from mercury_constants import display_hermes_home
+    from mercury_constants import display_mercury_home
 
     # Normalise to list-of-dicts
     env_specs: list[dict] = []
@@ -212,15 +212,15 @@ def _prompt_plugin_env_vars(manifest: dict, console) -> None:
             else:
                 value = input(f"  {name}: ").strip()
         except (EOFError, KeyboardInterrupt):
-            console.print(f"\n[dim]  Skipped (you can set these later in {display_hermes_home()}/.env)[/dim]")
+            console.print(f"\n[dim]  Skipped (you can set these later in {display_mercury_home()}/.env)[/dim]")
             return
 
         if value:
             save_env_value(name, value)
             os.environ[name] = value
-            console.print(f"  [green]✓[/green] Saved to {display_hermes_home()}/.env")
+            console.print(f"  [green]✓[/green] Saved to {display_mercury_home()}/.env")
         else:
-            console.print(f"  [dim]  Skipped (set {name} in {display_hermes_home()}/.env later)[/dim]")
+            console.print(f"  [dim]  Skipped (set {name} in {display_mercury_home()}/.env later)[/dim]")
 
     console.print()
 
@@ -373,7 +373,7 @@ def cmd_install(
                 console.print(
                     f"[red]Error:[/red] Plugin '{plugin_name}' already exists at {target}.\n"
                     f"Use [bold]--force[/bold] to remove and reinstall, or "
-                    f"[bold]hermes plugins update {plugin_name}[/bold] to pull latest."
+                    f"[bold]mercury plugins update {plugin_name}[/bold] to pull latest."
                 )
                 sys.exit(1)
             console.print(f"[dim]  Removing existing {plugin_name}...[/dim]")
@@ -386,7 +386,7 @@ def cmd_install(
     if not (target / "plugin.yaml").exists() and not (target / "__init__.py").exists():
         console.print(
             f"[yellow]Warning:[/yellow] {plugin_name} doesn't contain plugin.yaml "
-            f"or __init__.py. It may not be a valid Hermes plugin."
+            f"or __init__.py. It may not be a valid Mercury plugin."
         )
 
     # Copy .example files to their real names (e.g. config.yaml.example → config.yaml)
@@ -431,11 +431,11 @@ def cmd_install(
     else:
         console.print(
             f"[dim]Plugin installed but not enabled. "
-            f"Run `hermes plugins enable {installed_name}` to activate.[/dim]"
+            f"Run `mercury plugins enable {installed_name}` to activate.[/dim]"
         )
 
     console.print("[dim]Restart the gateway for the plugin to take effect:[/dim]")
-    console.print("[dim]  hermes gateway restart[/dim]")
+    console.print("[dim]  mercury gateway restart[/dim]")
     console.print()
 
 
@@ -705,7 +705,7 @@ def cmd_list() -> None:
     entries = _discover_all_plugins()
     if not entries:
         console.print("[dim]No plugins installed.[/dim]")
-        console.print("[dim]Install with:[/dim] hermes plugins install owner/repo")
+        console.print("[dim]Install with:[/dim] mercury plugins install owner/repo")
         return
 
     enabled = _get_enabled_set()
@@ -730,8 +730,8 @@ def cmd_list() -> None:
     console.print()
     console.print(table)
     console.print()
-    console.print("[dim]Interactive toggle:[/dim] hermes plugins")
-    console.print("[dim]Enable/disable:[/dim] hermes plugins enable/disable <name>")
+    console.print("[dim]Interactive toggle:[/dim] mercury plugins")
+    console.print("[dim]Enable/disable:[/dim] mercury plugins enable/disable <name>")
     console.print("[dim]Plugins are opt-in by default — only 'enabled' plugins load.[/dim]")
 
 
@@ -917,7 +917,7 @@ def cmd_toggle() -> None:
 
     if not has_plugins and not has_categories:
         console.print("[dim]No plugins installed and no provider categories available.[/dim]")
-        console.print("[dim]Install with:[/dim] hermes plugins install owner/repo")
+        console.print("[dim]Install with:[/dim] mercury plugins install owner/repo")
         return
 
     # Non-TTY fallback
@@ -1246,7 +1246,7 @@ def _run_composite_fallback(plugin_names, plugin_labels, plugin_selected,
 
 
 def plugins_command(args) -> None:
-    """Dispatch hermes plugins subcommands."""
+    """Dispatch mercury plugins subcommands."""
     action = getattr(args, "plugins_action", None)
 
     if action == "install":

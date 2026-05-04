@@ -29,13 +29,13 @@ def _load_terminalbench_module(monkeypatch):
     class _AgentResult:
         pass
 
-    class _HermesAgentLoop:
+    class _MercuryAgentLoop:
         pass
 
-    class _HermesAgentBaseEnv:
+    class _MercuryAgentBaseEnv:
         pass
 
-    class _HermesAgentEnvConfig:
+    class _MercuryAgentEnvConfig:
         pass
 
     class _ToolContext:
@@ -56,12 +56,12 @@ def _load_terminalbench_module(monkeypatch):
         "environments.agent_loop": _stub_module(
             "environments.agent_loop",
             AgentResult=_AgentResult,
-            HermesAgentLoop=_HermesAgentLoop,
+            MercuryAgentLoop=_MercuryAgentLoop,
         ),
-        "environments.hermes_base_env": _stub_module(
-            "environments.hermes_base_env",
-            HermesAgentBaseEnv=_HermesAgentBaseEnv,
-            HermesAgentEnvConfig=_HermesAgentEnvConfig,
+        "environments.mercury_base_env": _stub_module(
+            "environments.mercury_base_env",
+            MercuryAgentBaseEnv=_MercuryAgentBaseEnv,
+            MercuryAgentEnvConfig=_MercuryAgentEnvConfig,
         ),
         "environments.tool_context": _stub_module(
             "environments.tool_context",

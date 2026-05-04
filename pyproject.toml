@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 authors = [
   { name = "Red Team Kitchen" },
-  { name = "Nous Research", email = "hermes@nousresearch.com" },
+  { name = "Nous Research", email = "mercury@nousresearch.com" },
 ]
 license = { text = "MIT" }
 dependencies = [

@@ -1,11 +1,11 @@
-"""One-shot rename pass: hermes_{cli,constants,state,logging,time} -> mercury_*.
+"""One-shot rename pass: mercury_{cli,constants,state,logging,time} -> mercury_*.
 
 Run once after `git mv mercury_cli mercury_cli` etc.  Walks all .py files
 (excluding .venv, __pycache__, .git, node_modules) and rewrites:
 
-  - `from hermes_X import ...`   ->  `from mercury_X import ...`
-  - `import hermes_X`             ->  `import mercury_X`
-  - `hermes_X.foo`                ->  `mercury_X.foo`
+  - `from mercury_X import ...`   ->  `from mercury_X import ...`
+  - `import mercury_X`             ->  `import mercury_X`
+  - `mercury_X.foo`                ->  `mercury_X.foo`
   - `~/.mercury/`                  ->  `~/.mercury/`
 
 Word-boundary regex prevents collateral matches inside larger
@@ -25,10 +25,10 @@ EXCLUDE_DIRS = {".venv", "__pycache__", ".git", "node_modules", ".pytest_cache",
 def make_patterns() -> list[tuple[re.Pattern, str]]:
     patterns = []
     for old in MODULES:
-        new = "mercury_" + old.removeprefix("hermes_")
+        new = "mercury_" + old.removeprefix("mercury_")
         patterns.append((re.compile(rf"\b{old}\b"), new))
-    patterns.append((re.compile(r"~/\.hermes/"), "~/.mercury/"))
-    patterns.append((re.compile(r"~/\.hermes(?=[\b\\\"\'])"), "~/.mercury"))
+    patterns.append((re.compile(r"~/\.mercury/"), "~/.mercury/"))
+    patterns.append((re.compile(r"~/\.mercury(?=[\b\\\"\'])"), "~/.mercury"))
     return patterns
 
 

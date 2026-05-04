@@ -9,7 +9,7 @@ and a copyright-safe demo-content guide.
 ## 1. Tweets
 
 All variants are emoji-free, under 280 chars, packed with the keywords X's
-search index loves (`Hermes Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`).
+search index loves (`Mercury Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`).
 
 > If you want to quote-retweet a Nous Research hackathon post for engagement,
 > open https://x.com/NousResearch and pick a recent hackathon-launch tweet
@@ -18,7 +18,7 @@ search index loves (`Hermes Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`).
 
 ### A — receipts hook (best as a standalone)
 
-> 22 dollars of Kimi K2.6 produced 14 commits in 75 minutes. Those commits became Mercury — a Hermes Agent fork running across an RTX 5090, a Mac Mini, and Cloud Run. Six clients. Four skill domains. One brain. The receipts are in the repo.
+> 22 dollars of Kimi K2.6 produced 14 commits in 75 minutes. Those commits became Mercury — a Mercury Agent fork running across an RTX 5090, a Mac Mini, and Cloud Run. Six clients. Four skill domains. One brain. The receipts are in the repo.
 >
 > @NousResearch @Kimi_Moonshot
 > github.com/AlexiosBluffMara/mercury
@@ -27,13 +27,13 @@ search index loves (`Hermes Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`).
 
 ### B — outcome hook (best for non-technical timelines)
 
-> Mercury is an AI assistant you talk to from Discord, iMessage, or your terminal. It runs on your own GPU. Built on Hermes Agent + Kimi K2.6 via Nous Portal. The whole thing took 75 minutes of K2.6 inference. The chart and 14 commits proving it are in the repo.
+> Mercury is an AI assistant you talk to from Discord, iMessage, or your terminal. It runs on your own GPU. Built on Mercury Agent + Kimi K2.6 via Nous Portal. The whole thing took 75 minutes of K2.6 inference. The chart and 14 commits proving it are in the repo.
 >
 > @NousResearch @Kimi_Moonshot
 
 ### C — submission line (use as the quote-RT body if you find the right Nous tweet)
 
-> Submitting Mercury for the Hermes Creative track. One Kimi K2.6 brain on Nous Portal drove an entire fork: 14 commits in 75 minutes, $22.04 of K2.6 spend, six client surfaces, four custom skill domains, three nodes, one RTX 5090 in Chicago.
+> Submitting Mercury for the Mercury Creative track. One Kimi K2.6 brain on Nous Portal drove an entire fork: 14 commits in 75 minutes, $22.04 of K2.6 spend, six client surfaces, four custom skill domains, three nodes, one RTX 5090 in Chicago.
 >
 > github.com/AlexiosBluffMara/mercury
 
@@ -56,7 +56,7 @@ search index loves (`Hermes Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`).
 ### Initial post (paste in main channel)
 
 ```
-Mercury — Hermes Agent fork, multi-domain agent stack
+Mercury — Mercury Agent fork, multi-domain agent stack
 Repo: https://github.com/AlexiosBluffMara/mercury
 Showcase: https://alexiosbluffmara.github.io/mercury/
 Demo: <PASTE TWEET URL>
@@ -67,7 +67,7 @@ Receipts: $22.04 of Kimi K2.6 spend, 14 commits in 75 minutes, full proof in kim
 
 | # | Image | Caption |
 |---|---|---|
-| 1 | `assets/architecture_v2.png` | Six clients fan into one Hermes Gateway, four custom skills, three nodes. Architecture v2, the version that actually shipped. |
+| 1 | `assets/architecture_v2.png` | Six clients fan into one Mercury Gateway, four custom skills, three nodes. Architecture v2, the version that actually shipped. |
 | 2 | `assets/architecture_v1_deprecated.png` | What we changed: one brain instead of planner+coder split. Skill auto-load by context. Three-node mesh. Six surfaces instead of Discord-only. Cross-session memory. |
 | 3 | `kimi_proof/06_nous_portal_usage_2026-04-30.png` | Kimi K2.6 receipts. Apr 28-29 spike maps 1:1 to a 75-minute burst that built the brain visualizer, the gateway, the four skill domains, and the docs. |
 | 4 | (your screenshot of the brain viewer) | Live demo: 20-second video → TRIBE v2 surface BOLD prediction → Gemma narration. 369-second wall, 12 visual-cortex parcels lit up. Vanilla Three.js, no React. |

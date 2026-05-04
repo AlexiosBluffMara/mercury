@@ -242,67 +242,67 @@ class TestExchangeAuthCode:
         assert not setup_module.PENDING_AUTH_PATH.exists()
 
 
-class TestHermesConstantsFallback:
-    """Tests for _hermes_home.py fallback when mercury_constants is unavailable."""
+class TestMercuryConstantsFallback:
+    """Tests for _mercury_home.py fallback when mercury_constants is unavailable."""
 
     HELPER_PATH = (
         Path(__file__).resolve().parents[2]
-        / "skills/productivity/google-workspace/scripts/_hermes_home.py"
+        / "skills/productivity/google-workspace/scripts/_mercury_home.py"
     )
 
     def _load_helper(self, monkeypatch):
-        """Load _hermes_home.py with mercury_constants blocked."""
+        """Load _mercury_home.py with mercury_constants blocked."""
         monkeypatch.setitem(sys.modules, "mercury_constants", None)
-        spec = importlib.util.spec_from_file_location("_hermes_home_test", self.HELPER_PATH)
+        spec = importlib.util.spec_from_file_location("_mercury_home_test", self.HELPER_PATH)
         module = importlib.util.module_from_spec(spec)
         assert spec.loader is not None
         spec.loader.exec_module(module)
         return module
 
-    def test_fallback_uses_hermes_home_env_var(self, monkeypatch, tmp_path):
-        """When mercury_constants is missing, HERMES_HOME comes from env var."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "custom-hermes"))
+    def test_fallback_uses_mercury_home_env_var(self, monkeypatch, tmp_path):
+        """When mercury_constants is missing, MERCURY_HOME comes from env var."""
+        monkeypatch.setenv("MERCURY_HOME", str(tmp_path / "custom-mercury"))
         module = self._load_helper(monkeypatch)
-        assert module.get_hermes_home() == tmp_path / "custom-hermes"
+        assert module.get_mercury_home() == tmp_path / "custom-mercury"
 
-    def test_fallback_defaults_to_dot_hermes(self, monkeypatch):
-        """When mercury_constants is missing and HERMES_HOME unset, default to ~/.hermes."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+    def test_fallback_defaults_to_dot_mercury(self, monkeypatch):
+        """When mercury_constants is missing and MERCURY_HOME unset, default to ~/.mercury."""
+        monkeypatch.delenv("MERCURY_HOME", raising=False)
         module = self._load_helper(monkeypatch)
-        assert module.get_hermes_home() == Path.home() / ".hermes"
+        assert module.get_mercury_home() == Path.home() / ".mercury"
 
-    def test_fallback_ignores_empty_hermes_home(self, monkeypatch):
-        """Empty/whitespace HERMES_HOME is treated as unset."""
-        monkeypatch.setenv("HERMES_HOME", "  ")
+    def test_fallback_ignores_empty_mercury_home(self, monkeypatch):
+        """Empty/whitespace MERCURY_HOME is treated as unset."""
+        monkeypatch.setenv("MERCURY_HOME", "  ")
         module = self._load_helper(monkeypatch)
-        assert module.get_hermes_home() == Path.home() / ".hermes"
+        assert module.get_mercury_home() == Path.home() / ".mercury"
 
-    def test_fallback_display_hermes_home_shortens_path(self, monkeypatch):
-        """Fallback display_hermes_home() uses ~/ shorthand like the real one."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+    def test_fallback_display_mercury_home_shortens_path(self, monkeypatch):
+        """Fallback display_mercury_home() uses ~/ shorthand like the real one."""
+        monkeypatch.delenv("MERCURY_HOME", raising=False)
         module = self._load_helper(monkeypatch)
-        assert module.display_hermes_home() == "~/.mercury"
+        assert module.display_mercury_home() == "~/.mercury"
 
-    def test_fallback_display_hermes_home_profile_path(self, monkeypatch):
-        """Fallback display_hermes_home() handles profile paths under ~/."""
-        monkeypatch.setenv("HERMES_HOME", str(Path.home() / ".hermes/profiles/coder"))
+    def test_fallback_display_mercury_home_profile_path(self, monkeypatch):
+        """Fallback display_mercury_home() handles profile paths under ~/."""
+        monkeypatch.setenv("MERCURY_HOME", str(Path.home() / ".mercury/profiles/coder"))
         module = self._load_helper(monkeypatch)
-        assert module.display_hermes_home() == "~/.mercury/profiles/coder"
+        assert module.display_mercury_home() == "~/.mercury/profiles/coder"
 
-    def test_fallback_display_hermes_home_custom_path(self, monkeypatch):
-        """Fallback display_hermes_home() returns full path for non-home locations."""
-        monkeypatch.setenv("HERMES_HOME", "/opt/hermes-custom")
+    def test_fallback_display_mercury_home_custom_path(self, monkeypatch):
+        """Fallback display_mercury_home() returns full path for non-home locations."""
+        monkeypatch.setenv("MERCURY_HOME", "/opt/mercury-custom")
         module = self._load_helper(monkeypatch)
-        assert module.display_hermes_home() == "/opt/hermes-custom"
+        assert module.display_mercury_home() == "/opt/mercury-custom"
 
-    def test_delegates_to_hermes_constants_when_available(self):
-        """When mercury_constants IS importable, _hermes_home delegates to it."""
+    def test_delegates_to_mercury_constants_when_available(self):
+        """When mercury_constants IS importable, _mercury_home delegates to it."""
         spec = importlib.util.spec_from_file_location(
-            "_hermes_home_happy", self.HELPER_PATH
+            "_mercury_home_happy", self.HELPER_PATH
         )
         module = importlib.util.module_from_spec(spec)
         assert spec.loader is not None
         spec.loader.exec_module(module)
         import mercury_constants
-        assert module.get_hermes_home is mercury_constants.get_hermes_home
-        assert module.display_hermes_home is mercury_constants.display_hermes_home
+        assert module.get_mercury_home is mercury_constants.get_mercury_home
+        assert module.display_mercury_home is mercury_constants.display_mercury_home

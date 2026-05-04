@@ -1,4 +1,4 @@
-"""Helpers for loading Hermes .env files consistently across entrypoints."""
+"""Helpers for loading Mercury .env files consistently across entrypoints."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 _CREDENTIAL_SUFFIXES = ("_API_KEY", "_TOKEN", "_SECRET", "_KEY")
 
 # Names we've already warned about during this process, so repeated
-# load_hermes_dotenv() calls (user env + project env, gateway hot-reload,
+# load_mercury_dotenv() calls (user env + project env, gateway hot-reload,
 # tests) don't spam the same warning multiple times.
 _WARNED_KEYS: set[str] = set()
 
@@ -74,7 +74,7 @@ def _sanitize_loaded_credentials() -> None:
             "rich-text editor, or web page that substituted lookalike\n"
             "  Unicode glyphs for ASCII letters. If authentication fails "
             "(e.g. \"API key not valid\"), re-copy the key from the\n"
-            "  provider's dashboard and run `hermes setup` (or edit the "
+            "  provider's dashboard and run `mercury setup` (or edit the "
             ".env file in a plain-text editor).",
             file=sys.stderr,
         )
@@ -102,7 +102,7 @@ def _sanitize_env_file_if_needed(path: Path) -> None:
     (see #8908).
 
     We delegate to ``mercury_cli.config._sanitize_env_lines`` which
-    already knows all valid Hermes env-var names and can split
+    already knows all valid Mercury env-var names and can split
     concatenated lines correctly.
     """
     if not path.exists():
@@ -138,12 +138,12 @@ def _sanitize_env_file_if_needed(path: Path) -> None:
         pass  # best-effort — don't block gateway startup
 
 
-def load_hermes_dotenv(
+def load_mercury_dotenv(
     *,
-    hermes_home: str | os.PathLike | None = None,
+    mercury_home: str | os.PathLike | None = None,
     project_env: str | os.PathLike | None = None,
 ) -> list[Path]:
-    """Load Hermes environment files with user config taking precedence.
+    """Load Mercury environment files with user config taking precedence.
 
     Behavior:
     - `~/.mercury/.env` overrides stale shell-exported values when present.
@@ -153,7 +153,7 @@ def load_hermes_dotenv(
     """
     loaded: list[Path] = []
 
-    home_path = Path(hermes_home or os.getenv("HERMES_HOME", Path.home() / ".hermes"))
+    home_path = Path(mercury_home or os.getenv("MERCURY_HOME", Path.home() / ".mercury"))
     user_env = home_path / ".env"
     project_env_path = Path(project_env) if project_env else None
 

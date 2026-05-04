@@ -95,13 +95,13 @@ direct Google Cloud billing).
 
 ## Model Comparison Matrix (this submission's relevant axes)
 
-| Capability | Kimi K2.6 | Hermes 4 405B | Gemma 4 31B (local) | Notes |
+| Capability | Kimi K2.6 | Mercury 4 405B | Gemma 4 31B (local) | Notes |
 |---|---|---|---|---|
 | SWE-Bench Pro | **58.6%** (#1 open-weight) | n/a | n/a | Why Kimi is the default coder |
 | GPQA Diamond | 84.5 | comparable | n/a | Reasoning escalation either works |
 | MMLU-Pro | 81.1 | higher | mid-tier | |
 | Context length | 256 K | 131 K | 128 K | Kimi for whole-codebase prompts |
-| Native function-calling | yes | yes (Nous's flagship) | indirect (via prompts) | Hermes 4 wins for the agent loop |
+| Native function-calling | yes | yes (Nous's flagship) | indirect (via prompts) | Mercury 4 wins for the agent loop |
 | Cost (per 1M tokens, in/out) | $0.95 / $4.00 | included in Nous Plus | $0 (local) | |
 | Privacy / offline | API call | API call | **on-device** | Why Gemma 4 stays for the brain pipeline narration |
 
@@ -128,4 +128,4 @@ ollama run gemma4:e4b "explain photosynthesis" --verbose
 Numbers will drift with model updates and torch nightlies. Rerun the
 benchmarks before any tagged release.
 
-— measured for the Nous Research Hermes Agent Creative Hackathon submission, Apr 2026
+— measured for the Nous Research Mercury Agent Creative Hackathon submission, Apr 2026
