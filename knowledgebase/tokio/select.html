@@ -1,0 +1,615 @@
+<!DOCTYPE html><html><head><meta charSet="utf-8" data-next-head=""/><meta name="viewport" content="width=device-width, initial-scale=1" data-next-head=""/><title data-next-head="">Select | Tokio - An asynchronous Rust runtime</title><meta name="description" content="Tokio is a runtime for writing reliable asynchronous applications with Rust. It provides async I/O, networking, scheduling, timers, and more." data-next-head=""/><link rel="alternate icon" type="image/png" href="/favicon-32x32.png" data-next-head=""/><link rel="icon" type="image/svg+xml" href="/favicon.svg" data-next-head=""/><link rel="alternate" type="application/rss+xml" href="/blog/index.xml" data-next-head=""/><link rel="preload" href="/_next/static/css/590bbafc9488a949.css" as="style"/><link rel="preload" href="/_next/static/css/de41d0a3c2328efe.css" as="style"/><link rel="stylesheet" href="/_next/static/css/590bbafc9488a949.css" data-n-g=""/><link rel="stylesheet" href="/_next/static/css/de41d0a3c2328efe.css" data-n-p=""/><noscript data-n-css=""></noscript><script defer="" noModule="" src="/_next/static/chunks/polyfills-42372ed130431b0a.js"></script><script src="/_next/static/chunks/webpack-f8185607c88ffb0b.js" defer=""></script><script src="/_next/static/chunks/framework-516982be4eea35ea.js" defer=""></script><script src="/_next/static/chunks/main-11f62a962ab540a8.js" defer=""></script><script src="/_next/static/chunks/pages/_app-7e9c39878777ce10.js" defer=""></script><script src="/_next/static/chunks/53-04c46f2e17895053.js" defer=""></script><script src="/_next/static/chunks/547-573b033aa0b73315.js" defer=""></script><script src="/_next/static/chunks/pages/%5B...slug%5D-0bd34730781e0ad8.js" defer=""></script><script src="/_next/static/sfQT3rGqulUUgrwAbQQpe/_buildManifest.js" defer=""></script><script src="/_next/static/sfQT3rGqulUUgrwAbQQpe/_ssgManifest.js" defer=""></script></head><body><link rel="preload" as="image" href="/img/tokio-horizontal.svg"/><link rel="preload" as="image" href="/img/arrow-left.svg"/><link rel="preload" as="image" href="/img/arrow-right.svg"/><div id="__next"><main class="__className_a1d03f"><nav class="navbar is-spaced" role="navigation" aria-label="main navigation"><div class="container"><div class="navbar-brand"><a href="/" class="navbar-item"><img src="/img/tokio-horizontal.svg" alt="tokio-logo" width="133" height="56"/></a><a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></a></div><div class="navbar-menu"><div class="navbar-end"><a href="/tokio/tutorial" class="navbar-item navbar-text">Learn</a><a href="https://docs.rs/tokio" class="navbar-item navbar-text">API Docs</a><a href="/blog/2026-04-03-toasty-released" class="navbar-item navbar-text">Blog</a><hr class="is-hidden-mobile"/><a target="_blank" class="navbar-item navbar-icon tk-social" href="https://twitter.com/tokio_rs"><span class="icon "><svg width="45" height="45" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path class="tk-svg-path" d="m 1033.0757,785.67723 536.386,-610.09838 H 1442.3554 L 976.61152,705.31871 604.62327,175.57885 H 175.57884 L 738.0981,976.63931 175.57884,1616.4212 h 127.11352 l 491.83748,-559.4233 392.84686,559.4233 h 429.0444 L 1033.0445,785.67723 Z M 858.97635,983.69686 801.9814,903.9293 348.49316,269.21053 h 195.2389 l 365.97034,512.23831 56.9949,79.76754 475.7181,665.83142 H 1247.1765 L 858.97635,983.72736 Z" fill="#fff"></path></svg></span></a><a target="_blank" class="navbar-item navbar-icon tk-social" href="https://github.com/tokio-rs/tokio"><span class="icon "><svg width="45" height="45" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path class="tk-svg-path" d="M896 128q209 0 385.5 103t279.5 279.5 103 385.5q0 251-146.5 451.5t-378.5 277.5q-27 5-40-7t-13-30q0-3 .5-76.5t.5-134.5q0-97-52-142 57-6 102.5-18t94-39 81-66.5 53-105 20.5-150.5q0-119-79-206 37-91-8-204-28-9-81 11t-92 44l-38 24q-93-26-192-26t-192 26q-16-11-42.5-27t-83.5-38.5-85-13.5q-45 113-8 204-79 87-79 206 0 85 20.5 150t52.5 105 80.5 67 94 39 102.5 18q-39 36-49 103-21 10-45 15t-57 5-65.5-21.5-55.5-62.5q-19-32-48.5-52t-49.5-24l-20-3q-21 0-29 4.5t-5 11.5 9 14 13 12l7 5q22 10 43.5 38t31.5 51l10 23q13 38 44 61.5t67 30 69.5 7 55.5-3.5l23-4q0 38 .5 88.5t.5 54.5q0 18-13 30t-40 7q-232-77-378.5-277.5t-146.5-451.5q0-209 103-385.5t279.5-279.5 385.5-103zm-477 1103q3-7-7-12-10-3-13 2-3 7 7 12 9 6 13-2zm31 34q7-5-2-16-10-9-16-3-7 5 2 16 10 10 16 3zm30 45q9-7 0-19-8-13-17-6-9 5 0 18t17 7zm42 42q8-8-4-19-12-12-20-3-9 8 4 19 12 12 20 3zm57 25q3-11-13-16-15-4-19 7t13 15q15 6 19-6zm63 5q0-13-17-11-16 0-16 11 0 13 17 11 16 0 16-11zm58-10q-2-11-18-9-16 3-14 15t18 8 14-14z" fill="#fff"></path></svg></span></a><a target="_blank" class="navbar-item navbar-icon tk-social" href="https://discord.gg/tokio"><span class="icon "><svg width="45" height="45" viewBox="0 0 245 240" xmlns="http://www.w3.org/2000/svg"><path class="tk-svg-path" fill="#FFF" d="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1.1-6.1-4.5-11.1-10.2-11.1zM140.9 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z"></path><path class="tk-svg-path" fill="#FFF" d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-10.5 28.1-10.5l1 1.2c-18 5.2-26.3 13.1-26.3 13.1s2.2-1.2 5.9-2.9c10.7-4.7 19.2-6 22.7-6.3.6-.1 1.1-.2 1.7-.2 6.1-.8 13-1 20.2-.2 9.5 1.1 19.7 3.9 30.1 9.6 0 0-7.9-7.5-24.9-12.7l1.4-1.6s13.7-.3 28.1 10.5c0 0 14.4 26.1 14.4 58.3 0 0-8.5 14.5-30.6 15.2z"></path></svg></span></a></div></div></div></nav><div class="columns is-marginless tk-docs"><div class="column is-one-quarter tk-docs-nav"><aside class="menu"><div class="tk-toc is-hidden-tablet"><a href="#">TABLE OF CONTENTS<span class="icon"><span class="tk-arrow"></span></span></a></div><div class="tk-menu-body"><p class="menu-label">Tokio</p><ul class="menu-list"><li class="is-active"><a href="/tokio/tutorial">Tutorial</a><ul><ul><li class=""><a href="/tokio/tutorial">Overview</a></li><li class=""><a href="/tokio/tutorial/setup">Setup</a></li><li class=""><a href="/tokio/tutorial/hello-tokio">Hello Tokio</a></li><li class=""><a href="/tokio/tutorial/spawning">Spawning</a></li><li class=""><a href="/tokio/tutorial/shared-state">Shared state</a></li><li class=""><a href="/tokio/tutorial/channels">Channels</a></li><li class=""><a href="/tokio/tutorial/io">I/O</a></li><li class=""><a href="/tokio/tutorial/framing">Framing</a></li><li class=""><a href="/tokio/tutorial/async">Async in depth</a></li><li class="is-active"><a href="/tokio/tutorial/select">Select</a></li><li class=""><a href="/tokio/tutorial/streams">Streams</a></li></ul></ul></li><li class=""><a href="/tokio/topics">Topics</a><ul><ul><li class=""><a href="/tokio/topics/bridging">Bridging with sync code</a></li><li class=""><a href="/tokio/topics/shutdown">Graceful Shutdown</a></li><li class=""><a href="/tokio/topics/tracing">Getting started with Tracing</a></li><li class=""><a href="/tokio/topics/tracing-next-steps">Next steps with Tracing</a></li><li class=""><a href="/tokio/topics/testing">Unit Testing</a></li></ul></ul></li><li class=""><a href="/tokio/glossary">Glossary</a></li><li class=""><a href="https://docs.rs/tokio">API documentation</a></li></ul></div><div class="is-hidden-mobile"></div></aside></div><div class="column is-three-quarters tk-content"><section class="section content"><div class="columns"><div class="column is-two-thirds tk-markdown"><h1 class="title " id="">Select</h1><div><p>So far, when we wanted to add concurrency to the system, we spawned a new task.
+We will now cover some additional ways to concurrently execute asynchronous code
+with Tokio.</p>
+<h1 id="tokioselect"><code>tokio::select!</code></h1>
+<p>The <code>tokio::select!</code> macro allows waiting on multiple async computations and
+returns when a <strong>single</strong> computation completes.</p>
+<p>For example:</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::sync::oneshot;
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (tx1, rx1) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+    <span class="hljs-keyword">let</span> (tx2, rx2) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">_</span> = tx1.<span class="hljs-title function_ invoke__">send</span>(<span class="hljs-string">"one"</span>);
+    });
+
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">_</span> = tx2.<span class="hljs-title function_ invoke__">send</span>(<span class="hljs-string">"two"</span>);
+    });
+
+    tokio::<span class="hljs-built_in">select!</span> {
+        val = rx1 => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"rx1 completed first with {:?}"</span>, val);
+        }
+        val = rx2 => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"rx2 completed first with {:?}"</span>, val);
+        }
+    }
+}
+</code></pre>
+<p>Two oneshot channels are used. Either channel could complete first. The
+<code>select!</code> statement awaits on both channels and binds <code>val</code> to the value
+returned by the task. When either <code>tx1</code> or <code>tx2</code> complete, the associated block
+is executed.</p>
+<p>The branch that <strong>does not</strong> complete is dropped. In the example, the
+computation is awaiting the <code>oneshot::Receiver</code> for each channel. The
+<code>oneshot::Receiver</code> for the channel that did not complete yet is dropped.</p>
+<h2 id="cancellation">Cancellation</h2>
+<p>With asynchronous Rust, cancellation is performed by dropping a future. Recall
+from <a href="async">"Async in depth"</a>, async Rust operation are implemented using
+futures and futures are lazy. The operation only proceeds when the future is
+polled. If the future is dropped, the operation cannot proceed because all
+associated state has been dropped.</p>
+<p>That said, sometimes an asynchronous operation will spawn background tasks or
+start other operation that run in the background. For example, in the above
+example, a task is spawned to send a message back. Usually, the task will
+perform some computation to generate the value.</p>
+<p>Futures or other types can implement <code>Drop</code> to cleanup background resources.
+Tokio's <code>oneshot::Receiver</code> implements <code>Drop</code> by sending a closed notification to
+the <code>Sender</code> half. The sender half can receive this notification and abort the
+in-progress operation by dropping it.</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::sync::oneshot;
+
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">some_operation</span>() <span class="hljs-punctuation">-></span> <span class="hljs-type">String</span> {
+    <span class="hljs-comment">// Compute value here</span>
+}
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (<span class="hljs-keyword">mut</span> tx1, rx1) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+    <span class="hljs-keyword">let</span> (tx2, rx2) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> {
+        <span class="hljs-comment">// Select on the operation and the oneshot's</span>
+        <span class="hljs-comment">// `closed()` notification.</span>
+        tokio::<span class="hljs-built_in">select!</span> {
+            val = <span class="hljs-title function_ invoke__">some_operation</span>() => {
+                <span class="hljs-keyword">let</span> <span class="hljs-variable">_</span> = tx1.<span class="hljs-title function_ invoke__">send</span>(val);
+            }
+            _ = tx1.<span class="hljs-title function_ invoke__">closed</span>() => {
+                <span class="hljs-comment">// `some_operation()` is canceled, the</span>
+                <span class="hljs-comment">// task completes and `tx1` is dropped.</span>
+            }
+        }
+    });
+
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">_</span> = tx2.<span class="hljs-title function_ invoke__">send</span>(<span class="hljs-string">"two"</span>);
+    });
+
+    tokio::<span class="hljs-built_in">select!</span> {
+        val = rx1 => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"rx1 completed first with {:?}"</span>, val);
+        }
+        val = rx2 => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"rx2 completed first with {:?}"</span>, val);
+        }
+    }
+}
+</code></pre>
+<h2 id="the-future-implementation">The <code>Future</code> implementation</h2>
+<p>To help better understand how <code>select!</code> works, let's look at what a hypothetical
+<code>Future</code> implementation would look like. This is a simplified version. In
+practice, <code>select!</code> includes additional functionality like randomly selecting
+the branch to poll first.</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::sync::oneshot;
+<span class="hljs-keyword">use</span> std::future::Future;
+<span class="hljs-keyword">use</span> std::pin::Pin;
+<span class="hljs-keyword">use</span> std::task::{Context, Poll};
+
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">MySelect</span> {
+    rx1: oneshot::Receiver&#x3C;&#x26;<span class="hljs-symbol">'static</span> <span class="hljs-type">str</span>>,
+    rx2: oneshot::Receiver&#x3C;&#x26;<span class="hljs-symbol">'static</span> <span class="hljs-type">str</span>>,
+}
+
+<span class="hljs-keyword">impl</span> <span class="hljs-title class_">Future</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">MySelect</span> {
+    <span class="hljs-keyword">type</span> <span class="hljs-title class_">Output</span> = ();
+
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">poll</span>(<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>: Pin&#x3C;&#x26;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">Self</span>>, cx: &#x26;<span class="hljs-keyword">mut</span> Context&#x3C;<span class="hljs-symbol">'_</span>>) <span class="hljs-punctuation">-></span> Poll&#x3C;()> {
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-variable">Poll</span>::<span class="hljs-title function_ invoke__">Ready</span>(val) = Pin::<span class="hljs-title function_ invoke__">new</span>(&#x26;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>.rx1).<span class="hljs-title function_ invoke__">poll</span>(cx) {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"rx1 completed first with {:?}"</span>, val);
+            <span class="hljs-keyword">return</span> Poll::<span class="hljs-title function_ invoke__">Ready</span>(());
+        }
+
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-variable">Poll</span>::<span class="hljs-title function_ invoke__">Ready</span>(val) = Pin::<span class="hljs-title function_ invoke__">new</span>(&#x26;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>.rx2).<span class="hljs-title function_ invoke__">poll</span>(cx) {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"rx2 completed first with {:?}"</span>, val);
+            <span class="hljs-keyword">return</span> Poll::<span class="hljs-title function_ invoke__">Ready</span>(());
+        }
+
+        Poll::Pending
+    }
+}
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (tx1, rx1) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+    <span class="hljs-keyword">let</span> (tx2, rx2) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+
+    <span class="hljs-comment">// use tx1 and tx2</span>
+
+    MySelect {
+        rx1,
+        rx2,
+    }.<span class="hljs-keyword">await</span>;
+}
+</code></pre>
+<p>The <code>MySelect</code> future contains the futures from each branch. When <code>MySelect</code> is
+polled, the first branch is polled. If it is ready, the value is used and
+<code>MySelect</code> completes. After <code>.await</code> receives the output from a future, the
+future is dropped. This results in the futures for both branches to be dropped.
+As one branch did not complete, the operation is effectively cancelled.</p>
+<p>Remember from the previous section:</p>
+<blockquote>
+<p>When a future returns <code>Poll::Pending</code>, it <strong>must</strong> ensure the waker is
+signalled at some point in the future. Forgetting to do this results in the
+task hanging indefinitely.</p>
+</blockquote>
+<p>There is no explicit usage of the <code>Context</code> argument in the <code>MySelect</code>
+implementation. Instead, the waker requirement is met by passing <code>cx</code> to the
+inner futures. As the inner future must also meet the waker requirement, by only
+returning <code>Poll::Pending</code> when receiving <code>Poll::Pending</code> from an inner future,
+<code>MySelect</code> also meets the waker requirement.</p>
+<h1 id="syntax">Syntax</h1>
+<p>The <code>select!</code> macro can handle more than two branches. The current limit is 64
+branches. Each branch is structured as:</p>
+<pre><code class="language-text">&#x3C;pattern> = &#x3C;async expression> => &#x3C;handler>,
+</code></pre>
+<p>When the <code>select</code> macro is evaluated, all the <code>&#x3C;async expression></code>s are
+aggregated and executed concurrently. When an expression completes, the result
+is matched against <code>&#x3C;pattern></code>. If the result matches the pattern, then all
+remaining async expressions are dropped and <code>&#x3C;handler></code> is executed. The
+<code>&#x3C;handler></code> expression has access to any bindings established by <code>&#x3C;pattern></code>.</p>
+<p>The basic case for <code>&#x3C;pattern></code> is a variable name, the result of the async
+expression is bound to the variable name and <code>&#x3C;handler></code> has access to that
+variable. This is why, in the original example, <code>val</code> was used for <code>&#x3C;pattern></code>
+and <code>&#x3C;handler></code> was able to access <code>val</code>.</p>
+<p>If <code>&#x3C;pattern></code> <strong>does not</strong> match the result of the async computation, then the
+remaining async expressions continue to execute concurrently until the next one
+completes. At this time, the same logic is applied to that result.</p>
+<p>Because <code>select!</code> takes any async expression, it is possible to define more
+complicated computations to select on.</p>
+<p>Here, we select on the output of a <code>oneshot</code> channel and a TCP connection.</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::net::TcpStream;
+<span class="hljs-keyword">use</span> tokio::sync::oneshot;
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (tx, rx) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+
+    <span class="hljs-comment">// Spawn a task that sends a message over the oneshot</span>
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> <span class="hljs-keyword">move</span> {
+        tx.<span class="hljs-title function_ invoke__">send</span>(<span class="hljs-string">"done"</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
+    });
+
+    tokio::<span class="hljs-built_in">select!</span> {
+        socket = TcpStream::<span class="hljs-title function_ invoke__">connect</span>(<span class="hljs-string">"localhost:3465"</span>) => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Socket connected {:?}"</span>, socket);
+        }
+        msg = rx => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"received message first {:?}"</span>, msg);
+        }
+    }
+}
+</code></pre>
+<p>Here, we select on a oneshot and accepting sockets from a <code>TcpListener</code>.</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::net::TcpListener;
+<span class="hljs-keyword">use</span> tokio::sync::oneshot;
+<span class="hljs-keyword">use</span> std::io;
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-></span> io::<span class="hljs-type">Result</span>&#x3C;()> {
+    <span class="hljs-keyword">let</span> (tx, rx) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> <span class="hljs-keyword">move</span> {
+        tx.<span class="hljs-title function_ invoke__">send</span>(()).<span class="hljs-title function_ invoke__">unwrap</span>();
+    });
+
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">listener</span> = TcpListener::<span class="hljs-title function_ invoke__">bind</span>(<span class="hljs-string">"localhost:3465"</span>).<span class="hljs-keyword">await</span>?;
+
+    tokio::<span class="hljs-built_in">select!</span> {
+        _ = <span class="hljs-keyword">async</span> {
+            <span class="hljs-keyword">loop</span> {
+                <span class="hljs-keyword">let</span> (socket, _) = listener.<span class="hljs-title function_ invoke__">accept</span>().<span class="hljs-keyword">await</span>?;
+                tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> <span class="hljs-keyword">move</span> { <span class="hljs-title function_ invoke__">process</span>(socket) });
+            }
+
+            <span class="hljs-comment">// Help the rust type inferencer out</span>
+            Ok::&#x3C;_, io::Error>(())
+        } => {}
+        _ = rx => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"terminating accept loop"</span>);
+        }
+    }
+
+    <span class="hljs-title function_ invoke__">Ok</span>(())
+}
+</code></pre>
+<p>The accept loop runs until an error is encountered or <code>rx</code> receives a value. The
+<code>_</code> pattern indicates that we have no interest in the return value of the async
+computation.</p>
+<h1 id="return-value">Return value</h1>
+<p>The <code>tokio::select!</code> macro returns the result of the evaluated <code>&#x3C;handler></code> expression.</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">computation1</span>() <span class="hljs-punctuation">-></span> <span class="hljs-type">String</span> {
+    <span class="hljs-comment">// .. computation</span>
+}
+
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">computation2</span>() <span class="hljs-punctuation">-></span> <span class="hljs-type">String</span> {
+    <span class="hljs-comment">// .. computation</span>
+}
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">out</span> = tokio::<span class="hljs-built_in">select!</span> {
+        res1 = <span class="hljs-title function_ invoke__">computation1</span>() => res1,
+        res2 = <span class="hljs-title function_ invoke__">computation2</span>() => res2,
+    };
+
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Got = {}"</span>, out);
+}
+</code></pre>
+<p>Because of this, it is required that the <code>&#x3C;handler></code> expression for <strong>each</strong>
+branch evaluates to the same type. If the output of a <code>select!</code> expression is
+not needed, it is good practice to have the expression evaluate to <code>()</code>.</p>
+<h1 id="errors">Errors</h1>
+<p>Using the <code>?</code> operator propagates the error from the expression. How this works
+depends on whether <code>?</code> is used from an async expression or from a handler.
+Using <code>?</code> in an async expression propagates the error out of the async
+expression. This makes the output of the async expression a <code>Result</code>. Using <code>?</code>
+from a handler immediately propagates the error out of the <code>select!</code> expression.
+Let's look at the accept loop example again:</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::net::TcpListener;
+<span class="hljs-keyword">use</span> tokio::sync::oneshot;
+<span class="hljs-keyword">use</span> std::io;
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-></span> io::<span class="hljs-type">Result</span>&#x3C;()> {
+    <span class="hljs-comment">// [setup `rx` oneshot channel]</span>
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">listener</span> = TcpListener::<span class="hljs-title function_ invoke__">bind</span>(<span class="hljs-string">"localhost:3465"</span>).<span class="hljs-keyword">await</span>?;
+
+    tokio::<span class="hljs-built_in">select!</span> {
+        res = <span class="hljs-keyword">async</span> {
+            <span class="hljs-keyword">loop</span> {
+                <span class="hljs-keyword">let</span> (socket, _) = listener.<span class="hljs-title function_ invoke__">accept</span>().<span class="hljs-keyword">await</span>?;
+                tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> <span class="hljs-keyword">move</span> { <span class="hljs-title function_ invoke__">process</span>(socket) });
+            }
+
+            <span class="hljs-comment">// Help the rust type inferencer out</span>
+            Ok::&#x3C;_, io::Error>(())
+        } => {
+            res?;
+        }
+        _ = rx => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"terminating accept loop"</span>);
+        }
+    }
+
+    <span class="hljs-title function_ invoke__">Ok</span>(())
+}
+</code></pre>
+<p>Notice <code>listener.accept().await?</code>. The <code>?</code> operator propagates the error out of
+that expression and to the <code>res</code> binding. On an error, <code>res</code> will be set to
+<code>Err(_)</code>. Then, in the handler, the <code>?</code> operator is used again. The <code>res?</code>
+statement will propagate an error out of the <code>main</code> function.</p>
+<h1 id="pattern-matching">Pattern matching</h1>
+<p>Recall that the <code>select!</code> macro branch syntax was defined as:</p>
+<pre><code class="language-text">&#x3C;pattern> = &#x3C;async expression> => &#x3C;handler>,
+</code></pre>
+<p>So far, we have only used variable bindings for <code>&#x3C;pattern></code>. However, any Rust
+pattern can be used. For example, say we are receiving from multiple MPSC
+channels, we might do something like this:</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::sync::mpsc;
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (<span class="hljs-keyword">mut</span> tx1, <span class="hljs-keyword">mut</span> rx1) = mpsc::<span class="hljs-title function_ invoke__">channel</span>(<span class="hljs-number">128</span>);
+    <span class="hljs-keyword">let</span> (<span class="hljs-keyword">mut</span> tx2, <span class="hljs-keyword">mut</span> rx2) = mpsc::<span class="hljs-title function_ invoke__">channel</span>(<span class="hljs-number">128</span>);
+
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> <span class="hljs-keyword">move</span> {
+        <span class="hljs-comment">// Do something w/ `tx1` and `tx2`</span>
+    });
+
+    tokio::<span class="hljs-built_in">select!</span> {
+        <span class="hljs-title function_ invoke__">Some</span>(v) = rx1.<span class="hljs-title function_ invoke__">recv</span>() => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Got {:?} from rx1"</span>, v);
+        }
+        <span class="hljs-title function_ invoke__">Some</span>(v) = rx2.<span class="hljs-title function_ invoke__">recv</span>() => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Got {:?} from rx2"</span>, v);
+        }
+        <span class="hljs-keyword">else</span> => {
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Both channels closed"</span>);
+        }
+    }
+}
+</code></pre>
+<p>In this example, the <code>select!</code> expression waits on receiving a value from <code>rx1</code>
+and <code>rx2</code>. If a channel closes, <code>recv()</code> returns <code>None</code>. This <strong>does not</strong> match
+the pattern and the branch is disabled. The <code>select!</code> expression will continue
+waiting on the remaining branches.</p>
+<p>Notice that this <code>select!</code> expression includes an <code>else</code> branch. The <code>select!</code>
+expression must evaluate to a value. When using pattern matching, it is possible
+that <strong>none</strong> of the branches match their associated patterns. If this happens,
+the <code>else</code> branch is evaluated.</p>
+<h1 id="borrowing">Borrowing</h1>
+<p>When spawning tasks, the spawned async expression must own all of its data. The
+<code>select!</code> macro does not have this limitation. Each branch's async expression
+may borrow data and operate concurrently. Following Rust's borrow rules,
+multiple async expressions may immutably borrow a single piece of data <strong>or</strong> a
+single async expression may mutably borrow a piece of data.</p>
+<p>Let's look at some examples. Here, we simultaneously send the same data to two
+different TCP destinations.</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::io::AsyncWriteExt;
+<span class="hljs-keyword">use</span> tokio::net::TcpStream;
+<span class="hljs-keyword">use</span> std::io;
+<span class="hljs-keyword">use</span> std::net::SocketAddr;
+
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">race</span>(
+    data: &#x26;[<span class="hljs-type">u8</span>],
+    addr1: SocketAddr,
+    addr2: SocketAddr
+) <span class="hljs-punctuation">-></span> io::<span class="hljs-type">Result</span>&#x3C;()> {
+    tokio::<span class="hljs-built_in">select!</span> {
+        <span class="hljs-title function_ invoke__">Ok</span>(_) = <span class="hljs-keyword">async</span> {
+            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">socket</span> = TcpStream::<span class="hljs-title function_ invoke__">connect</span>(addr1).<span class="hljs-keyword">await</span>?;
+            socket.<span class="hljs-title function_ invoke__">write_all</span>(data).<span class="hljs-keyword">await</span>?;
+            Ok::&#x3C;_, io::Error>(())
+        } => {}
+        <span class="hljs-title function_ invoke__">Ok</span>(_) = <span class="hljs-keyword">async</span> {
+            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">socket</span> = TcpStream::<span class="hljs-title function_ invoke__">connect</span>(addr2).<span class="hljs-keyword">await</span>?;
+            socket.<span class="hljs-title function_ invoke__">write_all</span>(data).<span class="hljs-keyword">await</span>?;
+            Ok::&#x3C;_, io::Error>(())
+        } => {}
+        <span class="hljs-keyword">else</span> => {}
+    };
+
+    <span class="hljs-title function_ invoke__">Ok</span>(())
+}
+</code></pre>
+<p>The <code>data</code> variable is being borrowed <strong>immutably</strong> from both async expressions.
+When one of the operations completes successfully, the other one is dropped.
+Because we pattern match on <code>Ok(_)</code>, if an expression fails, the other one
+continues to execute.</p>
+<p>When it comes to each branch's <code>&#x3C;handler></code>, <code>select!</code> guarantees that only a
+single <code>&#x3C;handler></code> runs. Because of this, each <code>&#x3C;handler></code> may mutably borrow
+the same data.</p>
+<p>For example this modifies <code>out</code> in both handlers:</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::sync::oneshot;
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (tx1, rx1) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+    <span class="hljs-keyword">let</span> (tx2, rx2) = oneshot::<span class="hljs-title function_ invoke__">channel</span>();
+
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">out</span> = <span class="hljs-type">String</span>::<span class="hljs-title function_ invoke__">new</span>();
+
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> <span class="hljs-keyword">move</span> {
+        <span class="hljs-comment">// Send values on `tx1` and `tx2`.</span>
+    });
+
+    tokio::<span class="hljs-built_in">select!</span> {
+        _ = rx1 => {
+            out.<span class="hljs-title function_ invoke__">push_str</span>(<span class="hljs-string">"rx1 completed"</span>);
+        }
+        _ = rx2 => {
+            out.<span class="hljs-title function_ invoke__">push_str</span>(<span class="hljs-string">"rx2 completed"</span>);
+        }
+    }
+
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, out);
+}
+</code></pre>
+<h1 id="loops">Loops</h1>
+<p>The <code>select!</code> macro is often used in loops. This section will go over some
+examples to show common ways of using the <code>select!</code> macro in a loop. We start
+by selecting over multiple channels:</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">use</span> tokio::sync::mpsc;
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (tx1, <span class="hljs-keyword">mut</span> rx1) = mpsc::<span class="hljs-title function_ invoke__">channel</span>(<span class="hljs-number">128</span>);
+    <span class="hljs-keyword">let</span> (tx2, <span class="hljs-keyword">mut</span> rx2) = mpsc::<span class="hljs-title function_ invoke__">channel</span>(<span class="hljs-number">128</span>);
+    <span class="hljs-keyword">let</span> (tx3, <span class="hljs-keyword">mut</span> rx3) = mpsc::<span class="hljs-title function_ invoke__">channel</span>(<span class="hljs-number">128</span>);
+
+    <span class="hljs-keyword">loop</span> {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">msg</span> = tokio::<span class="hljs-built_in">select!</span> {
+            <span class="hljs-title function_ invoke__">Some</span>(msg) = rx1.<span class="hljs-title function_ invoke__">recv</span>() => msg,
+            <span class="hljs-title function_ invoke__">Some</span>(msg) = rx2.<span class="hljs-title function_ invoke__">recv</span>() => msg,
+            <span class="hljs-title function_ invoke__">Some</span>(msg) = rx3.<span class="hljs-title function_ invoke__">recv</span>() => msg,
+            <span class="hljs-keyword">else</span> => { <span class="hljs-keyword">break</span> }
+        };
+
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Got {:?}"</span>, msg);
+    }
+
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"All channels have been closed."</span>);
+}
+</code></pre>
+<p>This example selects over the three channel receivers. When a message is
+received on any channel, it is written to STDOUT. When a channel is closed,
+<code>recv()</code> returns with <code>None</code>. By using pattern matching, the <code>select!</code>
+macro continues waiting on the remaining channels. When all channels are
+closed, the <code>else</code> branch is evaluated and the loop is terminated.</p>
+<p>The <code>select!</code> macro randomly picks branches to check first for readiness. When
+multiple channels have pending values, a random channel will be picked to
+receive from. This is to handle the case where the receive loop processes
+messages slower than they are pushed into the channels, meaning that the
+channels start to fill up. If <code>select!</code> <strong>did not</strong> randomly pick a branch
+to check first, on each iteration of the loop, <code>rx1</code> would be checked first. If
+<code>rx1</code> always contained a new message, the remaining channels would never be
+checked.</p>
+<blockquote class="is-info">
+<p>
+If when <code>select!</code> is evaluated, multiple channels have pending messages, only
+one channel has a value popped. All other channels remain untouched, and their
+messages stay in those channels until the next loop iteration. No messages are
+lost.</p>
+</blockquote>
+<h2 id="resuming-an-async-operation">Resuming an async operation</h2>
+<p>Now we will show how to run an asynchronous operation across multiple calls to
+<code>select!</code>. In this example, we have an MPSC channel with item type <code>i32</code>, and an
+asynchronous function. We want to run the asynchronous function until it
+completes or an even integer is received on the channel.</p>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">action</span>() {
+    <span class="hljs-comment">// Some asynchronous logic</span>
+}
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (<span class="hljs-keyword">mut</span> tx, <span class="hljs-keyword">mut</span> rx) = tokio::sync::mpsc::<span class="hljs-title function_ invoke__">channel</span>(<span class="hljs-number">128</span>);    
+    
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">operation</span> = <span class="hljs-title function_ invoke__">action</span>();
+    tokio::pin!(operation);
+    
+    <span class="hljs-keyword">loop</span> {
+        tokio::<span class="hljs-built_in">select!</span> {
+            _ = &#x26;<span class="hljs-keyword">mut</span> operation => <span class="hljs-keyword">break</span>,
+            <span class="hljs-title function_ invoke__">Some</span>(v) = rx.<span class="hljs-title function_ invoke__">recv</span>() => {
+                <span class="hljs-keyword">if</span> v % <span class="hljs-number">2</span> == <span class="hljs-number">0</span> {
+                    <span class="hljs-keyword">break</span>;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>Note how, instead of calling <code>action()</code> in the <code>select!</code> macro, it is called
+<strong>outside</strong> the loop. The return of <code>action()</code> is assigned to <code>operation</code>
+<strong>without</strong> calling <code>.await</code>. Then we call <code>tokio::pin!</code> on <code>operation</code>.</p>
+<p>Inside the <code>select!</code> loop, instead of passing in <code>operation</code>, we pass in <code>&#x26;mut operation</code>. The <code>operation</code> variable is tracking the in-flight asynchronous
+operation. Each iteration of the loop uses the same operation instead of issuing
+a new call to <code>action()</code>.</p>
+<p>The other <code>select!</code> branch receives a message from the channel. If the message
+is even, we are done looping. Otherwise, start the <code>select!</code> again.</p>
+<p>This is the first time we use <code>tokio::pin!</code>. We aren't going to get into the
+details of pinning yet. The thing to note is that, to <code>.await</code> a reference,
+the value being referenced must be pinned or implement <code>Unpin</code>.</p>
+<p>If we remove the <code>tokio::pin!</code> line and try to compile, we get the following
+error:</p>
+<pre><code class="language-text">error[E0599]: no method named `poll` found for struct
+     `std::pin::Pin&#x3C;&#x26;mut &#x26;mut impl std::future::Future>`
+     in the current scope
+  --> src/main.rs:16:9
+   |
+16 | /         tokio::select! {
+17 | |             _ = &#x26;mut operation => break,
+18 | |             Some(v) = rx.recv() => {
+19 | |                 if v % 2 == 0 {
+...  |
+22 | |             }
+23 | |         }
+   | |_________^ method not found in
+   |             `std::pin::Pin&#x3C;&#x26;mut &#x26;mut impl std::future::Future>`
+   |
+   = note: the method `poll` exists but the following trait bounds
+            were not satisfied:
+           `impl std::future::Future: std::marker::Unpin`
+           which is required by
+           `&#x26;mut impl std::future::Future: std::future::Future`
+</code></pre>
+<p>Although we covered <code>Future</code> in <a href="async">the previous chapter</a>, this error still isn't
+very clear. If you hit such an error about <code>Future</code> not being implemented when attempting
+to call <code>.await</code> on a <strong>reference</strong>, then the future probably needs to be pinned.</p>
+<p>Read more about <a href="https://doc.rust-lang.org/std/pin/index.html"><code>Pin</code></a> on the <a href="https://doc.rust-lang.org/std/pin/index.html">standard library</a>.</p>
+<h2 id="modifying-a-branch">Modifying a branch</h2>
+<p>Let's look at a slightly more complicated loop. We have:</p>
+<ol>
+<li>A channel of <code>i32</code> values.</li>
+<li>An async operation to perform on <code>i32</code> values.</li>
+</ol>
+<p>The logic we want to implement is:</p>
+<ol>
+<li>Wait for an <strong>even</strong> number on the channel.</li>
+<li>Start the asynchronous operation using the even number as input.</li>
+<li>Wait for the operation, but at the same time listen for more even numbers on
+the channel.</li>
+<li>If a new even number is received before the existing operation completes,
+abort the existing operation and start it over with the new even number.</li>
+</ol>
+<pre><code class="hljs language-rust"><span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">action</span>(input: <span class="hljs-type">Option</span>&#x3C;<span class="hljs-type">i32</span>>) <span class="hljs-punctuation">-></span> <span class="hljs-type">Option</span>&#x3C;<span class="hljs-type">String</span>> {
+    <span class="hljs-comment">// If the input is `None`, return `None`.</span>
+    <span class="hljs-comment">// This could also be written as `let i = input?;`</span>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">i</span> = <span class="hljs-keyword">match</span> input {
+        <span class="hljs-title function_ invoke__">Some</span>(input) => input,
+        <span class="hljs-literal">None</span> => <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>,
+    };
+    <span class="hljs-comment">// async logic here</span>
+}
+
+<span class="hljs-meta">#[tokio::main]</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() {
+    <span class="hljs-keyword">let</span> (<span class="hljs-keyword">mut</span> tx, <span class="hljs-keyword">mut</span> rx) = tokio::sync::mpsc::<span class="hljs-title function_ invoke__">channel</span>(<span class="hljs-number">128</span>);
+    
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">done</span> = <span class="hljs-literal">false</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">operation</span> = <span class="hljs-title function_ invoke__">action</span>(<span class="hljs-literal">None</span>);
+    tokio::pin!(operation);
+    
+    tokio::<span class="hljs-title function_ invoke__">spawn</span>(<span class="hljs-keyword">async</span> <span class="hljs-keyword">move</span> {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">_</span> = tx.<span class="hljs-title function_ invoke__">send</span>(<span class="hljs-number">1</span>).<span class="hljs-keyword">await</span>;
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">_</span> = tx.<span class="hljs-title function_ invoke__">send</span>(<span class="hljs-number">3</span>).<span class="hljs-keyword">await</span>;
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">_</span> = tx.<span class="hljs-title function_ invoke__">send</span>(<span class="hljs-number">2</span>).<span class="hljs-keyword">await</span>;
+    });
+    
+    <span class="hljs-keyword">loop</span> {
+        tokio::<span class="hljs-built_in">select!</span> {
+            res = &#x26;<span class="hljs-keyword">mut</span> operation, <span class="hljs-keyword">if</span> !done => {
+                done = <span class="hljs-literal">true</span>;
+
+                <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-variable">Some</span>(v) = res {
+                    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"GOT = {}"</span>, v);
+                    <span class="hljs-keyword">return</span>;
+                }
+            }
+            <span class="hljs-title function_ invoke__">Some</span>(v) = rx.<span class="hljs-title function_ invoke__">recv</span>() => {
+                <span class="hljs-keyword">if</span> v % <span class="hljs-number">2</span> == <span class="hljs-number">0</span> {
+                    <span class="hljs-comment">// `.set` is a method on `Pin`.</span>
+                    operation.<span class="hljs-title function_ invoke__">set</span>(<span class="hljs-title function_ invoke__">action</span>(<span class="hljs-title function_ invoke__">Some</span>(v)));
+                    done = <span class="hljs-literal">false</span>;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>We use a similar strategy as the previous example. The async fn is called
+outside of the loop and assigned to <code>operation</code>. The <code>operation</code> variable is
+pinned. The loop selects on both <code>operation</code> and the channel receiver.</p>
+<p>Notice how <code>action</code> takes <code>Option&#x3C;i32></code> as an argument. Before we receive the
+first even number, we need to instantiate <code>operation</code> to something. We make
+<code>action</code> take <code>Option</code> and return <code>Option</code>. If <code>None</code> is passed in, <code>None</code> is
+returned. The first loop iteration, <code>operation</code> completes immediately with
+<code>None</code>.</p>
+<p>This example uses some new syntax. The first branch includes <code>, if !done</code>. This
+is a branch precondition. Before explaining how it works, let's look at what
+happens if the precondition is omitted. Leaving out <code>, if !done</code> and running the
+example results in the following output:</p>
+<pre><code class="language-text">thread 'main' panicked at '`async fn` resumed after completion', src/main.rs:1:55
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+</code></pre>
+<p>This error happens when attempting to use <code>operation</code> <strong>after</strong> it has already
+completed. Usually, when using <code>.await</code>, the value being awaited is consumed. In
+this example, we await on a reference. This means <code>operation</code> is still around
+after it has completed.</p>
+<p>To avoid this panic, we must take care to disable the first branch if
+<code>operation</code> has completed. The <code>done</code> variable is used to track whether or not
+<code>operation</code> completed. A <code>select!</code> branch may include a <strong>precondition</strong>. This
+precondition is checked <strong>before</strong> <code>select!</code> awaits on the branch. If the
+condition evaluates to <code>false</code> then the branch is disabled. The <code>done</code> variable
+is initialized to <code>false</code>. When <code>operation</code> completes, <code>done</code> is set to <code>true</code>.
+The next loop iteration will disable the <code>operation</code> branch. When an even
+message is received from the channel, <code>operation</code> is reset and <code>done</code> is set to
+<code>false</code>.</p>
+<h1 id="per-task-concurrency">Per-task concurrency</h1>
+<p>Both <code>tokio::spawn</code> and <code>select!</code> enable running concurrent asynchronous
+operations. However, the strategy used to run concurrent operations differs. The
+<code>tokio::spawn</code> function takes an asynchronous operation and spawns a new task to
+run it. A task is the object that the Tokio runtime schedules. Two different
+tasks are scheduled independently by Tokio. They may run simultaneously on
+different operating system threads. Because of this, a spawned task has the same
+restriction as a spawned thread: no borrowing.</p>
+<p>The <code>select!</code> macro runs all branches concurrently <strong>on the same task</strong>. Because
+all branches of the <code>select!</code> macro are executed on the same task, they will
+never run <strong>simultaneously</strong>. The <code>select!</code> macro multiplexes asynchronous
+operations on a single task.</p></div><div class="tk-doc-footer"><div class="level"><div class="level-left"><div class="level-item tk-prev"><a href="/tokio/tutorial/async" rel="prev"><span class="tk-arrow" style="margin-right:0.5rem"><img src="/img/arrow-left.svg"/></span>Async in depth</a></div></div><div class="level-right"><div class="level-item tk-next"><a href="/tokio/tutorial/streams" rel="next">Streams<span class="tk-arrow" style="margin-left:0.5rem"><img src="/img/arrow-right.svg"/></span></a></div></div></div><div class="level"><div class="level-left"><div class="level-item tk-help-links"><p>Get Help:<a href="https://github.com/tokio-rs/tokio/discussions"><span class="icon is-medium"><svg width="45" height="45" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path class="tk-svg-path" d="M896 128q209 0 385.5 103t279.5 279.5 103 385.5q0 251-146.5 451.5t-378.5 277.5q-27 5-40-7t-13-30q0-3 .5-76.5t.5-134.5q0-97-52-142 57-6 102.5-18t94-39 81-66.5 53-105 20.5-150.5q0-119-79-206 37-91-8-204-28-9-81 11t-92 44l-38 24q-93-26-192-26t-192 26q-16-11-42.5-27t-83.5-38.5-85-13.5q-45 113-8 204-79 87-79 206 0 85 20.5 150t52.5 105 80.5 67 94 39 102.5 18q-39 36-49 103-21 10-45 15t-57 5-65.5-21.5-55.5-62.5q-19-32-48.5-52t-49.5-24l-20-3q-21 0-29 4.5t-5 11.5 9 14 13 12l7 5q22 10 43.5 38t31.5 51l10 23q13 38 44 61.5t67 30 69.5 7 55.5-3.5l23-4q0 38 .5 88.5t.5 54.5q0 18-13 30t-40 7q-232-77-378.5-277.5t-146.5-451.5q0-209 103-385.5t279.5-279.5 385.5-103zm-477 1103q3-7-7-12-10-3-13 2-3 7 7 12 9 6 13-2zm31 34q7-5-2-16-10-9-16-3-7 5 2 16 10 10 16 3zm30 45q9-7 0-19-8-13-17-6-9 5 0 18t17 7zm42 42q8-8-4-19-12-12-20-3-9 8 4 19 12 12 20 3zm57 25q3-11-13-16-15-4-19 7t13 15q15 6 19-6zm63 5q0-13-17-11-16 0-16 11 0 13 17 11 16 0 16-11zm58-10q-2-11-18-9-16 3-14 15t18 8 14-14z" fill="#fff"></path></svg></span></a><a href="https://discord.gg/tokio"><span class="icon is-medium"><svg width="45" height="45" viewBox="0 0 245 240" xmlns="http://www.w3.org/2000/svg"><path class="tk-svg-path" fill="#FFF" d="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1.1-6.1-4.5-11.1-10.2-11.1zM140.9 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z"></path><path class="tk-svg-path" fill="#FFF" d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-10.5 28.1-10.5l1 1.2c-18 5.2-26.3 13.1-26.3 13.1s2.2-1.2 5.9-2.9c10.7-4.7 19.2-6 22.7-6.3.6-.1 1.1-.2 1.7-.2 6.1-.8 13-1 20.2-.2 9.5 1.1 19.7 3.9 30.1 9.6 0 0-7.9-7.5-24.9-12.7l1.4-1.6s13.7-.3 28.1 10.5c0 0 14.4 26.1 14.4 58.3 0 0-8.5 14.5-30.6 15.2z"></path></svg></span></a></p></div></div><div class="level-right"><div class="level-item tk-edit-this-page"><a href="https://github.com/tokio-rs/website/edit/master/content/tokio/tutorial/select.md">Edit this page</a></div></div></div></div></div><aside class="column is-one-third tk-content-summary"><ul class="tk-content-summary-menu"></ul></aside></div></section></div></div></main></div><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"page":{"key":"select","href":"/tokio/tutorial/select","title":"Select","menuTitle":"Select","mdPath":"tokio/tutorial/select.md","data":{"title":"Select"},"body":"\u003cp\u003eSo far, when we wanted to add concurrency to the system, we spawned a new task.\nWe will now cover some additional ways to concurrently execute asynchronous code\nwith Tokio.\u003c/p\u003e\n\u003ch1 id=\"tokioselect\"\u003e\u003ccode\u003etokio::select!\u003c/code\u003e\u003c/h1\u003e\n\u003cp\u003eThe \u003ccode\u003etokio::select!\u003c/code\u003e macro allows waiting on multiple async computations and\nreturns when a \u003cstrong\u003esingle\u003c/strong\u003e computation completes.\u003c/p\u003e\n\u003cp\u003eFor example:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::oneshot;\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx1, rx1) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx2, rx2) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n        \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003e_\u003c/span\u003e = tx1.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"one\"\u003c/span\u003e);\n    });\n\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n        \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003e_\u003c/span\u003e = tx2.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"two\"\u003c/span\u003e);\n    });\n\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        val = rx1 =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx1 completed first with {:?}\"\u003c/span\u003e, val);\n        }\n        val = rx2 =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx2 completed first with {:?}\"\u003c/span\u003e, val);\n        }\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eTwo oneshot channels are used. Either channel could complete first. The\n\u003ccode\u003eselect!\u003c/code\u003e statement awaits on both channels and binds \u003ccode\u003eval\u003c/code\u003e to the value\nreturned by the task. When either \u003ccode\u003etx1\u003c/code\u003e or \u003ccode\u003etx2\u003c/code\u003e complete, the associated block\nis executed.\u003c/p\u003e\n\u003cp\u003eThe branch that \u003cstrong\u003edoes not\u003c/strong\u003e complete is dropped. In the example, the\ncomputation is awaiting the \u003ccode\u003eoneshot::Receiver\u003c/code\u003e for each channel. The\n\u003ccode\u003eoneshot::Receiver\u003c/code\u003e for the channel that did not complete yet is dropped.\u003c/p\u003e\n\u003ch2 id=\"cancellation\"\u003eCancellation\u003c/h2\u003e\n\u003cp\u003eWith asynchronous Rust, cancellation is performed by dropping a future. Recall\nfrom \u003ca href=\"async\"\u003e\"Async in depth\"\u003c/a\u003e, async Rust operation are implemented using\nfutures and futures are lazy. The operation only proceeds when the future is\npolled. If the future is dropped, the operation cannot proceed because all\nassociated state has been dropped.\u003c/p\u003e\n\u003cp\u003eThat said, sometimes an asynchronous operation will spawn background tasks or\nstart other operation that run in the background. For example, in the above\nexample, a task is spawned to send a message back. Usually, the task will\nperform some computation to generate the value.\u003c/p\u003e\n\u003cp\u003eFutures or other types can implement \u003ccode\u003eDrop\u003c/code\u003e to cleanup background resources.\nTokio's \u003ccode\u003eoneshot::Receiver\u003c/code\u003e implements \u003ccode\u003eDrop\u003c/code\u003e by sending a closed notification to\nthe \u003ccode\u003eSender\u003c/code\u003e half. The sender half can receive this notification and abort the\nin-progress operation by dropping it.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::oneshot;\n\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003esome_operation\u003c/span\u003e() \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e \u003cspan class=\"hljs-type\"\u003eString\u003c/span\u003e {\n    \u003cspan class=\"hljs-comment\"\u003e// Compute value here\u003c/span\u003e\n}\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e tx1, rx1) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx2, rx2) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n        \u003cspan class=\"hljs-comment\"\u003e// Select on the operation and the oneshot's\u003c/span\u003e\n        \u003cspan class=\"hljs-comment\"\u003e// `closed()` notification.\u003c/span\u003e\n        tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n            val = \u003cspan class=\"hljs-title function_ invoke__\"\u003esome_operation\u003c/span\u003e() =\u003e {\n                \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003e_\u003c/span\u003e = tx1.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(val);\n            }\n            _ = tx1.\u003cspan class=\"hljs-title function_ invoke__\"\u003eclosed\u003c/span\u003e() =\u003e {\n                \u003cspan class=\"hljs-comment\"\u003e// `some_operation()` is canceled, the\u003c/span\u003e\n                \u003cspan class=\"hljs-comment\"\u003e// task completes and `tx1` is dropped.\u003c/span\u003e\n            }\n        }\n    });\n\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n        \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003e_\u003c/span\u003e = tx2.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"two\"\u003c/span\u003e);\n    });\n\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        val = rx1 =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx1 completed first with {:?}\"\u003c/span\u003e, val);\n        }\n        val = rx2 =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx2 completed first with {:?}\"\u003c/span\u003e, val);\n        }\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2 id=\"the-future-implementation\"\u003eThe \u003ccode\u003eFuture\u003c/code\u003e implementation\u003c/h2\u003e\n\u003cp\u003eTo help better understand how \u003ccode\u003eselect!\u003c/code\u003e works, let's look at what a hypothetical\n\u003ccode\u003eFuture\u003c/code\u003e implementation would look like. This is a simplified version. In\npractice, \u003ccode\u003eselect!\u003c/code\u003e includes additional functionality like randomly selecting\nthe branch to poll first.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::oneshot;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e std::future::Future;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e std::pin::Pin;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e std::task::{Context, Poll};\n\n\u003cspan class=\"hljs-keyword\"\u003estruct\u003c/span\u003e \u003cspan class=\"hljs-title class_\"\u003eMySelect\u003c/span\u003e {\n    rx1: oneshot::Receiver\u0026#x3C;\u0026#x26;\u003cspan class=\"hljs-symbol\"\u003e'static\u003c/span\u003e \u003cspan class=\"hljs-type\"\u003estr\u003c/span\u003e\u003e,\n    rx2: oneshot::Receiver\u0026#x3C;\u0026#x26;\u003cspan class=\"hljs-symbol\"\u003e'static\u003c/span\u003e \u003cspan class=\"hljs-type\"\u003estr\u003c/span\u003e\u003e,\n}\n\n\u003cspan class=\"hljs-keyword\"\u003eimpl\u003c/span\u003e \u003cspan class=\"hljs-title class_\"\u003eFuture\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efor\u003c/span\u003e \u003cspan class=\"hljs-title class_\"\u003eMySelect\u003c/span\u003e {\n    \u003cspan class=\"hljs-keyword\"\u003etype\u003c/span\u003e \u003cspan class=\"hljs-title class_\"\u003eOutput\u003c/span\u003e = ();\n\n    \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003epoll\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003eself\u003c/span\u003e: Pin\u0026#x3C;\u0026#x26;\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003eSelf\u003c/span\u003e\u003e, cx: \u0026#x26;\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e Context\u0026#x3C;\u003cspan class=\"hljs-symbol\"\u003e'_\u003c/span\u003e\u003e) \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e Poll\u0026#x3C;()\u003e {\n        \u003cspan class=\"hljs-keyword\"\u003eif\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003ePoll\u003c/span\u003e::\u003cspan class=\"hljs-title function_ invoke__\"\u003eReady\u003c/span\u003e(val) = Pin::\u003cspan class=\"hljs-title function_ invoke__\"\u003enew\u003c/span\u003e(\u0026#x26;\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003eself\u003c/span\u003e.rx1).\u003cspan class=\"hljs-title function_ invoke__\"\u003epoll\u003c/span\u003e(cx) {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx1 completed first with {:?}\"\u003c/span\u003e, val);\n            \u003cspan class=\"hljs-keyword\"\u003ereturn\u003c/span\u003e Poll::\u003cspan class=\"hljs-title function_ invoke__\"\u003eReady\u003c/span\u003e(());\n        }\n\n        \u003cspan class=\"hljs-keyword\"\u003eif\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003ePoll\u003c/span\u003e::\u003cspan class=\"hljs-title function_ invoke__\"\u003eReady\u003c/span\u003e(val) = Pin::\u003cspan class=\"hljs-title function_ invoke__\"\u003enew\u003c/span\u003e(\u0026#x26;\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003eself\u003c/span\u003e.rx2).\u003cspan class=\"hljs-title function_ invoke__\"\u003epoll\u003c/span\u003e(cx) {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx2 completed first with {:?}\"\u003c/span\u003e, val);\n            \u003cspan class=\"hljs-keyword\"\u003ereturn\u003c/span\u003e Poll::\u003cspan class=\"hljs-title function_ invoke__\"\u003eReady\u003c/span\u003e(());\n        }\n\n        Poll::Pending\n    }\n}\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx1, rx1) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx2, rx2) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n\n    \u003cspan class=\"hljs-comment\"\u003e// use tx1 and tx2\u003c/span\u003e\n\n    MySelect {\n        rx1,\n        rx2,\n    }.\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e;\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe \u003ccode\u003eMySelect\u003c/code\u003e future contains the futures from each branch. When \u003ccode\u003eMySelect\u003c/code\u003e is\npolled, the first branch is polled. If it is ready, the value is used and\n\u003ccode\u003eMySelect\u003c/code\u003e completes. After \u003ccode\u003e.await\u003c/code\u003e receives the output from a future, the\nfuture is dropped. This results in the futures for both branches to be dropped.\nAs one branch did not complete, the operation is effectively cancelled.\u003c/p\u003e\n\u003cp\u003eRemember from the previous section:\u003c/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003eWhen a future returns \u003ccode\u003ePoll::Pending\u003c/code\u003e, it \u003cstrong\u003emust\u003c/strong\u003e ensure the waker is\nsignalled at some point in the future. Forgetting to do this results in the\ntask hanging indefinitely.\u003c/p\u003e\n\u003c/blockquote\u003e\n\u003cp\u003eThere is no explicit usage of the \u003ccode\u003eContext\u003c/code\u003e argument in the \u003ccode\u003eMySelect\u003c/code\u003e\nimplementation. Instead, the waker requirement is met by passing \u003ccode\u003ecx\u003c/code\u003e to the\ninner futures. As the inner future must also meet the waker requirement, by only\nreturning \u003ccode\u003ePoll::Pending\u003c/code\u003e when receiving \u003ccode\u003ePoll::Pending\u003c/code\u003e from an inner future,\n\u003ccode\u003eMySelect\u003c/code\u003e also meets the waker requirement.\u003c/p\u003e\n\u003ch1 id=\"syntax\"\u003eSyntax\u003c/h1\u003e\n\u003cp\u003eThe \u003ccode\u003eselect!\u003c/code\u003e macro can handle more than two branches. The current limit is 64\nbranches. Each branch is structured as:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-text\"\u003e\u0026#x3C;pattern\u003e = \u0026#x3C;async expression\u003e =\u003e \u0026#x3C;handler\u003e,\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eWhen the \u003ccode\u003eselect\u003c/code\u003e macro is evaluated, all the \u003ccode\u003e\u0026#x3C;async expression\u003e\u003c/code\u003es are\naggregated and executed concurrently. When an expression completes, the result\nis matched against \u003ccode\u003e\u0026#x3C;pattern\u003e\u003c/code\u003e. If the result matches the pattern, then all\nremaining async expressions are dropped and \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e is executed. The\n\u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e expression has access to any bindings established by \u003ccode\u003e\u0026#x3C;pattern\u003e\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eThe basic case for \u003ccode\u003e\u0026#x3C;pattern\u003e\u003c/code\u003e is a variable name, the result of the async\nexpression is bound to the variable name and \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e has access to that\nvariable. This is why, in the original example, \u003ccode\u003eval\u003c/code\u003e was used for \u003ccode\u003e\u0026#x3C;pattern\u003e\u003c/code\u003e\nand \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e was able to access \u003ccode\u003eval\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eIf \u003ccode\u003e\u0026#x3C;pattern\u003e\u003c/code\u003e \u003cstrong\u003edoes not\u003c/strong\u003e match the result of the async computation, then the\nremaining async expressions continue to execute concurrently until the next one\ncompletes. At this time, the same logic is applied to that result.\u003c/p\u003e\n\u003cp\u003eBecause \u003ccode\u003eselect!\u003c/code\u003e takes any async expression, it is possible to define more\ncomplicated computations to select on.\u003c/p\u003e\n\u003cp\u003eHere, we select on the output of a \u003ccode\u003eoneshot\u003c/code\u003e channel and a TCP connection.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::net::TcpStream;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::oneshot;\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx, rx) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n\n    \u003cspan class=\"hljs-comment\"\u003e// Spawn a task that sends a message over the oneshot\u003c/span\u003e\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emove\u003c/span\u003e {\n        tx.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"done\"\u003c/span\u003e).\u003cspan class=\"hljs-title function_ invoke__\"\u003eunwrap\u003c/span\u003e();\n    });\n\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        socket = TcpStream::\u003cspan class=\"hljs-title function_ invoke__\"\u003econnect\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"localhost:3465\"\u003c/span\u003e) =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"Socket connected {:?}\"\u003c/span\u003e, socket);\n        }\n        msg = rx =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"received message first {:?}\"\u003c/span\u003e, msg);\n        }\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eHere, we select on a oneshot and accepting sockets from a \u003ccode\u003eTcpListener\u003c/code\u003e.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::net::TcpListener;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::oneshot;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e std::io;\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e io::\u003cspan class=\"hljs-type\"\u003eResult\u003c/span\u003e\u0026#x3C;()\u003e {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx, rx) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emove\u003c/span\u003e {\n        tx.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(()).\u003cspan class=\"hljs-title function_ invoke__\"\u003eunwrap\u003c/span\u003e();\n    });\n\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emut \u003c/span\u003e\u003cspan class=\"hljs-variable\"\u003elistener\u003c/span\u003e = TcpListener::\u003cspan class=\"hljs-title function_ invoke__\"\u003ebind\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"localhost:3465\"\u003c/span\u003e).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        _ = \u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n            \u003cspan class=\"hljs-keyword\"\u003eloop\u003c/span\u003e {\n                \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (socket, _) = listener.\u003cspan class=\"hljs-title function_ invoke__\"\u003eaccept\u003c/span\u003e().\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n                tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emove\u003c/span\u003e { \u003cspan class=\"hljs-title function_ invoke__\"\u003eprocess\u003c/span\u003e(socket) });\n            }\n\n            \u003cspan class=\"hljs-comment\"\u003e// Help the rust type inferencer out\u003c/span\u003e\n            Ok::\u0026#x3C;_, io::Error\u003e(())\n        } =\u003e {}\n        _ = rx =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"terminating accept loop\"\u003c/span\u003e);\n        }\n    }\n\n    \u003cspan class=\"hljs-title function_ invoke__\"\u003eOk\u003c/span\u003e(())\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe accept loop runs until an error is encountered or \u003ccode\u003erx\u003c/code\u003e receives a value. The\n\u003ccode\u003e_\u003c/code\u003e pattern indicates that we have no interest in the return value of the async\ncomputation.\u003c/p\u003e\n\u003ch1 id=\"return-value\"\u003eReturn value\u003c/h1\u003e\n\u003cp\u003eThe \u003ccode\u003etokio::select!\u003c/code\u003e macro returns the result of the evaluated \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e expression.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003ecomputation1\u003c/span\u003e() \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e \u003cspan class=\"hljs-type\"\u003eString\u003c/span\u003e {\n    \u003cspan class=\"hljs-comment\"\u003e// .. computation\u003c/span\u003e\n}\n\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003ecomputation2\u003c/span\u003e() \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e \u003cspan class=\"hljs-type\"\u003eString\u003c/span\u003e {\n    \u003cspan class=\"hljs-comment\"\u003e// .. computation\u003c/span\u003e\n}\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003eout\u003c/span\u003e = tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        res1 = \u003cspan class=\"hljs-title function_ invoke__\"\u003ecomputation1\u003c/span\u003e() =\u003e res1,\n        res2 = \u003cspan class=\"hljs-title function_ invoke__\"\u003ecomputation2\u003c/span\u003e() =\u003e res2,\n    };\n\n    \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"Got = {}\"\u003c/span\u003e, out);\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eBecause of this, it is required that the \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e expression for \u003cstrong\u003eeach\u003c/strong\u003e\nbranch evaluates to the same type. If the output of a \u003ccode\u003eselect!\u003c/code\u003e expression is\nnot needed, it is good practice to have the expression evaluate to \u003ccode\u003e()\u003c/code\u003e.\u003c/p\u003e\n\u003ch1 id=\"errors\"\u003eErrors\u003c/h1\u003e\n\u003cp\u003eUsing the \u003ccode\u003e?\u003c/code\u003e operator propagates the error from the expression. How this works\ndepends on whether \u003ccode\u003e?\u003c/code\u003e is used from an async expression or from a handler.\nUsing \u003ccode\u003e?\u003c/code\u003e in an async expression propagates the error out of the async\nexpression. This makes the output of the async expression a \u003ccode\u003eResult\u003c/code\u003e. Using \u003ccode\u003e?\u003c/code\u003e\nfrom a handler immediately propagates the error out of the \u003ccode\u003eselect!\u003c/code\u003e expression.\nLet's look at the accept loop example again:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::net::TcpListener;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::oneshot;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e std::io;\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e io::\u003cspan class=\"hljs-type\"\u003eResult\u003c/span\u003e\u0026#x3C;()\u003e {\n    \u003cspan class=\"hljs-comment\"\u003e// [setup `rx` oneshot channel]\u003c/span\u003e\n\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003elistener\u003c/span\u003e = TcpListener::\u003cspan class=\"hljs-title function_ invoke__\"\u003ebind\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"localhost:3465\"\u003c/span\u003e).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        res = \u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n            \u003cspan class=\"hljs-keyword\"\u003eloop\u003c/span\u003e {\n                \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (socket, _) = listener.\u003cspan class=\"hljs-title function_ invoke__\"\u003eaccept\u003c/span\u003e().\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n                tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emove\u003c/span\u003e { \u003cspan class=\"hljs-title function_ invoke__\"\u003eprocess\u003c/span\u003e(socket) });\n            }\n\n            \u003cspan class=\"hljs-comment\"\u003e// Help the rust type inferencer out\u003c/span\u003e\n            Ok::\u0026#x3C;_, io::Error\u003e(())\n        } =\u003e {\n            res?;\n        }\n        _ = rx =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"terminating accept loop\"\u003c/span\u003e);\n        }\n    }\n\n    \u003cspan class=\"hljs-title function_ invoke__\"\u003eOk\u003c/span\u003e(())\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eNotice \u003ccode\u003elistener.accept().await?\u003c/code\u003e. The \u003ccode\u003e?\u003c/code\u003e operator propagates the error out of\nthat expression and to the \u003ccode\u003eres\u003c/code\u003e binding. On an error, \u003ccode\u003eres\u003c/code\u003e will be set to\n\u003ccode\u003eErr(_)\u003c/code\u003e. Then, in the handler, the \u003ccode\u003e?\u003c/code\u003e operator is used again. The \u003ccode\u003eres?\u003c/code\u003e\nstatement will propagate an error out of the \u003ccode\u003emain\u003c/code\u003e function.\u003c/p\u003e\n\u003ch1 id=\"pattern-matching\"\u003ePattern matching\u003c/h1\u003e\n\u003cp\u003eRecall that the \u003ccode\u003eselect!\u003c/code\u003e macro branch syntax was defined as:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-text\"\u003e\u0026#x3C;pattern\u003e = \u0026#x3C;async expression\u003e =\u003e \u0026#x3C;handler\u003e,\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eSo far, we have only used variable bindings for \u003ccode\u003e\u0026#x3C;pattern\u003e\u003c/code\u003e. However, any Rust\npattern can be used. For example, say we are receiving from multiple MPSC\nchannels, we might do something like this:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::mpsc;\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e tx1, \u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e rx1) = mpsc::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e128\u003c/span\u003e);\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e tx2, \u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e rx2) = mpsc::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e128\u003c/span\u003e);\n\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emove\u003c/span\u003e {\n        \u003cspan class=\"hljs-comment\"\u003e// Do something w/ `tx1` and `tx2`\u003c/span\u003e\n    });\n\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(v) = rx1.\u003cspan class=\"hljs-title function_ invoke__\"\u003erecv\u003c/span\u003e() =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"Got {:?} from rx1\"\u003c/span\u003e, v);\n        }\n        \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(v) = rx2.\u003cspan class=\"hljs-title function_ invoke__\"\u003erecv\u003c/span\u003e() =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"Got {:?} from rx2\"\u003c/span\u003e, v);\n        }\n        \u003cspan class=\"hljs-keyword\"\u003eelse\u003c/span\u003e =\u003e {\n            \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"Both channels closed\"\u003c/span\u003e);\n        }\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eIn this example, the \u003ccode\u003eselect!\u003c/code\u003e expression waits on receiving a value from \u003ccode\u003erx1\u003c/code\u003e\nand \u003ccode\u003erx2\u003c/code\u003e. If a channel closes, \u003ccode\u003erecv()\u003c/code\u003e returns \u003ccode\u003eNone\u003c/code\u003e. This \u003cstrong\u003edoes not\u003c/strong\u003e match\nthe pattern and the branch is disabled. The \u003ccode\u003eselect!\u003c/code\u003e expression will continue\nwaiting on the remaining branches.\u003c/p\u003e\n\u003cp\u003eNotice that this \u003ccode\u003eselect!\u003c/code\u003e expression includes an \u003ccode\u003eelse\u003c/code\u003e branch. The \u003ccode\u003eselect!\u003c/code\u003e\nexpression must evaluate to a value. When using pattern matching, it is possible\nthat \u003cstrong\u003enone\u003c/strong\u003e of the branches match their associated patterns. If this happens,\nthe \u003ccode\u003eelse\u003c/code\u003e branch is evaluated.\u003c/p\u003e\n\u003ch1 id=\"borrowing\"\u003eBorrowing\u003c/h1\u003e\n\u003cp\u003eWhen spawning tasks, the spawned async expression must own all of its data. The\n\u003ccode\u003eselect!\u003c/code\u003e macro does not have this limitation. Each branch's async expression\nmay borrow data and operate concurrently. Following Rust's borrow rules,\nmultiple async expressions may immutably borrow a single piece of data \u003cstrong\u003eor\u003c/strong\u003e a\nsingle async expression may mutably borrow a piece of data.\u003c/p\u003e\n\u003cp\u003eLet's look at some examples. Here, we simultaneously send the same data to two\ndifferent TCP destinations.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::io::AsyncWriteExt;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::net::TcpStream;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e std::io;\n\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e std::net::SocketAddr;\n\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003erace\u003c/span\u003e(\n    data: \u0026#x26;[\u003cspan class=\"hljs-type\"\u003eu8\u003c/span\u003e],\n    addr1: SocketAddr,\n    addr2: SocketAddr\n) \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e io::\u003cspan class=\"hljs-type\"\u003eResult\u003c/span\u003e\u0026#x3C;()\u003e {\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        \u003cspan class=\"hljs-title function_ invoke__\"\u003eOk\u003c/span\u003e(_) = \u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n            \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emut \u003c/span\u003e\u003cspan class=\"hljs-variable\"\u003esocket\u003c/span\u003e = TcpStream::\u003cspan class=\"hljs-title function_ invoke__\"\u003econnect\u003c/span\u003e(addr1).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n            socket.\u003cspan class=\"hljs-title function_ invoke__\"\u003ewrite_all\u003c/span\u003e(data).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n            Ok::\u0026#x3C;_, io::Error\u003e(())\n        } =\u003e {}\n        \u003cspan class=\"hljs-title function_ invoke__\"\u003eOk\u003c/span\u003e(_) = \u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e {\n            \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emut \u003c/span\u003e\u003cspan class=\"hljs-variable\"\u003esocket\u003c/span\u003e = TcpStream::\u003cspan class=\"hljs-title function_ invoke__\"\u003econnect\u003c/span\u003e(addr2).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n            socket.\u003cspan class=\"hljs-title function_ invoke__\"\u003ewrite_all\u003c/span\u003e(data).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e?;\n            Ok::\u0026#x3C;_, io::Error\u003e(())\n        } =\u003e {}\n        \u003cspan class=\"hljs-keyword\"\u003eelse\u003c/span\u003e =\u003e {}\n    };\n\n    \u003cspan class=\"hljs-title function_ invoke__\"\u003eOk\u003c/span\u003e(())\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThe \u003ccode\u003edata\u003c/code\u003e variable is being borrowed \u003cstrong\u003eimmutably\u003c/strong\u003e from both async expressions.\nWhen one of the operations completes successfully, the other one is dropped.\nBecause we pattern match on \u003ccode\u003eOk(_)\u003c/code\u003e, if an expression fails, the other one\ncontinues to execute.\u003c/p\u003e\n\u003cp\u003eWhen it comes to each branch's \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e, \u003ccode\u003eselect!\u003c/code\u003e guarantees that only a\nsingle \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e runs. Because of this, each \u003ccode\u003e\u0026#x3C;handler\u003e\u003c/code\u003e may mutably borrow\nthe same data.\u003c/p\u003e\n\u003cp\u003eFor example this modifies \u003ccode\u003eout\u003c/code\u003e in both handlers:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::oneshot;\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx1, rx1) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx2, rx2) = oneshot::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e();\n\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emut \u003c/span\u003e\u003cspan class=\"hljs-variable\"\u003eout\u003c/span\u003e = \u003cspan class=\"hljs-type\"\u003eString\u003c/span\u003e::\u003cspan class=\"hljs-title function_ invoke__\"\u003enew\u003c/span\u003e();\n\n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emove\u003c/span\u003e {\n        \u003cspan class=\"hljs-comment\"\u003e// Send values on `tx1` and `tx2`.\u003c/span\u003e\n    });\n\n    tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n        _ = rx1 =\u003e {\n            out.\u003cspan class=\"hljs-title function_ invoke__\"\u003epush_str\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx1 completed\"\u003c/span\u003e);\n        }\n        _ = rx2 =\u003e {\n            out.\u003cspan class=\"hljs-title function_ invoke__\"\u003epush_str\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"rx2 completed\"\u003c/span\u003e);\n        }\n    }\n\n    \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"{}\"\u003c/span\u003e, out);\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch1 id=\"loops\"\u003eLoops\u003c/h1\u003e\n\u003cp\u003eThe \u003ccode\u003eselect!\u003c/code\u003e macro is often used in loops. This section will go over some\nexamples to show common ways of using the \u003ccode\u003eselect!\u003c/code\u003e macro in a loop. We start\nby selecting over multiple channels:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003euse\u003c/span\u003e tokio::sync::mpsc;\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx1, \u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e rx1) = mpsc::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e128\u003c/span\u003e);\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx2, \u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e rx2) = mpsc::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e128\u003c/span\u003e);\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (tx3, \u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e rx3) = mpsc::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e128\u003c/span\u003e);\n\n    \u003cspan class=\"hljs-keyword\"\u003eloop\u003c/span\u003e {\n        \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003emsg\u003c/span\u003e = tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n            \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(msg) = rx1.\u003cspan class=\"hljs-title function_ invoke__\"\u003erecv\u003c/span\u003e() =\u003e msg,\n            \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(msg) = rx2.\u003cspan class=\"hljs-title function_ invoke__\"\u003erecv\u003c/span\u003e() =\u003e msg,\n            \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(msg) = rx3.\u003cspan class=\"hljs-title function_ invoke__\"\u003erecv\u003c/span\u003e() =\u003e msg,\n            \u003cspan class=\"hljs-keyword\"\u003eelse\u003c/span\u003e =\u003e { \u003cspan class=\"hljs-keyword\"\u003ebreak\u003c/span\u003e }\n        };\n\n        \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"Got {:?}\"\u003c/span\u003e, msg);\n    }\n\n    \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"All channels have been closed.\"\u003c/span\u003e);\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThis example selects over the three channel receivers. When a message is\nreceived on any channel, it is written to STDOUT. When a channel is closed,\n\u003ccode\u003erecv()\u003c/code\u003e returns with \u003ccode\u003eNone\u003c/code\u003e. By using pattern matching, the \u003ccode\u003eselect!\u003c/code\u003e\nmacro continues waiting on the remaining channels. When all channels are\nclosed, the \u003ccode\u003eelse\u003c/code\u003e branch is evaluated and the loop is terminated.\u003c/p\u003e\n\u003cp\u003eThe \u003ccode\u003eselect!\u003c/code\u003e macro randomly picks branches to check first for readiness. When\nmultiple channels have pending values, a random channel will be picked to\nreceive from. This is to handle the case where the receive loop processes\nmessages slower than they are pushed into the channels, meaning that the\nchannels start to fill up. If \u003ccode\u003eselect!\u003c/code\u003e \u003cstrong\u003edid not\u003c/strong\u003e randomly pick a branch\nto check first, on each iteration of the loop, \u003ccode\u003erx1\u003c/code\u003e would be checked first. If\n\u003ccode\u003erx1\u003c/code\u003e always contained a new message, the remaining channels would never be\nchecked.\u003c/p\u003e\n\u003cblockquote class=\"is-info\"\u003e\n\u003cp\u003e\nIf when \u003ccode\u003eselect!\u003c/code\u003e is evaluated, multiple channels have pending messages, only\none channel has a value popped. All other channels remain untouched, and their\nmessages stay in those channels until the next loop iteration. No messages are\nlost.\u003c/p\u003e\n\u003c/blockquote\u003e\n\u003ch2 id=\"resuming-an-async-operation\"\u003eResuming an async operation\u003c/h2\u003e\n\u003cp\u003eNow we will show how to run an asynchronous operation across multiple calls to\n\u003ccode\u003eselect!\u003c/code\u003e. In this example, we have an MPSC channel with item type \u003ccode\u003ei32\u003c/code\u003e, and an\nasynchronous function. We want to run the asynchronous function until it\ncompletes or an even integer is received on the channel.\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003eaction\u003c/span\u003e() {\n    \u003cspan class=\"hljs-comment\"\u003e// Some asynchronous logic\u003c/span\u003e\n}\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e tx, \u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e rx) = tokio::sync::mpsc::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e128\u003c/span\u003e);    \n    \n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003eoperation\u003c/span\u003e = \u003cspan class=\"hljs-title function_ invoke__\"\u003eaction\u003c/span\u003e();\n    tokio::pin!(operation);\n    \n    \u003cspan class=\"hljs-keyword\"\u003eloop\u003c/span\u003e {\n        tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n            _ = \u0026#x26;\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e operation =\u003e \u003cspan class=\"hljs-keyword\"\u003ebreak\u003c/span\u003e,\n            \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(v) = rx.\u003cspan class=\"hljs-title function_ invoke__\"\u003erecv\u003c/span\u003e() =\u003e {\n                \u003cspan class=\"hljs-keyword\"\u003eif\u003c/span\u003e v % \u003cspan class=\"hljs-number\"\u003e2\u003c/span\u003e == \u003cspan class=\"hljs-number\"\u003e0\u003c/span\u003e {\n                    \u003cspan class=\"hljs-keyword\"\u003ebreak\u003c/span\u003e;\n                }\n            }\n        }\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eNote how, instead of calling \u003ccode\u003eaction()\u003c/code\u003e in the \u003ccode\u003eselect!\u003c/code\u003e macro, it is called\n\u003cstrong\u003eoutside\u003c/strong\u003e the loop. The return of \u003ccode\u003eaction()\u003c/code\u003e is assigned to \u003ccode\u003eoperation\u003c/code\u003e\n\u003cstrong\u003ewithout\u003c/strong\u003e calling \u003ccode\u003e.await\u003c/code\u003e. Then we call \u003ccode\u003etokio::pin!\u003c/code\u003e on \u003ccode\u003eoperation\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eInside the \u003ccode\u003eselect!\u003c/code\u003e loop, instead of passing in \u003ccode\u003eoperation\u003c/code\u003e, we pass in \u003ccode\u003e\u0026#x26;mut operation\u003c/code\u003e. The \u003ccode\u003eoperation\u003c/code\u003e variable is tracking the in-flight asynchronous\noperation. Each iteration of the loop uses the same operation instead of issuing\na new call to \u003ccode\u003eaction()\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eThe other \u003ccode\u003eselect!\u003c/code\u003e branch receives a message from the channel. If the message\nis even, we are done looping. Otherwise, start the \u003ccode\u003eselect!\u003c/code\u003e again.\u003c/p\u003e\n\u003cp\u003eThis is the first time we use \u003ccode\u003etokio::pin!\u003c/code\u003e. We aren't going to get into the\ndetails of pinning yet. The thing to note is that, to \u003ccode\u003e.await\u003c/code\u003e a reference,\nthe value being referenced must be pinned or implement \u003ccode\u003eUnpin\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eIf we remove the \u003ccode\u003etokio::pin!\u003c/code\u003e line and try to compile, we get the following\nerror:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-text\"\u003eerror[E0599]: no method named `poll` found for struct\n     `std::pin::Pin\u0026#x3C;\u0026#x26;mut \u0026#x26;mut impl std::future::Future\u003e`\n     in the current scope\n  --\u003e src/main.rs:16:9\n   |\n16 | /         tokio::select! {\n17 | |             _ = \u0026#x26;mut operation =\u003e break,\n18 | |             Some(v) = rx.recv() =\u003e {\n19 | |                 if v % 2 == 0 {\n...  |\n22 | |             }\n23 | |         }\n   | |_________^ method not found in\n   |             `std::pin::Pin\u0026#x3C;\u0026#x26;mut \u0026#x26;mut impl std::future::Future\u003e`\n   |\n   = note: the method `poll` exists but the following trait bounds\n            were not satisfied:\n           `impl std::future::Future: std::marker::Unpin`\n           which is required by\n           `\u0026#x26;mut impl std::future::Future: std::future::Future`\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eAlthough we covered \u003ccode\u003eFuture\u003c/code\u003e in \u003ca href=\"async\"\u003ethe previous chapter\u003c/a\u003e, this error still isn't\nvery clear. If you hit such an error about \u003ccode\u003eFuture\u003c/code\u003e not being implemented when attempting\nto call \u003ccode\u003e.await\u003c/code\u003e on a \u003cstrong\u003ereference\u003c/strong\u003e, then the future probably needs to be pinned.\u003c/p\u003e\n\u003cp\u003eRead more about \u003ca href=\"https://doc.rust-lang.org/std/pin/index.html\"\u003e\u003ccode\u003ePin\u003c/code\u003e\u003c/a\u003e on the \u003ca href=\"https://doc.rust-lang.org/std/pin/index.html\"\u003estandard library\u003c/a\u003e.\u003c/p\u003e\n\u003ch2 id=\"modifying-a-branch\"\u003eModifying a branch\u003c/h2\u003e\n\u003cp\u003eLet's look at a slightly more complicated loop. We have:\u003c/p\u003e\n\u003col\u003e\n\u003cli\u003eA channel of \u003ccode\u003ei32\u003c/code\u003e values.\u003c/li\u003e\n\u003cli\u003eAn async operation to perform on \u003ccode\u003ei32\u003c/code\u003e values.\u003c/li\u003e\n\u003c/ol\u003e\n\u003cp\u003eThe logic we want to implement is:\u003c/p\u003e\n\u003col\u003e\n\u003cli\u003eWait for an \u003cstrong\u003eeven\u003c/strong\u003e number on the channel.\u003c/li\u003e\n\u003cli\u003eStart the asynchronous operation using the even number as input.\u003c/li\u003e\n\u003cli\u003eWait for the operation, but at the same time listen for more even numbers on\nthe channel.\u003c/li\u003e\n\u003cli\u003eIf a new even number is received before the existing operation completes,\nabort the existing operation and start it over with the new even number.\u003c/li\u003e\n\u003c/ol\u003e\n\u003cpre\u003e\u003ccode class=\"hljs language-rust\"\u003e\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003eaction\u003c/span\u003e(input: \u003cspan class=\"hljs-type\"\u003eOption\u003c/span\u003e\u0026#x3C;\u003cspan class=\"hljs-type\"\u003ei32\u003c/span\u003e\u003e) \u003cspan class=\"hljs-punctuation\"\u003e-\u003e\u003c/span\u003e \u003cspan class=\"hljs-type\"\u003eOption\u003c/span\u003e\u0026#x3C;\u003cspan class=\"hljs-type\"\u003eString\u003c/span\u003e\u003e {\n    \u003cspan class=\"hljs-comment\"\u003e// If the input is `None`, return `None`.\u003c/span\u003e\n    \u003cspan class=\"hljs-comment\"\u003e// This could also be written as `let i = input?;`\u003c/span\u003e\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003ei\u003c/span\u003e = \u003cspan class=\"hljs-keyword\"\u003ematch\u003c/span\u003e input {\n        \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(input) =\u003e input,\n        \u003cspan class=\"hljs-literal\"\u003eNone\u003c/span\u003e =\u003e \u003cspan class=\"hljs-keyword\"\u003ereturn\u003c/span\u003e \u003cspan class=\"hljs-literal\"\u003eNone\u003c/span\u003e,\n    };\n    \u003cspan class=\"hljs-comment\"\u003e// async logic here\u003c/span\u003e\n}\n\n\u003cspan class=\"hljs-meta\"\u003e#[tokio::main]\u003c/span\u003e\n\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003efn\u003c/span\u003e \u003cspan class=\"hljs-title function_\"\u003emain\u003c/span\u003e() {\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e (\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e tx, \u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e rx) = tokio::sync::mpsc::\u003cspan class=\"hljs-title function_ invoke__\"\u003echannel\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e128\u003c/span\u003e);\n    \n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emut \u003c/span\u003e\u003cspan class=\"hljs-variable\"\u003edone\u003c/span\u003e = \u003cspan class=\"hljs-literal\"\u003efalse\u003c/span\u003e;\n    \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003eoperation\u003c/span\u003e = \u003cspan class=\"hljs-title function_ invoke__\"\u003eaction\u003c/span\u003e(\u003cspan class=\"hljs-literal\"\u003eNone\u003c/span\u003e);\n    tokio::pin!(operation);\n    \n    tokio::\u003cspan class=\"hljs-title function_ invoke__\"\u003espawn\u003c/span\u003e(\u003cspan class=\"hljs-keyword\"\u003easync\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003emove\u003c/span\u003e {\n        \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003e_\u003c/span\u003e = tx.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e1\u003c/span\u003e).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e;\n        \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003e_\u003c/span\u003e = tx.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e3\u003c/span\u003e).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e;\n        \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003e_\u003c/span\u003e = tx.\u003cspan class=\"hljs-title function_ invoke__\"\u003esend\u003c/span\u003e(\u003cspan class=\"hljs-number\"\u003e2\u003c/span\u003e).\u003cspan class=\"hljs-keyword\"\u003eawait\u003c/span\u003e;\n    });\n    \n    \u003cspan class=\"hljs-keyword\"\u003eloop\u003c/span\u003e {\n        tokio::\u003cspan class=\"hljs-built_in\"\u003eselect!\u003c/span\u003e {\n            res = \u0026#x26;\u003cspan class=\"hljs-keyword\"\u003emut\u003c/span\u003e operation, \u003cspan class=\"hljs-keyword\"\u003eif\u003c/span\u003e !done =\u003e {\n                done = \u003cspan class=\"hljs-literal\"\u003etrue\u003c/span\u003e;\n\n                \u003cspan class=\"hljs-keyword\"\u003eif\u003c/span\u003e \u003cspan class=\"hljs-keyword\"\u003elet\u003c/span\u003e \u003cspan class=\"hljs-variable\"\u003eSome\u003c/span\u003e(v) = res {\n                    \u003cspan class=\"hljs-built_in\"\u003eprintln!\u003c/span\u003e(\u003cspan class=\"hljs-string\"\u003e\"GOT = {}\"\u003c/span\u003e, v);\n                    \u003cspan class=\"hljs-keyword\"\u003ereturn\u003c/span\u003e;\n                }\n            }\n            \u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(v) = rx.\u003cspan class=\"hljs-title function_ invoke__\"\u003erecv\u003c/span\u003e() =\u003e {\n                \u003cspan class=\"hljs-keyword\"\u003eif\u003c/span\u003e v % \u003cspan class=\"hljs-number\"\u003e2\u003c/span\u003e == \u003cspan class=\"hljs-number\"\u003e0\u003c/span\u003e {\n                    \u003cspan class=\"hljs-comment\"\u003e// `.set` is a method on `Pin`.\u003c/span\u003e\n                    operation.\u003cspan class=\"hljs-title function_ invoke__\"\u003eset\u003c/span\u003e(\u003cspan class=\"hljs-title function_ invoke__\"\u003eaction\u003c/span\u003e(\u003cspan class=\"hljs-title function_ invoke__\"\u003eSome\u003c/span\u003e(v)));\n                    done = \u003cspan class=\"hljs-literal\"\u003efalse\u003c/span\u003e;\n                }\n            }\n        }\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eWe use a similar strategy as the previous example. The async fn is called\noutside of the loop and assigned to \u003ccode\u003eoperation\u003c/code\u003e. The \u003ccode\u003eoperation\u003c/code\u003e variable is\npinned. The loop selects on both \u003ccode\u003eoperation\u003c/code\u003e and the channel receiver.\u003c/p\u003e\n\u003cp\u003eNotice how \u003ccode\u003eaction\u003c/code\u003e takes \u003ccode\u003eOption\u0026#x3C;i32\u003e\u003c/code\u003e as an argument. Before we receive the\nfirst even number, we need to instantiate \u003ccode\u003eoperation\u003c/code\u003e to something. We make\n\u003ccode\u003eaction\u003c/code\u003e take \u003ccode\u003eOption\u003c/code\u003e and return \u003ccode\u003eOption\u003c/code\u003e. If \u003ccode\u003eNone\u003c/code\u003e is passed in, \u003ccode\u003eNone\u003c/code\u003e is\nreturned. The first loop iteration, \u003ccode\u003eoperation\u003c/code\u003e completes immediately with\n\u003ccode\u003eNone\u003c/code\u003e.\u003c/p\u003e\n\u003cp\u003eThis example uses some new syntax. The first branch includes \u003ccode\u003e, if !done\u003c/code\u003e. This\nis a branch precondition. Before explaining how it works, let's look at what\nhappens if the precondition is omitted. Leaving out \u003ccode\u003e, if !done\u003c/code\u003e and running the\nexample results in the following output:\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-text\"\u003ethread 'main' panicked at '`async fn` resumed after completion', src/main.rs:1:55\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003eThis error happens when attempting to use \u003ccode\u003eoperation\u003c/code\u003e \u003cstrong\u003eafter\u003c/strong\u003e it has already\ncompleted. Usually, when using \u003ccode\u003e.await\u003c/code\u003e, the value being awaited is consumed. In\nthis example, we await on a reference. This means \u003ccode\u003eoperation\u003c/code\u003e is still around\nafter it has completed.\u003c/p\u003e\n\u003cp\u003eTo avoid this panic, we must take care to disable the first branch if\n\u003ccode\u003eoperation\u003c/code\u003e has completed. The \u003ccode\u003edone\u003c/code\u003e variable is used to track whether or not\n\u003ccode\u003eoperation\u003c/code\u003e completed. A \u003ccode\u003eselect!\u003c/code\u003e branch may include a \u003cstrong\u003eprecondition\u003c/strong\u003e. This\nprecondition is checked \u003cstrong\u003ebefore\u003c/strong\u003e \u003ccode\u003eselect!\u003c/code\u003e awaits on the branch. If the\ncondition evaluates to \u003ccode\u003efalse\u003c/code\u003e then the branch is disabled. The \u003ccode\u003edone\u003c/code\u003e variable\nis initialized to \u003ccode\u003efalse\u003c/code\u003e. When \u003ccode\u003eoperation\u003c/code\u003e completes, \u003ccode\u003edone\u003c/code\u003e is set to \u003ccode\u003etrue\u003c/code\u003e.\nThe next loop iteration will disable the \u003ccode\u003eoperation\u003c/code\u003e branch. When an even\nmessage is received from the channel, \u003ccode\u003eoperation\u003c/code\u003e is reset and \u003ccode\u003edone\u003c/code\u003e is set to\n\u003ccode\u003efalse\u003c/code\u003e.\u003c/p\u003e\n\u003ch1 id=\"per-task-concurrency\"\u003ePer-task concurrency\u003c/h1\u003e\n\u003cp\u003eBoth \u003ccode\u003etokio::spawn\u003c/code\u003e and \u003ccode\u003eselect!\u003c/code\u003e enable running concurrent asynchronous\noperations. However, the strategy used to run concurrent operations differs. The\n\u003ccode\u003etokio::spawn\u003c/code\u003e function takes an asynchronous operation and spawns a new task to\nrun it. A task is the object that the Tokio runtime schedules. Two different\ntasks are scheduled independently by Tokio. They may run simultaneously on\ndifferent operating system threads. Because of this, a spawned task has the same\nrestriction as a spawned thread: no borrowing.\u003c/p\u003e\n\u003cp\u003eThe \u003ccode\u003eselect!\u003c/code\u003e macro runs all branches concurrently \u003cstrong\u003eon the same task\u003c/strong\u003e. Because\nall branches of the \u003ccode\u003eselect!\u003c/code\u003e macro are executed on the same task, they will\nnever run \u003cstrong\u003esimultaneously\u003c/strong\u003e. The \u003ccode\u003eselect!\u003c/code\u003e macro multiplexes asynchronous\noperations on a single task.\u003c/p\u003e","description":null,"prev":{"title":"Async in depth","href":"/tokio/tutorial/async"},"next":{"title":"Streams","href":"/tokio/tutorial/streams"}},"menu":[{"key":"tokio","title":"Tokio","nested":[{"page":{"key":"tutorial","href":"/tokio/tutorial","title":"Tutorial","data":{"title":"Tutorial","subtitle":"Overview"}},"nested":[{"page":{"key":"setup","href":"/tokio/tutorial/setup","title":"Setup","data":{"title":"Setup"}}},{"page":{"key":"hello-tokio","href":"/tokio/tutorial/hello-tokio","title":"Hello Tokio","data":{"title":"Hello Tokio"}}},{"page":{"key":"spawning","href":"/tokio/tutorial/spawning","title":"Spawning","data":{"title":"Spawning"}}},{"page":{"key":"shared-state","href":"/tokio/tutorial/shared-state","title":"Shared state","data":{"title":"Shared state"}}},{"page":{"key":"channels","href":"/tokio/tutorial/channels","title":"Channels","data":{"title":"Channels"}}},{"page":{"key":"io","href":"/tokio/tutorial/io","title":"I/O","data":{"title":"I/O"}}},{"page":{"key":"framing","href":"/tokio/tutorial/framing","title":"Framing","data":{"title":"Framing"}}},{"page":{"key":"async","href":"/tokio/tutorial/async","title":"Async in depth","data":{"title":"Async in depth"}}},{"page":{"key":"select","href":"/tokio/tutorial/select","title":"Select","data":{"title":"Select"}}},{"page":{"key":"streams","href":"/tokio/tutorial/streams","title":"Streams","data":{"title":"Streams"}}}]},{"page":{"key":"topics","href":"/tokio/topics","title":"Topics","data":{"title":"Topics"}},"nested":[{"page":{"key":"bridging","href":"/tokio/topics/bridging","title":"Bridging with sync code","data":{"title":"Bridging with sync code"}}},{"page":{"key":"shutdown","href":"/tokio/topics/shutdown","title":"Graceful Shutdown","data":{"title":"Graceful Shutdown"}}},{"page":{"key":"tracing","href":"/tokio/topics/tracing","title":"Getting started with Tracing","data":{"title":"Getting started with Tracing"}}},{"page":{"key":"tracing-next-steps","href":"/tokio/topics/tracing-next-steps","title":"Next steps with Tracing","data":{"title":"Next steps with Tracing"}}},{"page":{"key":"testing","href":"/tokio/topics/testing","title":"Unit Testing","data":{"title":"Unit Testing"}}}]},{"page":{"key":"glossary","href":"/tokio/glossary","title":"Glossary","data":{"title":"Glossary"}}},{"page":{"key":"api","title":"API documentation","href":"https://docs.rs/tokio"}}]}],"app":{"blog":{"date":1775174400000,"key":"2026-04-03-toasty-released","href":"/blog/2026-04-03-toasty-released","title":"Toasty, an async ORM for Rust, is now on crates.io","menuTitle":"Toasty, an async ORM for Rust, is now on crates.io","mdPath":"blog/2026-04-03-toasty-released.md","data":{"date":"2026-04-03","title":"Toasty, an async ORM for Rust, is now on crates.io","description":"April 3, 2026"},"description":"April 3, 2026"}}},"__N_SSG":true},"page":"/[...slug]","query":{"slug":["tokio","tutorial","select"]},"buildId":"sfQT3rGqulUUgrwAbQQpe","isFallback":false,"gsp":true,"scriptLoader":[]}</script></body></html>

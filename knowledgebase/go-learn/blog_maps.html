@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+
+<link rel="preconnect" href="https://www.googletagmanager.com">
+<script >(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-W8MVQXG');</script>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#00add8">
+<link rel="canonical" href="https://go.dev/blog/maps">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="icon" href="/images/favicon-gopher.png" sizes="any">
+<link rel="apple-touch-icon" href="/images/favicon-gopher-plain.png"/>
+<link rel="icon" href="/images/favicon-gopher.svg" type="image/svg+xml">
+<link rel="me" href="https://hachyderm.io/@golang">
+
+<link rel="alternate" title="The Go Blog" type="application/atom+xml" href="/blog/feed.atom">
+
+  
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-W8MVQXG');</script>
+  
+<script src="/js/site.js"></script>
+<meta name="og:url" content="https://go.dev/blog/maps">
+<meta name="og:title" content="Go maps in action - The Go Programming Language">
+<title>Go maps in action - The Go Programming Language</title>
+
+<meta name="og:description" content="How and when to use Go maps.">
+<meta name="description" content="How and when to use Go maps.">
+
+<meta name="og:image" content="https://go.dev/doc/gopher/gopher5logo.jpg">
+<meta name="twitter:image" content="https://go.dev/doc/gopher/runningsquare.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@golang">
+</head>
+<body class="Site">
+  
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W8MVQXG"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  
+
+
+<header class="Site-header js-siteHeader">
+  <div class="Header Header--dark">
+    <nav class="Header-nav">
+      <a href="/">
+        <img
+          class="js-headerLogo Header-logo"
+          src="/images/go-logo-white.svg"
+          alt="Go">
+      </a>
+      <div class="skip-navigation-wrapper">
+        <a class="skip-to-content-link" aria-label="Skip to main content" href="#main-content"> Skip to Main Content </a>
+      </div>
+      <div class="Header-rightContent">
+        <ul class="Header-menu">
+          <li class="Header-menuItem ">
+            <a href="#"  class="js-desktop-menu-hover" aria-label=Why&#32;Go aria-describedby="dropdown-description">
+              Why Go <i class="material-icons" aria-hidden="true">arrow_drop_down</i>
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+              <ul class="Header-submenu js-desktop-submenu-hover" aria-label="submenu">
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/solutions/case-studies">
+                          Case Studies
+                          
+                        </a>
+                    </div>
+                    <p>Common problems companies solve with Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/solutions/use-cases">
+                          Use Cases
+                          
+                        </a>
+                    </div>
+                    <p>Stories about how and why companies use Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/security/">
+                          Security
+                          
+                        </a>
+                    </div>
+                    <p>How Go can help keep you secure by default</p>
+                  </li>
+              </ul>
+          </li>
+          <li class="Header-menuItem ">
+            <a href="/learn/"  aria-label=Learn aria-describedby="dropdown-description">
+              Learn 
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+          </li>
+          <li class="Header-menuItem ">
+            <a href="#"  class="js-desktop-menu-hover" aria-label=Docs aria-describedby="dropdown-description">
+              Docs <i class="material-icons" aria-hidden="true">arrow_drop_down</i>
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+              <ul class="Header-submenu js-desktop-submenu-hover" aria-label="submenu">
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/ref/spec">
+                          Go Spec
+                          
+                        </a>
+                    </div>
+                    <p>The official Go language specification</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/doc">
+                          Go User Manual
+                          
+                        </a>
+                    </div>
+                    <p>A complete introduction to building software with Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="https://pkg.go.dev/std">
+                          Standard library
+                          
+                        </a>
+                    </div>
+                    <p>Reference documentation for Go&#39;s standard library</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/doc/devel/release">
+                          Release Notes
+                          
+                        </a>
+                    </div>
+                    <p>Learn what&#39;s new in each Go release</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/doc/effective_go">
+                          Effective Go
+                          
+                        </a>
+                    </div>
+                    <p>Tips for writing clear, performant, and idiomatic Go code</p>
+                  </li>
+              </ul>
+          </li>
+          <li class="Header-menuItem ">
+            <a href="https://pkg.go.dev"  aria-label=Packages aria-describedby="dropdown-description">
+              Packages 
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+          </li>
+          <li class="Header-menuItem ">
+            <a href="#"  class="js-desktop-menu-hover" aria-label=Community aria-describedby="dropdown-description">
+              Community <i class="material-icons" aria-hidden="true">arrow_drop_down</i>
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+              <ul class="Header-submenu js-desktop-submenu-hover" aria-label="submenu">
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/talks/">
+                          Recorded Talks
+                          
+                        </a>
+                    </div>
+                    <p>Videos from prior events</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="https://www.meetup.com/pro/go">
+                          Meetups
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                    </div>
+                    <p>Meet other local Go developers</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/wiki/Conferences">
+                          Conferences
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                    </div>
+                    <p>Learn and network with Go developers from around the world</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/blog">
+                          Go blog
+                          
+                        </a>
+                    </div>
+                    <p>The Go project&#39;s official blog.</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/help">
+                          Go project
+                          
+                        </a>
+                    </div>
+                    <p>Get help and stay informed from Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        Get connected
+                    </div>
+                    <p></p>
+                      <div class="Header-socialIcons">
+                        
+                        <a class="Header-socialIcon" aria-label="Get connected with google-groups (Opens in new window)" href="https://groups.google.com/g/golang-nuts"><img src="/images/logos/social/google-groups.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with github (Opens in new window)" href="https://github.com/golang"><img src="/images/logos/social/github.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with bluesky (Opens in new window)" href="https://bsky.app/profile/golang.org"><img src="/images/logos/social/bluesky.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with mastodon (Opens in new window)" href="https://hachyderm.io/@golang"><img src="/images/logos/social/mastodon.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with twitter (Opens in new window)" href="https://twitter.com/golang"><img src="/images/logos/social/twitter.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with reddit (Opens in new window)" href="https://www.reddit.com/r/golang/"><img src="/images/logos/social/reddit.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with slack (Opens in new window)" href="https://invite.slack.golangbridge.org/"><img src="/images/logos/social/slack.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with stack-overflow (Opens in new window)" href="https://stackoverflow.com/tags/go"><img src="/images/logos/social/stack-overflow.svg" /></a>
+                      </div>
+                  </li>
+              </ul>
+          </li>
+        </ul>
+        <button class="Header-navOpen js-headerMenuButton Header-navOpen--white" aria-label="Open navigation.">
+        </button>
+      </div>
+    </nav>
+    
+  </div>
+</header>
+<aside class="NavigationDrawer js-header">
+  <nav class="NavigationDrawer-nav">
+    <div class="NavigationDrawer-header">
+      <a href="/">
+        <img class="NavigationDrawer-logo" src="/images/go-logo-blue.svg" alt="Go.">
+      </a>
+    </div>
+    <ul class="NavigationDrawer-list">
+        
+          <li class="NavigationDrawer-listItem js-mobile-subnav-trigger  NavigationDrawer-hasSubnav">
+            <a href="#"><span>Why Go</span> <i class="material-icons">navigate_next</i></a>
+
+            <div class="NavigationDrawer NavigationDrawer-submenuItem">
+              <nav class="NavigationDrawer-nav">
+                <div class="NavigationDrawer-header">
+                  <a href="#"><i class="material-icons">navigate_before</i>Why Go</a>
+                </div>
+                <ul class="NavigationDrawer-list">
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/solutions/case-studies">
+                          Case Studies
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/solutions/use-cases">
+                          Use Cases
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/security/">
+                          Security
+                          
+                        </a>
+                      
+                    </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+
+        
+        
+          <li class="NavigationDrawer-listItem ">
+            <a href="/learn/">Learn</a>
+          </li>
+        
+        
+          <li class="NavigationDrawer-listItem js-mobile-subnav-trigger  NavigationDrawer-hasSubnav">
+            <a href="#"><span>Docs</span> <i class="material-icons">navigate_next</i></a>
+
+            <div class="NavigationDrawer NavigationDrawer-submenuItem">
+              <nav class="NavigationDrawer-nav">
+                <div class="NavigationDrawer-header">
+                  <a href="#"><i class="material-icons">navigate_before</i>Docs</a>
+                </div>
+                <ul class="NavigationDrawer-list">
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/ref/spec">
+                          Go Spec
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/doc">
+                          Go User Manual
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="https://pkg.go.dev/std">
+                          Standard library
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/doc/devel/release">
+                          Release Notes
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/doc/effective_go">
+                          Effective Go
+                          
+                        </a>
+                      
+                    </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+
+        
+        
+          <li class="NavigationDrawer-listItem ">
+            <a href="https://pkg.go.dev">Packages</a>
+          </li>
+        
+        
+          <li class="NavigationDrawer-listItem js-mobile-subnav-trigger  NavigationDrawer-hasSubnav">
+            <a href="#"><span>Community</span> <i class="material-icons">navigate_next</i></a>
+
+            <div class="NavigationDrawer NavigationDrawer-submenuItem">
+              <nav class="NavigationDrawer-nav">
+                <div class="NavigationDrawer-header">
+                  <a href="#"><i class="material-icons">navigate_before</i>Community</a>
+                </div>
+                <ul class="NavigationDrawer-list">
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/talks/">
+                          Recorded Talks
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="https://www.meetup.com/pro/go">
+                          Meetups
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/wiki/Conferences">
+                          Conferences
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/blog">
+                          Go blog
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/help">
+                          Go project
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <div>Get connected</div>
+                        <div class="Header-socialIcons">
+                          
+                            <a class="Header-socialIcon" href="https://groups.google.com/g/golang-nuts"><img src="/images/logos/social/google-groups.svg" /></a>
+                            <a class="Header-socialIcon" href="https://github.com/golang"><img src="/images/logos/social/github.svg" /></a>
+                            <a class="Header-socialIcon" href="https://bsky.app/profile/golang.org"><img src="/images/logos/social/bluesky.svg" /></a>
+                            <a class="Header-socialIcon" href="https://hachyderm.io/@golang"><img src="/images/logos/social/mastodon.svg" /></a>
+                            <a class="Header-socialIcon" href="https://twitter.com/golang"><img src="/images/logos/social/twitter.svg" /></a>
+                            <a class="Header-socialIcon" href="https://www.reddit.com/r/golang/"><img src="/images/logos/social/reddit.svg" /></a>
+                            <a class="Header-socialIcon" href="https://invite.slack.golangbridge.org/"><img src="/images/logos/social/slack.svg" /></a>
+                            <a class="Header-socialIcon" href="https://stackoverflow.com/tags/go"><img src="/images/logos/social/stack-overflow.svg" /></a>
+                        </div>
+                    </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+
+        
+    </ul>
+  </nav>
+</aside>
+<div class="NavigationDrawer-scrim js-scrim" role="presentation"></div>
+<main class="SiteContent SiteContent--default" id="main-content">
+  
+<div id="blog"><div id="content">
+  <div id="content">
+
+    <div class="Article" data-slug="/blog/maps">
+    
+    <h1 class="small"><a href="/blog/">The Go Blog</a></h1>
+    
+
+    <h1>Go maps in action</h1>
+      
+      <p class="author">
+      Andrew Gerrand<br>
+      6 February 2013
+      </p>
+      
+      <div class='markdown'>
+<h2 id="introduction">Introduction</h2>
+<p>One of the most useful data structures in computer science is the hash table.
+Many hash table implementations exist with varying properties,
+but in general they offer fast lookups, adds, and deletes.
+Go provides a built-in map type that implements a hash table.</p>
+<h2 id="declaration-and-initialization">Declaration and initialization</h2>
+<p>A Go map type looks like this:</p>
+<pre><code>map[KeyType]ValueType
+</code></pre>
+<p>where <code>KeyType</code> may be any type that is <a href="/ref/spec#Comparison_operators">comparable</a>
+(more on this later),
+and <code>ValueType</code> may be any type at all, including another map!</p>
+<p>This variable <code>m</code> is a map of string keys to int values:</p>
+<pre><code>var m map[string]int
+</code></pre>
+<p>Map types are reference types, like pointers or slices,
+and so the value of <code>m</code> above is <code>nil</code>;
+it doesn&rsquo;t point to an initialized map.
+A nil map behaves like an empty map when reading,
+but attempts to write to a nil map will cause a runtime panic; don&rsquo;t do that.
+To initialize a map, use the built in <code>make</code> function:</p>
+<pre><code>m = make(map[string]int)
+</code></pre>
+<p>The <code>make</code> function allocates and initializes a hash map data structure
+and returns a map value that points to it.
+The specifics of that data structure are an implementation detail of the
+runtime and are not specified by the language itself.
+In this article we will focus on the <em>use</em> of maps,
+not their implementation.</p>
+<h2 id="working-with-maps">Working with maps</h2>
+<p>Go provides a familiar syntax for working with maps. This statement sets the key <code>&quot;route&quot;</code> to the value <code>66</code>:</p>
+<pre><code>m[&quot;route&quot;] = 66
+</code></pre>
+<p>This statement retrieves the value stored under the key <code>&quot;route&quot;</code> and assigns it to a new variable i:</p>
+<pre><code>i := m[&quot;route&quot;]
+</code></pre>
+<p>If the requested key doesn&rsquo;t exist, we get the value type&rsquo;s <em>zero value</em>.
+In this case the value type is <code>int</code>, so the zero value is <code>0</code>:</p>
+<pre><code>j := m[&quot;root&quot;]
+// j == 0
+</code></pre>
+<p>The built in <code>len</code> function returns on the number of items in a map:</p>
+<pre><code>n := len(m)
+</code></pre>
+<p>The built in <code>delete</code> function removes an entry from the map:</p>
+<pre><code>delete(m, &quot;route&quot;)
+</code></pre>
+<p>The <code>delete</code> function doesn&rsquo;t return anything, and will do nothing if the specified key doesn&rsquo;t exist.</p>
+<p>A two-value assignment tests for the existence of a key:</p>
+<pre><code>i, ok := m[&quot;route&quot;]
+</code></pre>
+<p>In this statement, the first value (<code>i</code>) is assigned the value stored under the key <code>&quot;route&quot;</code>.
+If that key doesn&rsquo;t exist, <code>i</code> is the value type&rsquo;s zero value (<code>0</code>).
+The second value (<code>ok</code>) is a <code>bool</code> that is <code>true</code> if the key exists in
+the map, and <code>false</code> if not.</p>
+<p>To test for a key without retrieving the value, use an underscore in place of the first value:</p>
+<pre><code>_, ok := m[&quot;route&quot;]
+</code></pre>
+<p>To iterate over the contents of a map, use the <code>range</code> keyword:</p>
+<pre><code>for key, value := range m {
+    fmt.Println(&quot;Key:&quot;, key, &quot;Value:&quot;, value)
+}
+</code></pre>
+<p>To initialize a map with some data, use a map literal:</p>
+<pre><code>commits := map[string]int{
+    &quot;rsc&quot;: 3711,
+    &quot;r&quot;:   2138,
+    &quot;gri&quot;: 1908,
+    &quot;adg&quot;: 912,
+}
+</code></pre>
+<p>The same syntax may be used to initialize an empty map, which is functionally identical to using the <code>make</code> function:</p>
+<pre><code>m = map[string]int{}
+</code></pre>
+<h2 id="exploiting-zero-values">Exploiting zero values</h2>
+<p>It can be convenient that a map retrieval yields a zero value when the key is not present.</p>
+<p>For instance, a map of boolean values can be used as a set-like data structure
+(recall that the zero value for the boolean type is false).
+This example traverses a linked list of <code>Nodes</code> and prints their values.
+It uses a map of <code>Node</code> pointers to detect cycles in the list.</p>
+<div class="code">
+<pre>    type Node struct {
+        Next  *Node
+        Value interface{}
+    }
+    var first *Node
+
+    <span class="highlight">visited := make(map[*Node]bool)</span>
+    for n := first; n != nil; n = n.Next {
+        <span class="highlight">if visited[n] {</span>
+            fmt.Println(&#34;cycle detected&#34;)
+            break
+        }
+        <span class="highlight">visited[n] = true</span>
+        fmt.Println(n.Value)
+    }
+</pre>
+</div>
+<p>The expression <code>visited[n]</code> is <code>true</code> if <code>n</code> has been visited,
+or <code>false</code> if <code>n</code> is not present.
+There&rsquo;s no need to use the two-value form to test for the presence of <code>n</code> in the map;
+the zero value default does it for us.</p>
+<p>Another instance of helpful zero values is a map of slices.
+Appending to a nil slice just allocates a new slice,
+so it&rsquo;s a one-liner to append a value to a map of slices;
+there&rsquo;s no need to check if the key exists.
+In the following example, the slice people is populated with <code>Person</code> values.
+Each <code>Person</code> has a <code>Name</code> and a slice of Likes.
+The example creates a map to associate each like with a slice of people that like it.</p>
+<div class="code">
+<pre>    type Person struct {
+        Name  string
+        Likes []string
+    }
+    var people []*Person
+
+    <span class="highlight">likes := make(map[string][]*Person)</span>
+    for _, p := range people {
+        for _, l := range p.Likes {
+            <span class="highlight">likes[l] = append(likes[l], p)</span>
+        }
+    }
+</pre>
+</div>
+<p>To print a list of people who like cheese:</p>
+<div class="code">
+<pre>    for _, p := range likes[&#34;cheese&#34;] {
+        fmt.Println(p.Name, &#34;likes cheese.&#34;)
+    }
+</pre>
+</div>
+<p>To print the number of people who like bacon:</p>
+<div class="code">
+<pre>    fmt.Println(len(likes[&#34;bacon&#34;]), &#34;people like bacon.&#34;)
+</pre>
+</div>
+<p>Note that since both range and len treat a nil slice as a zero-length slice,
+these last two examples will work even if nobody likes cheese or bacon (however
+unlikely that may be).</p>
+<h2 id="key-types">Key types</h2>
+<p>As mentioned earlier, map keys may be of any type that is comparable.
+The <a href="/ref/spec#Comparison_operators">language spec</a>
+defines this precisely,
+but in short, comparable types are boolean,
+numeric, string, pointer, channel, and interface types,
+and structs or arrays that contain only those types.
+Notably absent from the list are slices, maps, and functions;
+these types cannot be compared using <code>==</code>,
+and may not be used as map keys.</p>
+<p>It&rsquo;s obvious that strings, ints, and other basic types should be available as map keys,
+but perhaps unexpected are struct keys.
+Struct can be used to key data by multiple dimensions.
+For example, this map of maps could be used to tally web page hits by country:</p>
+<pre><code>hits := make(map[string]map[string]int)
+</code></pre>
+<p>This is map of string to (map of <code>string</code> to <code>int</code>).
+Each key of the outer map is the path to a web page with its own inner map.
+Each inner map key is a two-letter country code.
+This expression retrieves the number of times an Australian has loaded the documentation page:</p>
+<pre><code>n := hits[&quot;/doc/&quot;][&quot;au&quot;]
+</code></pre>
+<p>Unfortunately, this approach becomes unwieldy when adding data,
+as for any given outer key you must check if the inner map exists,
+and create it if needed:</p>
+<pre><code>func add(m map[string]map[string]int, path, country string) {
+    mm, ok := m[path]
+    if !ok {
+        mm = make(map[string]int)
+        m[path] = mm
+    }
+    mm[country]++
+}
+add(hits, &quot;/doc/&quot;, &quot;au&quot;)
+</code></pre>
+<p>On the other hand, a design that uses a single map with a struct key does away with all that complexity:</p>
+<pre><code>type Key struct {
+    Path, Country string
+}
+hits := make(map[Key]int)
+</code></pre>
+<p>When a Vietnamese person visits the home page,
+incrementing (and possibly creating) the appropriate counter is a one-liner:</p>
+<pre><code>hits[Key{&quot;/&quot;, &quot;vn&quot;}]++
+</code></pre>
+<p>And it&rsquo;s similarly straightforward to see how many Swiss people have read the spec:</p>
+<pre><code>n := hits[Key{&quot;/ref/spec&quot;, &quot;ch&quot;}]
+</code></pre>
+<h2 id="concurrency">Concurrency</h2>
+<p><a href="/doc/faq#atomic_maps">Maps are not safe for concurrent use</a>:
+it&rsquo;s not defined what happens when you read and write to them simultaneously.
+If you need to read from and write to a map from concurrently executing goroutines,
+the accesses must be mediated by some kind of synchronization mechanism.
+One common way to protect maps is with <a href="/pkg/sync/#RWMutex">sync.RWMutex</a>.</p>
+<p>This statement declares a <code>counter</code> variable that is an anonymous struct
+containing a map and an embedded <code>sync.RWMutex</code>.</p>
+<pre><code>var counter = struct{
+    sync.RWMutex
+    m map[string]int
+}{m: make(map[string]int)}
+</code></pre>
+<p>To read from the counter, take the read lock:</p>
+<pre><code>counter.RLock()
+n := counter.m[&quot;some_key&quot;]
+counter.RUnlock()
+fmt.Println(&quot;some_key:&quot;, n)
+</code></pre>
+<p>To write to the counter, take the write lock:</p>
+<pre><code>counter.Lock()
+counter.m[&quot;some_key&quot;]++
+counter.Unlock()
+</code></pre>
+<h2 id="iteration-order">Iteration order</h2>
+<p>When iterating over a map with a range loop,
+the iteration order is not specified and is not guaranteed to be the same
+from one iteration to the next.
+If you require a stable iteration order you must maintain a separate data structure that specifies that order.
+This example uses a separate sorted slice of keys to print a <code>map[int]string</code> in key order:</p>
+<pre><code>import &quot;sort&quot;
+
+var m map[int]string
+var keys []int
+for k := range m {
+    keys = append(keys, k)
+}
+sort.Ints(keys)
+for _, k := range keys {
+    fmt.Println(&quot;Key:&quot;, k, &quot;Value:&quot;, m[k])
+}
+</code></pre>
+</div>
+
+    </div>
+
+    
+    <div class="Article prevnext">
+    
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+        <p>
+        
+          
+            <b>Next article: </b><a href="/blog/meetups">Get thee to a Go meetup</a><br>
+          
+        
+        
+          
+            <b>Previous article: </b><a href="/blog/gofmt">go fmt your code</a><br>
+          
+        
+        <b><a href="/blog/all">Blog Index</a></b>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+    </div>
+    
+
+  </div>
+</div>
+
+<script src="/js/play.js"></script>
+
+</main>
+<footer class="Site-footer">
+  <div class="Footer">
+    <div class="Container">
+      <div class="Footer-links">
+          <div class="Footer-linkColumn">
+            <a href="/solutions/" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Why Go
+            </a>
+              <a href="/solutions/use-cases" class="Footer-link" aria-describedby="footer-description">
+                Use Cases
+              </a>
+              <a href="/solutions/case-studies" class="Footer-link" aria-describedby="footer-description">
+                Case Studies
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="/learn/" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Get Started
+            </a>
+              <a href="/play" class="Footer-link" aria-describedby="footer-description">
+                Playground
+              </a>
+              <a href="/tour/" class="Footer-link" aria-describedby="footer-description">
+                Tour
+              </a>
+              <a href="https://stackoverflow.com/questions/tagged/go?tab=Newest" class="Footer-link" aria-describedby="footer-description">
+                Stack Overflow
+              </a>
+              <a href="/help/" class="Footer-link" aria-describedby="footer-description">
+                Help
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="https://pkg.go.dev" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Packages
+            </a>
+              <a href="/pkg/" class="Footer-link" aria-describedby="footer-description">
+                Standard Library
+              </a>
+              <a href="https://pkg.go.dev/about" class="Footer-link" aria-describedby="footer-description">
+                About Go Packages
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="/project" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              About
+            </a>
+              <a href="/dl/" class="Footer-link" aria-describedby="footer-description">
+                Download
+              </a>
+              <a href="/blog/" class="Footer-link" aria-describedby="footer-description">
+                Blog
+              </a>
+              <a href="https://github.com/golang/go/issues" class="Footer-link" aria-describedby="footer-description">
+                Issue Tracker
+              </a>
+              <a href="/doc/devel/release" class="Footer-link" aria-describedby="footer-description">
+                Release Notes
+              </a>
+              <a href="/brand" class="Footer-link" aria-describedby="footer-description">
+                Brand Guidelines
+              </a>
+              <a href="/conduct" class="Footer-link" aria-describedby="footer-description">
+                Code of Conduct
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="/wiki/#the-go-community" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Connect
+            </a>
+              <a href="https://bsky.app/profile/golang.org" class="Footer-link" aria-describedby="footer-description">
+                Bluesky
+              </a>
+              <a href="https://hachyderm.io/@golang" class="Footer-link" aria-describedby="footer-description">
+                Mastodon
+              </a>
+              <a href="https://www.twitter.com/golang" class="Footer-link" aria-describedby="footer-description">
+                Twitter
+              </a>
+              <a href="https://github.com/golang" class="Footer-link" aria-describedby="footer-description">
+                GitHub
+              </a>
+              <a href="https://invite.slack.golangbridge.org/" class="Footer-link" aria-describedby="footer-description">
+                Slack
+              </a>
+              <a href="https://reddit.com/r/golang" class="Footer-link" aria-describedby="footer-description">
+                r/golang
+              </a>
+              <a href="https://www.meetup.com/pro/go" class="Footer-link" aria-describedby="footer-description">
+                Meetup
+              </a>
+              <a href="https://golangweekly.com/" class="Footer-link" aria-describedby="footer-description">
+                Golang Weekly
+              </a>
+          </div>
+      </div>
+    </div>
+  </div>
+  <div class="screen-reader-only" id="footer-description" hidden>
+          Opens in new window.
+  </div>
+  <div class="Footer">
+    <div class="Container Container--fullBleed">
+      <div class="Footer-bottom">
+        <img class="Footer-gopher" src="/images/gophers/pilot-bust.svg" alt="The Go Gopher">
+        <ul class="Footer-listRow">
+          <li class="Footer-listItem">
+            <a href="/copyright" aria-describedby="footer-description">Copyright</a>
+          </li>
+          <li class="Footer-listItem">
+            <a href="/tos" aria-describedby="footer-description">Terms of Service</a>
+          </li>
+          <li class="Footer-listItem">
+            <a href="http://www.google.com/intl/en/policies/privacy/" aria-describedby="footer-description"
+              target="_blank"
+              rel="noopener">
+              Privacy Policy
+            </a>
+            </li>
+          <li class="Footer-listItem">
+            <a
+              href="/s/website-issue" aria-describedby="footer-description"
+              target="_blank"
+              rel="noopener"
+              >
+              Report an Issue
+            </a>
+          </li>
+          <li class="Footer-listItem go-Footer-listItem">
+            <button class="go-Button go-Button--text go-Footer-toggleTheme js-toggleTheme" aria-label="Toggle theme">
+              <img
+                data-value="auto"
+                class="go-Icon go-Icon--inverted"
+                height="24"
+                width="24"
+                src="/images/icons/brightness_6_gm_grey_24dp.svg"
+                alt="System theme">
+              <img
+                data-value="dark"
+                class="go-Icon go-Icon--inverted"
+                height="24"
+                width="24"
+                src="/images/icons/brightness_2_gm_grey_24dp.svg"
+                alt="Dark theme">
+              <img
+                data-value="light"
+                class="go-Icon go-Icon--inverted"
+                height="24"
+                width="24"
+                src="/images/icons/light_mode_gm_grey_24dp.svg"
+                alt="Light theme">
+            </button>
+          </li>
+        </ul>
+        <a class="Footer-googleLogo" target="_blank" href="https://google.com" rel="noopener">
+          <img class="Footer-googleLogoImg" src="/images/google-white.png" alt="Google logo">
+        </a>
+      </div>
+    </div>
+  </div>
+  <script src="/js/jquery.js"></script>
+  <script src="/js/carousels.js"></script>
+  <script src="/js/searchBox.js"></script>
+  <script src="/js/misc.js"></script>
+  <script src="/js/hats.js"></script>
+  <script src="/js/playground.js"></script>
+  <script src="/js/godocs.js"></script>
+  <script async src="/js/copypaste.js"></script>
+</footer>
+<section class="Cookie-notice js-cookieNotice">
+  <div>go.dev uses cookies from Google to deliver and enhance the quality of its services and to
+  analyze traffic. <a target=_blank href="https://policies.google.com/technologies/cookies">Learn more.</a></div>
+  <div><button class="go-Button">Okay</button></div>
+</section>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
