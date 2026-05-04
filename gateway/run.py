@@ -1897,6 +1897,33 @@ class GatewayRunner:
                 "plugin discovery failed at gateway startup", exc_info=True,
             )
 
+        # Pre-warm MCP server discovery in a background thread BEFORE the
+        # event loop starts servicing messages.  Otherwise the first inbound
+        # message lazily imports model_tools, which fires
+        # discover_mcp_tools() on the asyncio loop thread — blocking Discord
+        # heartbeats for tens of seconds while every MCP subprocess
+        # initializes (Discord drops the websocket past 41 s).
+        try:
+            loop = asyncio.get_running_loop()
+
+            def _prewarm_mcp():
+                try:
+                    # Importing model_tools triggers discover_builtin_tools
+                    # AND discover_mcp_tools as module-level side effects.
+                    import model_tools  # noqa: F401
+                    logger.info("MCP discovery pre-warmed at gateway startup")
+                except Exception:
+                    logger.warning(
+                        "MCP pre-warm failed (will retry lazily on first message)",
+                        exc_info=True,
+                    )
+
+            # fire-and-forget: don't await; gateway should keep accepting
+            # connections while MCP subprocesses spin up in the background.
+            loop.run_in_executor(None, _prewarm_mcp)
+        except Exception:
+            logger.debug("MCP pre-warm scheduling failed", exc_info=True)
+
         # Register declarative shell hooks from cli-config.yaml.  Gateway
         # has no TTY, so consent has to come from one of the three opt-in
         # channels (--accept-hooks on launch, MERCURY_ACCEPT_HOOKS env var,

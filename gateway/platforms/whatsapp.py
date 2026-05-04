@@ -342,6 +342,24 @@ class WhatsAppAdapter(BasePlatformAdapter):
         if self._is_ignored_chat(chat_id_check):
             return False
 
+        # WHATSAPP_MODE=self-chat means "act as a personal assistant on the
+        # owner's own account" — only respond when the OWNER messages himself.
+        # That means: never participate in group chats, never reply to other
+        # people's DMs (even if they happen to message your number). The bridge
+        # marks owner-authored messages with fromMe=true and routes them to a
+        # chat whose JID equals the owner's own number.
+        whatsapp_mode = os.getenv("WHATSAPP_MODE", "self-chat").strip().lower()
+        if whatsapp_mode == "self-chat":
+            if data.get("isGroup"):
+                return False
+            if not data.get("fromMe", False):
+                return False
+            sender_id = str(data.get("senderId") or data.get("from") or "")
+            chat_id_self = str(data.get("chatId") or "")
+            if sender_id and chat_id_self and sender_id.split("@", 1)[0] != chat_id_self.split("@", 1)[0]:
+                return False
+            return True
+
         is_group = data.get("isGroup", False)
         if is_group:
             chat_id = str(data.get("chatId") or "")
