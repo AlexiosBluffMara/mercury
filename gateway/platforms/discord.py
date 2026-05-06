@@ -61,6 +61,72 @@ from gateway.platforms.base import (
 from tools.url_safety import is_safe_url
 
 
+# Chat-template artifacts that should never reach Discord. The model's tool-
+# call markup, the Gemma 4 escaped-quote token, and the runner's internal
+# diagnostic lines all leak through if we don't strip them here.
+_TOOL_CALL_BLOCK_RE = re.compile(
+    r"<\|tool_call\>.*?<tool_call\|>",
+    flags=re.DOTALL,
+)
+# Defensive variants in case the model emits slightly different delimiters.
+_TOOL_CALL_BLOCK_VARIANTS_RE = re.compile(
+    r"(?:<\|tool_call\|>|<tool_call>)(.*?)(?:<\|/tool_call\|>|</tool_call>)",
+    flags=re.DOTALL,
+)
+_GEMMA_QUOTE_TOKEN_RE = re.compile(r"<\|\"\|>")
+_INTERNAL_NUDGE_LINE_RE = re.compile(
+    r"^[\s]*⚠️\s*Model returned empty.*?nudging to continue.*$",
+    flags=re.MULTILINE,
+)
+# Tool-execution status lines (e.g. "👁️ vision_analyze: \"What is...\" (×2)").
+# These ARE useful context but should be styled, not raw, so callers know a
+# tool ran. We collapse them into a Discord blockquote line.
+_TOOL_STATUS_LINE_RE = re.compile(
+    r"^([🔍👁️🌐📁🐍🧠🛠️⚙️📊📤📥🔧🔎🌍📷🎙️📞]+)\s+([\w_-]+):\s*(.+?)$",
+    flags=re.MULTILINE,
+)
+# Multiple blank lines collapse to two (one blank line in markdown).
+_MULTI_BLANK_RE = re.compile(r"\n{3,}")
+
+
+def _clean_for_discord(content: str) -> str:
+    """Normalize raw model output for Discord's native markdown rendering.
+
+    Steps, in order:
+      1. Strip `<|tool_call>...<tool_call|>` blocks (and similar variants).
+      2. Replace `<|"|>` (Gemma 4 chat template escaped-quote) with `"`.
+      3. Drop internal `⚠️ Model returned empty ... nudging to continue`
+         diagnostic lines.
+      4. Convert tool-execution status lines into Discord blockquotes
+         (e.g. `> 🛠️ vision_analyze · "What is the main topic..."`).
+      5. Collapse runs of blank lines (>2 newlines → 2 newlines).
+      6. Trim leading/trailing whitespace.
+
+    The function is conservative: real markdown the user wrote (code fences,
+    bold, lists) is preserved unchanged.
+    """
+    if not content:
+        return content
+    out = _TOOL_CALL_BLOCK_RE.sub("", content)
+    out = _TOOL_CALL_BLOCK_VARIANTS_RE.sub("", out)
+    out = _GEMMA_QUOTE_TOKEN_RE.sub('"', out)
+    out = _INTERNAL_NUDGE_LINE_RE.sub("", out)
+
+    # Tool-status lines: style as a Discord blockquote so they're visually
+    # subordinate to the actual response prose.
+    def _style_tool_line(m: re.Match[str]) -> str:
+        emoji, tool, payload = m.group(1), m.group(2), m.group(3)
+        # Trim parenthesized counts like " (×2)" off the payload tail; they
+        # contribute noise more than signal.
+        payload = re.sub(r"\s*\(×\d+\)\s*$", "", payload).rstrip()
+        return f"> {emoji} `{tool}` · {payload}"
+
+    out = _TOOL_STATUS_LINE_RE.sub(_style_tool_line, out)
+
+    out = _MULTI_BLANK_RE.sub("\n\n", out)
+    return out.strip()
+
+
 def _clean_discord_id(entry: str) -> str:
     """Strip common prefixes from a Discord user ID or username entry.
 
@@ -2160,13 +2226,16 @@ class DiscordAdapter(BasePlatformAdapter):
             print(f"[{self.name}] Updated DISCORD_ALLOWED_USERS with {resolved_count} resolved ID(s)")
 
     def format_message(self, content: str) -> str:
-        """
-        Format message for Discord.
+        """Format an assistant message for Discord native rendering.
 
-        Discord uses its own markdown variant.
+        The raw model output can leak chat-template artifacts that Discord
+        renders as plain text — `<|tool_call>...<tool_call|>` blocks, the
+        `<|"|>` escaped-quote token (Gemma 4 chat template), and internal
+        diagnostic lines like `⚠️ Model returned empty after tool calls —
+        nudging to continue`. Strip those, normalize the tool-execution
+        status lines, and let Discord's standard markdown handle the rest.
         """
-        # Discord markdown is fairly standard, no special escaping needed
-        return content
+        return _clean_for_discord(content)
 
     async def _run_simple_slash(
         self,
