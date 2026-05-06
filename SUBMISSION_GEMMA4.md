@@ -5,6 +5,34 @@
 **Repo:** [github.com/AlexiosBluffMara/mercury](https://github.com/AlexiosBluffMara/mercury) · [github.com/AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex)
 **Submission deadline:** 2026-05-18
 
+## Public live endpoints (curl-able from anywhere)
+
+These are the URLs a judge can hit right now from any network — no Tailnet, no API key for the inference one:
+
+```bash
+# 1. Public OpenAI-compatible Gemma 4 endpoint with MTP speculative decoding
+curl -X POST https://inference.redteamkitchen.com/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -d '{"model":"unsloth/gemma-4-E4B-it-UD-MLX-4bit",
+          "messages":[{"role":"user","content":"Why local-first matters."}],
+          "max_tokens":120}'
+
+# 2. Public Mercury dashboard (web UI)
+open https://mercury.redteamkitchen.com
+
+# 3. Cortex live demo (brain-response prediction)
+open https://cortex.redteamkitchen.com
+```
+
+All four production subdomains served end-to-end through Cloudflare Tunnel → Tailscale → consumer hardware:
+
+| Subdomain | Backs onto | Purpose |
+|---|---|---|
+| `cortex.redteamkitchen.com` | Big Apple `100.93.240.52:8773` | Cortex web UI + `/api/utilization` |
+| **`inference.redteamkitchen.com`** | **Big Apple `100.93.240.52:8083`** | **Public Gemma 4 E4B + MTP, OpenAI-compatible** |
+| `mercury.redteamkitchen.com` | Seratonin `localhost:9119` | Mercury dashboard |
+| `ollama.redteamkitchen.com` | Seratonin `localhost:11434` | Raw Ollama for direct `:e4b` / `:31b` / `tribe` access |
+
 ## Visual tour (auto-captured 2026-05-06)
 
 Every link in this writeup was browser-clicked through Patchright headless Chromium, screenshotted, and saved to `assets/screenshots/`. The link audit (274 unique URLs) and full screenshot inventory live in [`docs/VALIDATION_REPORT_2026-05-06.md`](docs/VALIDATION_REPORT_2026-05-06.md).
