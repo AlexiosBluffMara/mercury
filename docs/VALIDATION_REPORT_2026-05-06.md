@@ -23,11 +23,33 @@ All artifacts are reproducible:
 | Tailscale-only hostnames | ~10 | `seratonin.scylla-betta.ts.net`, `baby-pi`, `big-apple` — only resolve from inside the tailnet |
 | 405 Method Not Allowed | ~10 | Server rejects HEAD; GET works fine. Re-verified manually. |
 | 401 (auth required) | 5 | HF Spaces, Cloudflare AI Gateway, ollama proxy — by design |
-| **Real broken (502/522)** | **3** | `www.redteamkitchen.com`, `mercury.redteamkitchen.com`, `inference.redteamkitchen.com` — Cloudflare-tunneled subdomains currently down |
+| **Real broken (502/522)** | **0** | All five `*.redteamkitchen.com` subdomains and the apex are now live. Fixed in the same session, see "Infrastructure fix" below. |
 
-### What this means for judges
+### Live public endpoints (all 200, end-to-end verified 2026-05-06)
 
-The three `502/522` subdomains are referenced in *operational* and *architecture* docs (`docs/ARCHITECTURE.md`, `docs/OPERATIONS.md`, `docs/EXTERNAL_LIMITS.md`) describing the *intended* deployment topology. **No links in `SUBMISSION_GEMMA4.md`, `README.md`, or `GET_STARTED.md` resolve to a broken URL.** The only public live URL the submission directs judges at is `https://cortex.redteamkitchen.com` — which is up and verified.
+```
+200  https://redteamkitchen.com                               (Cloudflare Pages)
+200  https://www.redteamkitchen.com                           (Cloudflare Pages, custom domain added in this session)
+200  https://cortex.redteamkitchen.com                        (CF Tunnel → Big Apple :8773)
+200  https://mercury.redteamkitchen.com                       (CF Tunnel → Seratonin :9119 Mercury Dashboard)
+200  https://inference.redteamkitchen.com/v1/models           (CF Tunnel → Big Apple :8083 Gemma 4 E4B + MTP)
+200  https://ollama.redteamkitchen.com/api/tags               (CF Tunnel → Seratonin :11434 raw Ollama)
+```
+
+A judge can curl `https://inference.redteamkitchen.com/v1/chat/completions` from any network with no API key and get a real Gemma 4 inference back, MTP-accelerated, via official Google + Unsloth weights, $0/request. That's the Digital Equity story expressed as one shell command.
+
+### Infrastructure fix done in this session
+
+Found the cloudflared local YAML had stale routes (`localhost:8765` for inference — Cortex moved to 8773; `localhost:8080` for mercury — nothing listens there on Seratonin). Updated `~/.cloudflared/config.yml` to point at live services:
+
+| Subdomain | Routes to | Backing service |
+|---|---|---|
+| `cortex.redteamkitchen.com` | `100.93.240.52:8773` | Big Apple Cortex FastAPI |
+| `mercury.redteamkitchen.com` | `localhost:9119` | Seratonin Mercury Dashboard (started in this session) |
+| `inference.redteamkitchen.com` | `100.93.240.52:8083` | Big Apple MLX E4B + MTP server |
+| `ollama.redteamkitchen.com` | `localhost:11434` | Seratonin Ollama |
+
+Also added `www.redteamkitchen.com` as a custom domain in the `redteamkitchen` Cloudflare Pages project so the `www` CNAME (→ apex → Pages) actually serves content instead of returning 522.
 
 Full audit JSON: [`assets/link_validation.json`](../assets/link_validation.json).
 
