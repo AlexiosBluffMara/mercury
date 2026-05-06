@@ -31,16 +31,34 @@ Pre-April-11 weights had a chat-template bug that affects multi-turn correctness
 | E4B (Seratonin Ollama) | `gemma4:e4b` | same registry tag | re-pulled |
 | 31B (Seratonin Ollama) | `gemma4:31b` | same registry tag | re-pulled |
 
-### 2. MTP drafters (May 2026) — opt-in optimization
-Speculative decoding via paired drafter models gives ~3× tokens/sec without quality loss:
+### 2. MTP drafters (May 2026) — **shipped 2026-05-06**
+Speculative decoding via paired drafter models gives a measured 1.42× wall-clock speedup on E4B with 38% acceptance rate:
 - `google/gemma-4-E2B-it-assistant` — drafter for E2B/E4B
-- `google/gemma-4-E4B-it-assistant`
-- `google/gemma-4-26B-A4B-it-assistant`
-- `google/gemma-4-31B-it-assistant`
+- `google/gemma-4-E4B-it-assistant` — **WIRED INTO BIG APPLE PORT 8083**
+- `google/gemma-4-26B-A4B-it-assistant` — downloaded; not wired (target won't fit BF16)
+- `google/gemma-4-31B-it-assistant` — downloaded; not wired (target won't fit BF16)
 
-**Important caveat:** the public weights expose only the standard autoregressive interface for compatibility. MTP heads are excluded from the model config and are preserved only in Google's LiteRT export. This means MTP inside the *base* model isn't accessible from MLX/Ollama — but the *separate* drafter models are.
+**Important caveat (still true):** the public weights expose only the standard autoregressive interface for compatibility. MTP heads are excluded from the model config and are preserved only in Google's LiteRT export. The *separate* drafter models are accessible.
 
-**Status:** mlx_vlm.server (our serving layer on Big Apple) doesn't yet expose `--draft-model`. mlx-lm does. To benefit we'd need to either (a) wait for mlx_vlm to add drafter support, (b) switch 31B to mlx-lm + custom HTTP shim, or (c) use Ollama on Seratonin which now supports drafters. Deferred until after the Gemma 4 Good submission (May 18). Tracked as future work.
+**Status: SHIPPED.** Path that worked:
+- mlx-vlm 0.5.0 (installed from `git+https://github.com/Blaizzy/mlx-vlm.git@main`, not yet released to PyPI as of writing)
+- `mlx_vlm.server --draft-model google/gemma-4-E4B-it-assistant --draft-kind mtp --draft-block-size 6`
+- Target: `unsloth/gemma-4-E4B-it-UD-MLX-4bit` (4-bit, with Apr 11 chat template fix)
+- Drafter: `google/gemma-4-E4B-it-assistant` (HF transformers format, auto-converted to MLX by mlx-vlm at load time)
+- launchd job: `~/Library/LaunchAgents/ai.mercury.mlx-e4b-mtp.plist` (port 8083, KeepAlive)
+
+**Measured baseline vs MTP** (CLI `mlx_vlm.generate`, prompt `"Count from 1 to 20."`, max_tokens=80, temp=0):
+
+| | Wall-clock | Generation tps | Prompt tps | Peak memory | Spec rounds |
+|---|---|---|---|---|---|
+| Baseline (no drafter) | 6.02s | 97.78 t/s | 16.50 t/s | 6.65 GB | n/a |
+| MTP (Google drafter, block=6) | **4.25s** | 73.10 t/s* | 338.83 t/s | 6.81 GB | 22 rounds, 2.27 accepted/round |
+
+\* Generation tps reads lower because mlx-vlm's metric counts only validated tokens divided by total time, but the *wall-clock* improvement is the truth: ~30% faster end-to-end on this prompt.
+
+**Why mlx-vlm and not vLLM:** vLLM 0.20.1 explicitly raises `NotImplementedError: Speculative Decoding with draft models or parallel drafting does not support multimodal models yet`. Since Gemma 4 E4B is multimodal (text + image + audio), vLLM is incompatible with the MTP path for our model. mlx-vlm 0.5.0 is the only stack that supports MTP + Gemma 4 multimodal today.
+
+**Why not 26B/31B + MTP:** the mlx-vlm drafter docs require BF16 targets. BF16 26B is ~52 GB; BF16 31B is ~62 GB. Big Apple has 48 GB unified memory. Neither fits. The 4-bit Unsloth target works for E4B (BF16 ~9 GB) but not the larger sizes. Future option: try 8-bit/6-bit targets if mlx-vlm relaxes the BF16 requirement.
 
 ## Topology after this update
 

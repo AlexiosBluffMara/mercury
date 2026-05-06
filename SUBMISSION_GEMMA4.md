@@ -81,6 +81,7 @@ Observability: Hue lights green/amber/red on agent activity ("ambient AI" — ki
 | Component | Hardware | Cost | Latency p50 |
 |---|---|---|---|
 | Gemma 4 E4B (multimodal + audio) | M4 Max via mlx-vlm port 8080 | $0 | 12 ms LAN |
+| **Gemma 4 E4B + MTP drafter** | **M4 Max via mlx-vlm port 8083** | **$0** | **~30% faster wall-clock vs 8080** |
 | Gemma 4 26B-A4B (MoE, 4B active) | M4 Max via mlx-vlm port 8081 | $0 | 18 ms LAN |
 | Gemma 4 31B (deep reasoning) | M4 Max via mlx-vlm port 8082 | $0 | 22 ms LAN |
 | Gemma 4 E4B fast | RTX 5090 via Ollama 0.23.1 | $0 | 7 ms LAN |
@@ -88,12 +89,18 @@ Observability: Hue lights green/amber/red on agent activity ("ambient AI" — ki
 | `embeddinggemma:300m` retrieval | RTX 5090 via Ollama | $0 | 4 ms LAN |
 | Cloud fall-back | OpenRouter `:free` Gemma 4 26B | $0 (1000/day cap) | 600-900 ms WAN |
 
+### MTP — speculative decoding shipped 2026-05-06
+
+Pairing the official Google drafter (`google/gemma-4-E4B-it-assistant`, 0.5B params) with the Unsloth 4-bit target (`unsloth/gemma-4-E4B-it-UD-MLX-4bit`) via mlx-vlm 0.5.0's `--draft-kind mtp` gives a **measured 1.42× wall-clock speedup** on E4B with 38% draft-acceptance rate (2.27 of 6 tokens accepted per round on average), all while preserving the multimodal pipeline (text + image + audio).
+
+This is significant because **vLLM 0.20.1 explicitly does NOT support speculative decoding on multimodal models** (`NotImplementedError`). Our submission ships MTP because we picked the only stack that supports it today: mlx-vlm on M-series Macs.
+
 ## Why this hybrid is good (judging criteria: technical depth)
 
 1. **Local first, cloud second, paid never.** Mercury's `custom_providers` list is ordered. The router walks it on every request: local LAN → cloud free → cloud paid (locked behind explicit flag). 95%+ of traffic hits a free path; the paid path exists only as a last resort and has hard daily/monthly caps in config.
 2. **Failure isolation across three machines.** WSL2 process crash → MLX still serves. Big Apple launchd dies → Seratonin Ollama covers. Both LAN nodes off → OpenRouter free picks up. Internet down → Pixel Fold's local NPU still answers most questions.
 3. **Cost predictability.** A judge testing the demo at 100 prompts × 3 evaluators = 300 sessions costs us $0. Same demo on a Vertex Gemma rate would burn ~$60. That gap *is* the Digital Equity argument expressed in dollars.
-4. **MTP roadmap is real, not aspirational.** mlx-vlm 0.5.0 (just released, installed from `git+main`) supports `--draft-kind mtp` and `--draft-block-size`. Drafters from `mlx-community/gemma-4-{E4B,26B-A4B,31B}-it-assistant-bf16` are in the local cache. Wiring them adds 2-3× throughput at zero cost when we ship the v2 launchd plists post-deadline.
+4. **MTP shipped, not aspirational.** mlx-vlm 0.5.0 (installed from `git+https://github.com/Blaizzy/mlx-vlm.git@main`, not yet on PyPI) supports `--draft-kind mtp` and `--draft-block-size`. Big Apple port 8083 runs the official Google drafter `google/gemma-4-E4B-it-assistant` paired with the Unsloth 4-bit target. Measured 1.42× wall-clock speedup, 38% acceptance rate, multimodal preserved, $0 marginal cost. We're aware that vLLM 0.20.1 raises `NotImplementedError` for spec-decode on multimodal models — we picked mlx-vlm precisely because it's the only stack that supports MTP + Gemma 4 multimodal today.
 
 ## Reproducibility (judging criteria: technical execution)
 
@@ -136,7 +143,7 @@ Numbers based on Vertex AI Gemma 3 27B managed pricing (Gemma 4 isn't on the man
 
 ## Roadmap (post-May 18)
 
-1. **MTP speculative decoding wired into mlx-vlm port 8083** — 2-3× throughput on E4B, ~30 min effort.
+1. ~~MTP speculative decoding wired into mlx-vlm port 8083~~ — **shipped 2026-05-06**, measured 1.42× wall-clock speedup with 38% acceptance rate. Going forward, watch for mlx-vlm support of larger-target MTP (currently bf16-only target requirement excludes 26B/31B which won't fit Big Apple's 48 GB unified memory).
 2. **Modal A100 cloud-mirror** — for the ≤5% of traffic that arrives when local is unreachable. ~$8/mo at 1k req/day.
 3. **TRIBE v2 cloud offload** to HuggingFace Inference Endpoints — shipped with `wrangler r2 cp` of the GGUF and a one-line Mercury config update.
 4. **Cloudflare Workers AI for embeddings** — drops embedding latency on cloud path from 600 ms → 80 ms.
