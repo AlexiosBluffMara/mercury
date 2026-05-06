@@ -11,9 +11,9 @@
 
 > One brain. One memory. Six doors — terminal, Discord, a web page, iMessage, email, your phone. The same agent answers, with the same memory, on hardware you own. No round-trips to anyone else's cloud.
 
-Built for the [Nous Research × Kimi Creative Hackathon](https://nousresearch.com) (Creative track) by **Alexios Bluff Mara LLC (dba Red Team Kitchen)**.
+Submitted to the **[Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)** (Kaggle × Google DeepMind, Digital Equity track, May 18 2026) by **Alexios Bluff Mara LLC (dba Red Team Kitchen)** in association with Illinois State University.
 
-Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT). Submitted May 3, 2026.
+Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT).
 
 ---
 
@@ -21,16 +21,16 @@ Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent
 
 Picture a small office with one occupant: an assistant who already knows you. They've read your notes, they remember last week's conversation, they know what tools you keep on your desk and what documents you keep in your filing cabinet. Most assistants today live in someone else's building — you walk in, they get amnesia, you start from scratch.
 
-Mercury's office is in **your** building. The assistant lives on a single computer that you own — by default, an RTX 5090 desktop in Chicago. The desk has six doors:
+Mercury's office is in **your** building. The assistant lives on hardware you own — primary inference on a MacBook Pro M4 Max (Big Apple) running **Gemma 4 natively via MLX** at 145 tok/s with zero cloud round-trips. The desk has six doors:
 
 - **The terminal door** — `mercury chat` from any shell, anywhere on your machine.
 - **The Discord door** — Snowy The Bot, present in any server you invite it to.
-- **The web door** — a chat surface on a private URL, reachable from a browser.
+- **The WhatsApp door** — responds in DMs or group chats when @-mentioned; reads voice notes natively.
+- **The web door** — a chat surface on a private URL, reachable from any browser.
 - **The iMessage door** — texts to a relay number, replies back to your phone.
-- **The email door** — `you@redteamkitchen.com` becomes a working address for the agent.
 - **The mobile door** — same chat, same memory, on the phone in your pocket.
 
-Walk through any door, and you're talking to the same person. Tell it something on Discord at noon, ask about it from the terminal at four — it remembers. The brain is **Gemma 4 E4B** running locally via Ollama at 194 tok/s on the 5090. The orchestration layer is **Mercury Agent** — Nous Research's open-source framework. Mercury is what we built on top: a multi-domain skill stack and a six-surface gateway, designed so a single human can run a single agent across every device they own without ever sending a token to a cloud they don't control.
+Walk through any door, and you're talking to the same person. Tell it something on Discord at noon, ask about it from the terminal at four — it remembers. The brain is **Gemma 4 E4B** running natively on Apple Silicon via MLX — natively multimodal: text, images, and **audio** (USM Conformer encoder, no Whisper shim). Heavy reasoning routes to **Gemma 4 26B-A4B** on the same hardware. The orchestration layer is **Mercury Agent** — Nous Research's open-source framework. Mercury is what we built on top: a multi-domain skill stack and a six-surface gateway, designed so a single human can run a single agent across every device they own without ever sending a token to a cloud they don't control.
 
 **Skills, not prompts.** Mercury ships with four specialist skill sets that compose tools out of a five-source data layer (filesystem, web search, browser MCP, Python exec, knowledge graph). The dispatcher auto-loads the right skill by domain context — no `/skill` slash commands, no manual routing. Add a fifth skill tomorrow without touching the agent loop.
 
@@ -113,12 +113,15 @@ mobile    ─┘                           │           ↓                    
 
 | Surface | v1 (deprecated) | v2 (current) |
 |---|---|---|
-| Brain | Mercury 4 405B + Kimi K2.6 split-role planner/coder | Single Gemma 4 E4B locally (Kimi for build sprint only) — simpler, free, faster |
+| Brain | Mercury 4 405B + Kimi K2.6 split-role planner/coder | Gemma 4 E4B (fast, audio) + 26B-A4B (deep) — dual-mode auto-routing, both on native MLX |
+| Inference | Ollama on 5090 | MLX native on M4 Max (primary) + Ollama on 5090 (fallback) |
+| Audio | Whisper shim required | Native — Gemma 4 E4B USM Conformer encoder; no Whisper |
 | Skill model | Three demo skills hard-coded into the agent loop | Skill Dispatcher auto-loads by domain context — 4 domains today, n+1 tomorrow without code change |
-| Nodes | Single 5090 with manual ssh fallback | 3-node mesh: Mac Mini (dev) ↔ 5090 (inference) ↔ Cloud Run (scale), one-command sync |
-| Clients | Discord-only | Six doors: terminal, Discord, web, iMessage, email, mobile |
+| Nodes | Single 5090 with manual ssh fallback | Ascended Base mesh: Big Apple (M4 Max, primary inference) ↔ Seratonin (5090, fallback) ↔ Cloud Run (backstop) |
+| Clients | Discord-only | Six doors: terminal, Discord, WhatsApp, web, iMessage, mobile |
 | Memory | Per-session only | Cross-session profile + environment facts |
 | Data layer | Filesystem only | Filesystem + web search + browser MCP + Python exec + knowledge graph |
+| Ambient | None | Cortex Lights — Hue state machine reflects agent activity (green/amber/red) |
 
 The v1 diagram (preserved for reference) lives at [`assets/architecture_v1_deprecated.png`](assets/architecture_v1_deprecated.png). The v2 above is the current shipping topology.
 
@@ -129,16 +132,18 @@ The v1 diagram (preserved for reference) lives at [`assets/architecture_v1_depre
 | Component | What it is | Key numbers |
 |---|---|---|
 | Mercury Agent | Nous Research's open-source agent framework | MIT license, upstream codebase |
-| Gemma 4 E4B | Local default brain (Ollama) | 194 tok/s on RTX 5090, multimodal, ~10 GB VRAM |
-| Gemma 4 26B MoE | Deep reasoning fallback | 132 tok/s, mixture-of-experts |
-| Kimi K2.6 | Build-sprint coder (Nous Portal) — sprint only, not runtime | 1,035 requests / $22.04 over 75-minute window |
-| Ollama | Local model server | `localhost:11434` — no outbound calls |
+| Gemma 4 E4B | Primary brain — natively multimodal (text + image + **audio**) | 145 tok/s on M4 Max via MLX; 194 tok/s on RTX 5090 via Ollama |
+| Gemma 4 26B-A4B | Deep reasoning / long-form (text + image) | 161 tok/s on M4 Max via MLX; MoE 4B-active |
+| MLX serving | Native Apple Silicon model server (`mlx_vlm.server`) | `--kv-bits 4 --kv-quant-scheme turboquant`; launchd KeepAlive |
+| Ollama | NVIDIA fallback model server | `localhost:11434`; Seratonin RTX 5090 |
+| Dual-mode router | Fast (E4B) → Deep (26B) auto-escalation | Triggers on responses >280 chars or `deep` alias |
 | Skill dispatcher | Custom routing layer on top of Mercury | YAML manifests in `skills/` — auto-load by domain |
-| Hardware (local) | RTX 5090, 64 GB RAM, Windows 11 | MSRP ~$1,999, street ~$2,500–3,000 |
-| Cloud fallback | Google Cloud Run + Gemma 4 | ~$0.70/hr; ~$0 at scale-to-zero |
+| Hardware (primary) | MacBook Pro M4 Max 48 GB, always-on | ~145/161 tok/s; ~23 GB for both models loaded |
+| Hardware (fallback) | RTX 5090, 64 GB RAM, Windows 11 | ~194 tok/s E4B; Ollama |
 | Cortex-bridge | Skill that drives the [Cortex](https://github.com/AlexiosBluffMara/cortex) brain-response viewer | `/scan <media_file>` from any surface |
+| Cortex Lights | Hue light state machine driven by agent activity | Green = active · Amber = idle · Red = rate-limited |
 
-**Connectivity model.** Mercury never speaks directly to a cloud LLM in the hot path. The default model is local Gemma 4 E4B. When the 5090 is offline, the gateway routes to Google Cloud Run (which itself runs Gemma 4) — still no third-party LLM API. Kimi K2.6 (via the Nous Portal) and Gemini 2.5-pro / GitHub Copilot remain configured as **build-time** fallbacks for the development sprint, gated behind explicit `MERCURY_FALLBACK=cloud` env vars. Production = local.
+**Connectivity model.** Mercury never speaks to a cloud LLM in the hot path. Default inference is Gemma 4 E4B via MLX on Big Apple (M4 Max, `100.93.240.52:8080/v1`). Heavy turns auto-escalate to Gemma 4 26B-A4B on port 8081. When Big Apple is offline, the gateway falls back to Ollama on Seratonin (RTX 5090). Cloud Run (Gemma 4 on Google's infrastructure) is a third-tier backstop — still no third-party LLM API. Production = local.
 
 ---
 
@@ -220,39 +225,62 @@ The Cortex repo is the Gemma-4-Good Kaggle submission. This Mercury repo is the 
 
 ### What you need
 
-- An NVIDIA GPU with **at least 12 GB of VRAM** (Mercury was built and tested on an RTX 5090; a 4090, 3090, or any 12 GB+ card works for the smallest model).
-- **Python 3.11 or newer** ([download here](https://www.python.org/downloads/)).
-- **Ollama** to run the language models locally ([download here](https://ollama.com/download)).
-- Roughly **30 GB of disk space** for the model weights.
+**Apple Silicon (recommended — fastest path):**
+- Apple Silicon Mac (M1 or newer) with **≥ 16 GB unified memory**
+- Python 3.11+ and the `mlx-vlm` package (installed automatically below)
+- ~20 GB disk space for model weights
 
-You don't need an API key for anything to get the basic agent running — the default brain is Gemma 4 E4B, fully local. Kimi K2.6 via the Nous Portal was used for the original hackathon sprint only; production runs entirely on local hardware.
+**NVIDIA GPU (alternative):**
+- NVIDIA GPU with **≥ 12 GB VRAM** (tested on RTX 5090; 4090, 3090, 4080 work)
+- Ollama ([download here](https://ollama.com/download))
+- ~30 GB disk space for model weights
 
-### Setup, copy-paste-able
+You don't need any API keys to get the basic agent running — the default brain is Gemma 4 E4B, fully local.
+
+### Setup (Apple Silicon / MLX)
 
 ```bash
-# 1. Clone Mercury
+# 1. Clone and install Mercury
 git clone https://github.com/AlexiosBluffMara/mercury
 cd mercury
-
-# 2. Make a Python environment for it
-python -m venv .venv
-# Mac/Linux:
-source .venv/bin/activate
-# Windows:
-.venv\Scripts\activate
-
-# 3. Install Mercury
+python -m venv .venv && source .venv/bin/activate
 pip install -e .
 
-# 4. Pull the local AI models (this takes a while — ~10 GB download)
-ollama pull gemma4:e4b           # the fast everyday brain
-ollama pull embeddinggemma:300m  # for memory and search
+# 2. Create a venv for the MLX server (separate from Mercury)
+python -m venv ~/mlx-serve && source ~/mlx-serve/bin/activate
+pip install mlx-vlm huggingface_hub
+
+# 3. Download models from HuggingFace (first run auto-downloads)
+#    E4B: ~6 GB   |   26B: ~14 GB
+python -m mlx_vlm.server --model unsloth/gemma-4-E4B-it-UD-MLX-4bit \
+    --host 0.0.0.0 --port 8080 --kv-bits 4 --kv-quant-scheme turboquant &
+
+# 4. Point Mercury at it (edit ~/.mercury/config.yaml or use mercury config)
+#    provider: custom:mlx-local
+#    base_url: http://localhost:8080/v1
 
 # 5. Talk to it
 mercury chat
 ```
 
-That's it. Type a question. It thinks on your GPU, replies in your terminal.
+### Setup (NVIDIA / Ollama)
+
+```bash
+# 1. Clone and install Mercury
+git clone https://github.com/AlexiosBluffMara/mercury
+cd mercury
+python -m venv .venv && source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+pip install -e .
+
+# 2. Pull models via Ollama
+ollama pull gemma4:e4b           # fast brain (~10 GB VRAM)
+ollama pull embeddinggemma:300m  # memory + search
+
+# 3. Talk to it
+mercury chat
+```
+
+Type a question. It thinks on your hardware, replies in your terminal.
 
 ### Optional: the Discord / iMessage / WhatsApp surfaces
 
@@ -287,20 +315,36 @@ Persona lives in `~/.mercury/SOUL.md`. Mercury runs as **Snowy The Bot** (Discor
 
 ## Hackathon context
 
-Mercury is submitted to the **[Nous Research × Kimi Creative Hackathon](https://nousresearch.com)** — Creative track, due May 3, 2026.
+### Gemma 4 Good Hackathon (primary — May 18, 2026)
 
-Submission positioning: Mercury as the **orchestrator** for Cortex, with Kimi K2.6 (via the Nous Portal) as the build-sprint coder for the Three.js viewer that ships in Cortex. Production runtime is fully local on Gemma 4 E4B; Kimi appears only in the build artifact trail (see [Initial sprint by Kimi K2.6](#initial-sprint-by-kimi-k26-via-nous-portal--proof-of-use) above).
+Mercury is submitted to the **[Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)** (Kaggle × Google DeepMind) — **Digital Equity** track.
 
-The Cortex repo is a separate dual submission — the **Gemma 4 Good Hackathon** (Health & Sciences track, Kaggle, due May 18, 2026) — covering the brain-response analysis system Mercury orchestrates.
+**Why Digital Equity?** AI access today is stratified by subscription tier. GPT-4, Gemini Ultra, Claude Pro — the capable models require $20–200/month, and every token goes through someone else's datacenter. Mercury's thesis is that Gemma 4, running on commodity hardware you already own, can match or exceed the quality of those hosted products at the cost of electricity. An M4 MacBook or an RTX 4090 desktop breaks even against a hosted API in 3–5 months and then runs indefinitely for ~$0.02/hr. The privacy implications follow from the architecture: no cloud path means no data retention clause to trust.
+
+Concretely: Mercury gives a single person or small team a persistent, multimodal, cross-platform AI agent that:
+- speaks through every channel they use (Discord, WhatsApp, terminal, browser, phone)
+- reads and generates audio, images, and text natively (Gemma 4 E4B's USM Conformer encoder)
+- remembers across sessions (persistent memory in `~/.mercury/`)
+- costs nothing beyond the hardware they already own
+
+**Submitted:** `AlexiosBluffMara/mercury` — this repository.  
+**Focus area:** Digital Equity — local-first AI for individuals and small organizations.
+
+### Nous Research × Kimi Creative Hackathon (completed — May 3, 2026)
+
+Mercury was also submitted to the Nous Research × Kimi Creative Hackathon (Creative track). Kimi K2.6 (via the Nous Portal) wrote the initial Cortex Three.js viewer in a 75-minute, 14-commit, $22.04 sprint — that is the Nous/Kimi track artifact. Production runtime is fully local on Gemma 4; Kimi appears only in the build trail (see [Initial sprint by Kimi K2.6](#initial-sprint-by-kimi-k26-via-nous-portal--proof-of-use) above).
+
+The **[Cortex](https://github.com/AlexiosBluffMara/cortex)** sister project is a separate submission to the Gemma 4 Good Hackathon — Health & Sciences track — covering the brain-response analysis system that Mercury orchestrates.
 
 ---
 
 ## Links
 
-- GitHub: [https://github.com/AlexiosBluffMara/mercury](https://github.com/AlexiosBluffMara/mercury)
-- Cortex (sister project): [https://github.com/AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex)
-- Cortex live demo: [https://cortex.redteamkitchen.com](https://cortex.redteamkitchen.com)
-- Nous Portal usage proof: [`kimi_proof/06_nous_portal_usage_2026-04-30.png`](kimi_proof/06_nous_portal_usage_2026-04-30.png)
+- **Mercury (this repo):** [https://github.com/AlexiosBluffMara/mercury](https://github.com/AlexiosBluffMara/mercury)
+- **Cortex (sister project — Health & Sciences track):** [https://github.com/AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex)
+- **Cortex live demo:** [https://cortex.redteamkitchen.com](https://cortex.redteamkitchen.com)
+- **Hackathon:** [Gemma 4 Good Hackathon on Kaggle](https://www.kaggle.com/competitions/gemma-4-good-hackathon) — Digital Equity track, deadline May 18 2026
+- **Nous Portal usage proof (Kimi sprint):** [`kimi_proof/06_nous_portal_usage_2026-04-30.png`](kimi_proof/06_nous_portal_usage_2026-04-30.png)
 
 ---
 

@@ -22,6 +22,7 @@ import re
 import shlex
 import sys
 import signal
+import subprocess
 import tempfile
 import threading
 import time
@@ -40,6 +41,25 @@ from agent.account_usage import fetch_account_usage, render_account_usage_lines
 # from _enforce_agent_cache_cap() and _session_expiry_watcher() below.
 _AGENT_CACHE_MAX_SIZE = 128
 _AGENT_CACHE_IDLE_TTL_SECS = 3600.0  # evict agents idle for >1h
+
+# ---------------------------------------------------------------------------
+# Cortex lights integration — fires mercury-start / mercury-end signals to
+# the cortex-lights WSL2 daemon so Hue lights track agent activity.
+# ---------------------------------------------------------------------------
+_LIGHTS_SCRIPT = "/mnt/d/cortex/lights/state-update.sh"
+
+def _lights_fire(event: str) -> None:
+    """Fire a cortex-lights state event. Non-blocking; never raises."""
+    try:
+        flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+        subprocess.Popen(
+            ["wsl", "-e", "bash", _LIGHTS_SCRIPT, event],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=flags,
+        )
+    except Exception:
+        pass  # lights are optional — never crash the gateway
+
 
 # ---------------------------------------------------------------------------
 # SSL certificate auto-detection for NixOS and other non-standard systems.
@@ -3827,8 +3847,10 @@ class GatewayRunner:
         _run_generation = self._begin_session_run_generation(_quick_key)
 
         try:
+            _lights_fire("mercury-start")
             return await self._handle_message_with_agent(event, source, _quick_key, _run_generation)
         finally:
+            _lights_fire("mercury-end")
             # If _run_agent replaced the sentinel with a real agent and
             # then cleaned it up, this is a no-op.  If we exited early
             # (exception, command fallthrough, etc.) the sentinel must
