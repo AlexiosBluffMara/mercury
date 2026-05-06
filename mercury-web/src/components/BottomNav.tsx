@@ -26,8 +26,11 @@ export function BottomNav({ onMore, showChat }: BottomNavProps) {
     <nav
       className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch h-16"
       style={{
-        background: "var(--component-header-background)",
-        borderTop: "1px solid color-mix(in srgb, var(--midground-base) 20%, transparent)",
+        background: "rgba(8,12,20,0.95)",
+        borderTop: "1px solid rgba(255,255,255,0.07)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        boxShadow: "0 -4px 24px rgba(0,0,0,0.4)",
       }}
     >
       {items.map(({ path, label, icon: Icon }) => (
@@ -36,17 +39,31 @@ export function BottomNav({ onMore, showChat }: BottomNavProps) {
           to={path}
           className={({ isActive }) =>
             cn(
-              "flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1",
-              "font-mondwest text-[0.55rem] tracking-[0.06em] uppercase cursor-pointer",
-              "transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-midground/40",
-              isActive ? "text-midground" : "text-midground/40 hover:text-midground/70",
+              "flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 relative",
+              "text-[0.58rem] font-medium tracking-[0.04em] cursor-pointer",
+              "transition-colors duration-150 focus-visible:outline-none",
+              isActive ? "text-midground" : "text-midground/35 hover:text-midground/65",
             )
           }
         >
           {({ isActive }) => (
             <>
-              <Icon className={cn("h-5 w-5 shrink-0", isActive && "drop-shadow-sm")} />
-              <span className="leading-none">{label}</span>
+              <span
+                className="relative flex items-center justify-center"
+                style={isActive ? {
+                  filter: "drop-shadow(0 0 6px rgba(99,102,241,0.5))",
+                } : undefined}
+              >
+                <Icon className={cn("h-5 w-5 shrink-0 transition-colors", isActive && "text-[#818cf8]")} />
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full"
+                    style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }}
+                  />
+                )}
+              </span>
+              <span className="leading-none mt-1">{label}</span>
             </>
           )}
         </NavLink>
@@ -56,14 +73,14 @@ export function BottomNav({ onMore, showChat }: BottomNavProps) {
         type="button"
         onClick={onMore}
         className={cn(
-          "flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1",
-          "font-mondwest text-[0.55rem] tracking-[0.06em] uppercase cursor-pointer",
-          "text-midground/40 hover:text-midground/70 transition-colors",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-midground/40",
+          "flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1",
+          "text-[0.58rem] font-medium tracking-[0.04em] cursor-pointer",
+          "text-midground/35 hover:text-midground/65 transition-colors duration-150",
+          "focus-visible:outline-none",
         )}
       >
         <MoreHorizontal className="h-5 w-5 shrink-0" />
-        <span className="leading-none">More</span>
+        <span className="leading-none mt-1">More</span>
       </button>
     </nav>
   );

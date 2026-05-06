@@ -77,7 +77,7 @@ function RootRedirect() {
   return <Navigate to="/sessions" replace />;
 }
 
-const CHAT_NAV_ITEM: NavItem = {
+const CHAT_NAV_ITEM: NavItemDef = {
   path: "/chat",
   labelKey: "chat",
   label: "Chat",
@@ -98,27 +98,37 @@ const BUILTIN_ROUTES_CORE: Record<string, ComponentType> = {
   "/docs": DocsPage,
 };
 
-/** Primary nav — always visible in sidebar and bottom nav. */
-const PRIMARY_NAV: NavItem[] = [
+/** Always visible. */
+const PRIMARY_NAV: NavItemDef[] = [
   { path: "/sessions", labelKey: "sessions", label: "Sessions", icon: MessageSquare },
   { path: "/brains", labelKey: "brains", label: "Brains", icon: Cpu },
   { path: "/cortex", labelKey: "cortex", label: "Cortex", icon: Sparkles },
 ];
 
-/** Activity nav — useful day-to-day but not always needed. */
-const ACTIVITY_NAV: Array<NavItem & { section: NavSection }> = [
+/** Useful day-to-day — toggleable. */
+const ACTIVITY_NAV: Array<NavItemDef & { section: NavSection }> = [
   { path: "/analytics", labelKey: "analytics", label: "Analytics", icon: BarChart3, section: "analytics" },
   { path: "/logs", labelKey: "logs", label: "Logs", icon: FileText, section: "logs" },
 ];
 
-/** Admin nav — infrequent configuration pages; hidden by default. */
-const ADMIN_NAV: Array<NavItem & { section: NavSection }> = [
+/** Admin / config — hidden by default. */
+const ADMIN_NAV: Array<NavItemDef & { section: NavSection }> = [
   { path: "/cron", labelKey: "cron", label: "Cron", icon: Clock, section: "cron" },
   { path: "/skills", labelKey: "skills", label: "Skills", icon: Package, section: "skills" },
   { path: "/config", labelKey: "config", label: "Config", icon: Settings, section: "config" },
   { path: "/env", labelKey: "keys", label: "Keys", icon: KeyRound, section: "env" },
   { path: "/docs", labelKey: "documentation", label: "Docs", icon: BookOpen, section: "docs" },
 ];
+
+const SECTION_LABELS: Record<NavSection, string> = {
+  analytics: "Analytics",
+  logs: "Logs",
+  cron: "Cron",
+  skills: "Skills",
+  config: "Config",
+  env: "Keys",
+  docs: "Docs",
+};
 
 const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
   Activity, BarChart3, Clock, FileText, KeyRound, MessageSquare,
@@ -130,29 +140,20 @@ function resolveIcon(name: string): ComponentType<{ className?: string }> {
   return ICON_MAP[name] ?? Puzzle;
 }
 
-function buildNavItems(primaryNav: NavItem[], manifests: PluginManifest[]): NavItem[] {
-  const items = [...primaryNav];
+function buildNavItems(base: NavItemDef[], manifests: PluginManifest[]): NavItemDef[] {
+  const items = [...base];
   for (const manifest of manifests) {
     if (manifest.tab.override || manifest.tab.hidden) continue;
-    const pluginItem: NavItem = {
-      path: manifest.tab.path,
-      label: manifest.label,
-      icon: resolveIcon(manifest.icon),
-    };
+    const item: NavItemDef = { path: manifest.tab.path, label: manifest.label, icon: resolveIcon(manifest.icon) };
     const pos = manifest.tab.position ?? "end";
-    if (pos === "end") {
-      items.push(pluginItem);
-    } else if (pos.startsWith("after:")) {
-      const target = "/" + pos.slice(6);
-      const idx = items.findIndex((i) => i.path === target);
-      items.splice(idx >= 0 ? idx + 1 : items.length, 0, pluginItem);
+    if (pos === "end") items.push(item);
+    else if (pos.startsWith("after:")) {
+      const idx = items.findIndex((i) => i.path === "/" + pos.slice(6));
+      items.splice(idx >= 0 ? idx + 1 : items.length, 0, item);
     } else if (pos.startsWith("before:")) {
-      const target = "/" + pos.slice(7);
-      const idx = items.findIndex((i) => i.path === target);
-      items.splice(idx >= 0 ? idx : items.length, 0, pluginItem);
-    } else {
-      items.push(pluginItem);
-    }
+      const idx = items.findIndex((i) => i.path === "/" + pos.slice(7));
+      items.splice(idx >= 0 ? idx : items.length, 0, item);
+    } else items.push(item);
   }
   return items;
 }
@@ -163,16 +164,12 @@ function buildRoutes(
 ): Array<{ key: string; path: string; element: ReactNode }> {
   const byOverride = new Map<string, PluginManifest>();
   const addons: PluginManifest[] = [];
-  for (const m of manifests) {
-    if (m.tab.override) byOverride.set(m.tab.override, m);
-    else addons.push(m);
-  }
+  for (const m of manifests) { if (m.tab.override) byOverride.set(m.tab.override, m); else addons.push(m); }
   const routes: Array<{ key: string; path: string; element: ReactNode }> = [];
   for (const [path, Component] of Object.entries(builtinRoutes)) {
     const om = byOverride.get(path);
-    routes.push(om
-      ? { key: `override:${om.name}`, path, element: <PluginPage name={om.name} /> }
-      : { key: `builtin:${path}`, path, element: <Component /> });
+    routes.push(om ? { key: `override:${om.name}`, path, element: <PluginPage name={om.name} /> }
+                   : { key: `builtin:${path}`, path, element: <Component /> });
   }
   for (const m of addons) {
     if (m.tab.hidden || builtinRoutes[m.tab.path]) continue;
@@ -185,86 +182,30 @@ function buildRoutes(
   return routes;
 }
 
-/** Collapsible section header for the sidebar nav groups. */
-function NavGroupHeader({
-  label,
-  expanded,
-  onToggle,
-}: {
-  label: string;
-  expanded: boolean;
-  onToggle: () => void;
-}) {
+/** Collapsible section header. */
+function SectionHeader({ label, expanded, onToggle }: { label: string; expanded: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
       onClick={onToggle}
       className={cn(
-        "group flex w-full items-center gap-1.5 px-5 pt-3 pb-0.5",
-        "font-mondwest text-[0.58rem] tracking-[0.16em] uppercase",
-        "text-midground/30 hover:text-midground/50 transition-colors cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-midground/30",
+        "group flex w-full items-center gap-1 px-4 pt-3.5 pb-1",
+        "text-[0.6rem] font-semibold tracking-[0.12em] uppercase",
+        "text-midground/25 hover:text-midground/50 transition-colors cursor-pointer",
+        "focus-visible:outline-none",
       )}
     >
       <span className="flex-1 text-left leading-none">{label}</span>
-      <ChevronDown
-        className={cn(
-          "h-3 w-3 shrink-0 transition-transform duration-200",
-          !expanded && "-rotate-90",
-        )}
-      />
+      <ChevronDown className={cn("h-2.5 w-2.5 shrink-0 transition-transform duration-200", !expanded && "-rotate-90")} />
     </button>
   );
 }
 
-/** Inline section visibility toggle row. */
-function VisibilityToggle({
-  label,
-  visible,
-  onToggle,
-}: {
-  label: string;
-  visible: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <label className="flex items-center gap-2.5 px-5 py-1 cursor-pointer group">
-      <div
-        role="checkbox"
-        aria-checked={visible}
-        onClick={onToggle}
-        className={cn(
-          "relative h-3.5 w-6 shrink-0 rounded-full transition-colors",
-          visible ? "bg-midground/60" : "bg-midground/15",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background-base transition-transform",
-            visible ? "translate-x-2.5" : "translate-x-0.5",
-          )}
-          style={{ boxShadow: "0 0 0 1px color-mix(in srgb, var(--midground-base) 30%, transparent)" }}
-        />
-      </div>
-      <span className="font-mondwest text-[0.72rem] tracking-[0.08em] text-midground/60 group-hover:text-midground/80 transition-colors normal-case">
-        {label}
-      </span>
-    </label>
-  );
-}
-
-/** Single nav link row — shared between all groups. */
-function NavItem({
-  path,
-  label,
-  labelKey,
-  icon: Icon,
-  onClick,
-  t,
-}: NavItem & { onClick: () => void; t: ReturnType<typeof useI18n>["t"] }) {
-  const navLabel = labelKey
-    ? ((t.app.nav as Record<string, string>)[labelKey] ?? label)
-    : label;
+/** Premium nav link row. */
+function NavRow({
+  path, label, labelKey, icon: Icon, onClick, t,
+}: NavItemDef & { onClick: () => void; t: ReturnType<typeof useI18n>["t"] }) {
+  const navLabel = labelKey ? ((t.app.nav as Record<string, string>)[labelKey] ?? label) : label;
   return (
     <li>
       <NavLink
@@ -273,35 +214,60 @@ function NavItem({
         onClick={onClick}
         className={({ isActive }) =>
           cn(
-            "group relative flex items-center gap-3",
-            "px-5 py-2",
-            "font-mondwest text-[0.78rem] tracking-[0.1em]",
-            "whitespace-nowrap transition-colors cursor-pointer",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-midground",
-            isActive ? "text-midground" : "opacity-50 hover:opacity-90",
+            "group relative flex items-center gap-2.5 mx-2 px-3 py-2 rounded-md",
+            "text-[0.8rem] font-medium tracking-[-0.005em]",
+            "whitespace-nowrap transition-all duration-150 cursor-pointer",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#6366f1]/40",
+            isActive
+              ? "bg-gradient-to-r from-[rgba(99,102,241,0.12)] to-[rgba(139,92,246,0.08)] text-midground shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]"
+              : "text-midground/45 hover:text-midground/80 hover:bg-white/[0.04]",
           )
         }
-        style={{ clipPath: "var(--component-tab-clip-path)" }}
       >
         {({ isActive }) => (
           <>
-            <Icon className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{navLabel}</span>
-            <span
-              aria-hidden
-              className="absolute inset-y-0.5 left-1.5 right-1.5 bg-midground opacity-0 pointer-events-none transition-opacity duration-200 group-hover:opacity-5"
-            />
+            {/* Active left accent bar */}
             {isActive && (
               <span
                 aria-hidden
-                className="absolute left-0 top-0 bottom-0 w-px bg-midground"
-                style={{ mixBlendMode: "plus-lighter" }}
+                className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-r-full"
+                style={{ background: "linear-gradient(180deg, #6366f1, #8b5cf6)", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }}
               />
             )}
+            <Icon className={cn("h-3.5 w-3.5 shrink-0 transition-colors", isActive ? "text-[#818cf8]" : "text-midground/40 group-hover:text-midground/70")} />
+            <span className="truncate leading-none">{navLabel}</span>
           </>
         )}
       </NavLink>
     </li>
+  );
+}
+
+/** Inline visibility toggle row. */
+function VisibilityToggle({ label, visible, onToggle }: { label: string; visible: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex w-full items-center gap-3 px-4 py-1.5 text-left cursor-pointer group focus-visible:outline-none"
+    >
+      <span
+        className={cn(
+          "relative h-3.5 w-6 shrink-0 rounded-full transition-colors duration-200",
+          visible ? "bg-[#6366f1]/60" : "bg-white/10",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 h-2.5 w-2.5 rounded-full transition-transform duration-200",
+            visible ? "translate-x-2.5 bg-white" : "translate-x-0.5 bg-white/40",
+          )}
+        />
+      </span>
+      <span className="text-xs font-medium text-midground/50 group-hover:text-midground/75 transition-colors">
+        {label}
+      </span>
+    </button>
   );
 }
 
@@ -316,8 +282,8 @@ export default function App() {
   const [activityExpanded, setActivityExpanded] = useState(true);
   const [adminExpanded, setAdminExpanded] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-
   const closeMobile = useCallback(() => setMobileOpen(false), []);
+
   const normalizedPath = pathname.replace(/\/$/, "") || "/";
   const isDocsRoute = normalizedPath === "/docs";
   const isChatRoute = normalizedPath === "/chat";
@@ -328,45 +294,13 @@ export default function App() {
     () => ({ ...BUILTIN_ROUTES_CORE, ...(embeddedChat ? { "/chat": ChatPage } : {}) }),
     [embeddedChat],
   );
-
-  const primaryNav = useMemo(
-    () => (embeddedChat ? [CHAT_NAV_ITEM, ...PRIMARY_NAV] : PRIMARY_NAV),
-    [embeddedChat],
-  );
-
-  /** All nav items for plugin positioning logic. */
-  const allBuiltinNav = useMemo(
-    () => [...primaryNav, ...ACTIVITY_NAV, ...ADMIN_NAV],
-    [primaryNav],
-  );
-
-  const pluginItems = useMemo(
-    () => buildNavItems(allBuiltinNav, manifests).slice(allBuiltinNav.length),
-    [allBuiltinNav, manifests],
-  );
-
-  const pluginTabMeta = useMemo(
-    () =>
-      manifests
-        .filter((m) => !m.tab.hidden)
-        .map((m) => ({ path: m.tab.override ?? m.tab.path, label: m.label })),
-    [manifests],
-  );
-
-  const routes = useMemo(
-    () => buildRoutes(builtinRoutes, manifests),
-    [builtinRoutes, manifests],
-  );
-
-  const visibleActivity = useMemo(
-    () => ACTIVITY_NAV.filter((item) => isVisible(item.section)),
-    [isVisible],
-  );
-
-  const visibleAdmin = useMemo(
-    () => ADMIN_NAV.filter((item) => isVisible(item.section)),
-    [isVisible],
-  );
+  const primaryNav = useMemo(() => (embeddedChat ? [CHAT_NAV_ITEM, ...PRIMARY_NAV] : PRIMARY_NAV), [embeddedChat]);
+  const allBuiltinNav = useMemo(() => [...primaryNav, ...ACTIVITY_NAV, ...ADMIN_NAV], [primaryNav]);
+  const pluginItems = useMemo(() => buildNavItems(allBuiltinNav, manifests).slice(allBuiltinNav.length), [allBuiltinNav, manifests]);
+  const pluginTabMeta = useMemo(() => manifests.filter((m) => !m.tab.hidden).map((m) => ({ path: m.tab.override ?? m.tab.path, label: m.label })), [manifests]);
+  const routes = useMemo(() => buildRoutes(builtinRoutes, manifests), [builtinRoutes, manifests]);
+  const visibleActivity = useMemo(() => ACTIVITY_NAV.filter((i) => isVisible(i.section)), [isVisible]);
+  const visibleAdmin = useMemo(() => ADMIN_NAV.filter((i) => isVisible(i.section)), [isVisible]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -379,225 +313,186 @@ export default function App() {
 
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 1024px)");
-    const onChange = (e: MediaQueryListEvent) => { if (e.matches) setMobileOpen(false); };
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
+    const cb = (e: MediaQueryListEvent) => { if (e.matches) setMobileOpen(false); };
+    mql.addEventListener("change", cb);
+    return () => mql.removeEventListener("change", cb);
   }, []);
-
-  const sidebarNav = (
-    <nav
-      className="min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden py-1"
-      aria-label={t.app.navigation}
-    >
-      {/* Primary group */}
-      <ul className="flex flex-col pb-1">
-        {primaryNav.map((item) => (
-          <NavItem key={item.path} {...item} onClick={closeMobile} t={t} />
-        ))}
-        {pluginItems.map((item) => (
-          <NavItem key={item.path} {...item} onClick={closeMobile} t={t} />
-        ))}
-      </ul>
-
-      {/* Activity group */}
-      {visibleActivity.length > 0 && (
-        <>
-          <div className="mx-5 border-t border-current/10" />
-          <NavGroupHeader
-            label="Activity"
-            expanded={activityExpanded}
-            onToggle={() => setActivityExpanded((v) => !v)}
-          />
-          {activityExpanded && (
-            <ul className="flex flex-col">
-              {visibleActivity.map((item) => (
-                <NavItem key={item.path} {...item} onClick={closeMobile} t={t} />
-              ))}
-            </ul>
-          )}
-        </>
-      )}
-
-      {/* Admin group */}
-      {visibleAdmin.length > 0 && (
-        <>
-          <div className="mx-5 border-t border-current/10 mt-1" />
-          <NavGroupHeader
-            label="Admin"
-            expanded={adminExpanded}
-            onToggle={() => setAdminExpanded((v) => !v)}
-          />
-          {adminExpanded && (
-            <ul className="flex flex-col">
-              {visibleAdmin.map((item) => (
-                <NavItem key={item.path} {...item} onClick={closeMobile} t={t} />
-              ))}
-            </ul>
-          )}
-        </>
-      )}
-    </nav>
-  );
-
-  const sectionLabels: Record<string, string> = {
-    analytics: "Analytics",
-    logs: "Logs",
-    cron: "Cron",
-    skills: "Skills",
-    config: "Config",
-    env: "Keys",
-    docs: "Docs",
-  };
 
   return (
     <div
       data-layout-variant={layoutVariant}
-      className="font-mondwest flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden bg-black text-midground antialiased"
+      className="flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden text-midground antialiased"
+      style={{ background: "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.08), transparent), #080c12" }}
     >
       <SelectionSwitcher />
       <Backdrop />
       <PluginSlot name="backdrop" />
 
-      {/* Mobile nav backdrop */}
       {mobileOpen && (
         <button
           type="button"
           aria-label={t.app.closeNavigation}
           onClick={closeMobile}
-          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm cursor-pointer"
+          className="lg:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-md cursor-pointer"
         />
       )}
 
       <PluginSlot name="header-banner" />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="flex min-h-0 min-w-0 flex-1">
-          {/* Sidebar */}
-          <aside
-            id="app-sidebar"
-            aria-label={t.app.navigation}
-            className={cn(
-              "fixed top-0 left-0 z-50 flex h-dvh max-h-dvh w-64 min-h-0 flex-col",
-              "border-r border-current/20",
-              "bg-background-base/95 backdrop-blur-sm",
-              "transition-transform duration-200 ease-out",
-              mobileOpen ? "translate-x-0" : "-translate-x-full",
-              "lg:sticky lg:top-0 lg:translate-x-0 lg:shrink-0",
-            )}
-            style={{
-              background: "var(--component-sidebar-background)",
-              clipPath: "var(--component-sidebar-clip-path)",
-              borderImage: "var(--component-sidebar-border-image)",
-            }}
-          >
-            {/* Sidebar header */}
-            <div className="flex h-14 shrink-0 items-center justify-between gap-2 px-5 border-b border-current/20">
-              <Typography
-                className="font-bold text-[1.125rem] leading-[0.95] tracking-[0.0525rem] text-midground uppercase"
-                style={{ mixBlendMode: "plus-lighter" }}
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+        {/* ── Premium Sidebar ── */}
+        <aside
+          id="app-sidebar"
+          aria-label={t.app.navigation}
+          className={cn(
+            "fixed top-0 left-0 z-50 flex h-dvh max-h-dvh w-60 min-h-0 flex-col",
+            "transition-transform duration-200 ease-out",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+            "lg:sticky lg:top-0 lg:translate-x-0 lg:shrink-0",
+          )}
+          style={{
+            background: "linear-gradient(180deg, rgba(10,14,22,0.98) 0%, rgba(8,11,18,0.99) 100%)",
+            borderRight: "1px solid rgba(255,255,255,0.06)",
+            boxShadow: "4px 0 24px rgba(0,0,0,0.4)",
+          }}
+        >
+          {/* Brand header */}
+          <div className="flex h-14 shrink-0 items-center justify-between px-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="flex items-center gap-2.5">
+              {/* Accent orb */}
+              <span
+                aria-hidden
+                className="h-5 w-5 shrink-0 rounded-full"
+                style={{
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  boxShadow: "0 0 12px rgba(99,102,241,0.5)",
+                }}
+              />
+              <span
+                className="text-[0.95rem] font-semibold tracking-tight text-midground"
+                style={{ letterSpacing: "-0.02em" }}
               >
                 Mercury
-              </Typography>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={closeMobile}
+              className="lg:hidden h-7 w-7 flex items-center justify-center rounded-md text-midground/40 hover:text-midground/80 hover:bg-white/[0.04] transition-colors cursor-pointer focus-visible:outline-none"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <PluginSlot name="header-left" />
+
+          {/* Nav */}
+          <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-2 scrollbar-thin" aria-label={t.app.navigation}>
+            {/* Primary */}
+            <ul className="flex flex-col gap-0.5 px-0 pb-1">
+              {primaryNav.map((item) => (
+                <NavRow key={item.path} {...item} onClick={closeMobile} t={t} />
+              ))}
+              {pluginItems.map((item) => (
+                <NavRow key={item.path} {...item} onClick={closeMobile} t={t} />
+              ))}
+            </ul>
+
+            {/* Activity */}
+            {visibleActivity.length > 0 && (
+              <>
+                <div className="sidebar-sep" />
+                <SectionHeader label="Activity" expanded={activityExpanded} onToggle={() => setActivityExpanded((v) => !v)} />
+                {activityExpanded && (
+                  <ul className="flex flex-col gap-0.5 mt-0.5">
+                    {visibleActivity.map((item) => <NavRow key={item.path} {...item} onClick={closeMobile} t={t} />)}
+                  </ul>
+                )}
+              </>
+            )}
+
+            {/* Admin */}
+            {visibleAdmin.length > 0 && (
+              <>
+                <div className="sidebar-sep" />
+                <SectionHeader label="Admin" expanded={adminExpanded} onToggle={() => setAdminExpanded((v) => !v)} />
+                {adminExpanded && (
+                  <ul className="flex flex-col gap-0.5 mt-0.5">
+                    {visibleAdmin.map((item) => <NavRow key={item.path} {...item} onClick={closeMobile} t={t} />)}
+                  </ul>
+                )}
+              </>
+            )}
+          </nav>
+
+          {/* System actions */}
+          <SidebarSystemActions onNavigate={closeMobile} />
+
+          {/* Footer: settings + theme + lang */}
+          <div className="shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            {settingsOpen && (
+              <div className="py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="px-4 pt-1 pb-1 text-[0.6rem] font-semibold tracking-[0.1em] uppercase text-midground/25">
+                  Visible Sections
+                </p>
+                {ALL_TOGGLEABLE_SECTIONS.map((s) => (
+                  <VisibilityToggle key={s} label={SECTION_LABELS[s]} visible={isVisible(s)} onToggle={() => toggle(s)} />
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+              <div className="flex items-center gap-1.5">
+                <PluginSlot name="header-right" />
+                <ThemeSwitcher dropUp />
+                <LanguageSwitcher />
+              </div>
               <button
                 type="button"
-                onClick={closeMobile}
-                aria-label={t.app.closeNavigation}
-                className="lg:hidden inline-flex h-7 w-7 items-center justify-center text-midground/70 hover:text-midground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-midground"
+                onClick={() => setSettingsOpen((v) => !v)}
+                title="Toggle visible sections"
+                aria-expanded={settingsOpen}
+                className={cn(
+                  "h-7 w-7 flex items-center justify-center rounded-md transition-all cursor-pointer focus-visible:outline-none",
+                  settingsOpen
+                    ? "text-[#818cf8] bg-[#6366f1]/15"
+                    : "text-midground/30 hover:text-midground/60 hover:bg-white/[0.04]",
+                )}
               >
-                <X className="h-4 w-4" />
+                <Settings className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <PluginSlot name="header-left" />
+            <SidebarFooter />
+          </div>
+        </aside>
 
-            {sidebarNav}
-
-            <SidebarSystemActions onNavigate={closeMobile} />
-
-            {/* Settings + theme footer */}
-            <div className="shrink-0 border-t border-current/20">
-              {/* Section visibility panel */}
-              {settingsOpen && (
-                <div className="border-b border-current/10 py-2">
-                  <p className="px-5 pt-1 pb-1.5 font-mondwest text-[0.58rem] tracking-[0.14em] text-midground/30 uppercase">
-                    Visible Sections
-                  </p>
-                  {ALL_TOGGLEABLE_SECTIONS.map((section) => (
-                    <VisibilityToggle
-                      key={section}
-                      label={sectionLabels[section] ?? section}
-                      visible={isVisible(section)}
-                      onToggle={() => toggle(section)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between gap-2 px-3 py-2">
-                <div className="flex min-w-0 items-center gap-2">
-                  <PluginSlot name="header-right" />
-                  <ThemeSwitcher dropUp />
-                  <LanguageSwitcher />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSettingsOpen((v) => !v)}
-                  title="Toggle visible sections"
-                  aria-expanded={settingsOpen}
-                  className={cn(
-                    "inline-flex h-7 w-7 items-center justify-center rounded",
-                    "transition-colors cursor-pointer",
-                    "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-midground/40",
-                    settingsOpen
-                      ? "text-midground bg-midground/10"
-                      : "text-midground/40 hover:text-midground/70",
-                  )}
-                >
-                  <Settings className="h-3.5 w-3.5" />
-                </button>
-              </div>
-
-              <SidebarFooter />
+        {/* ── Main content ── */}
+        <PageHeaderProvider pluginTabs={pluginTabMeta}>
+          <div
+            className={cn(
+              "relative z-2 flex min-w-0 min-h-0 flex-1 flex-col",
+              "px-3 sm:px-5 xl:px-8",
+              "pb-20 lg:pb-0",
+              isChatRoute ? "pt-1 sm:pt-2 lg:pt-3" : "pt-3 sm:pt-5 lg:pt-7",
+              isDocsRoute && "min-h-0 flex-1",
+            )}
+          >
+            <PluginSlot name="pre-main" />
+            <div className={cn("w-full min-w-0", (isDocsRoute || isChatRoute) && "min-h-0 flex flex-1 flex-col")}>
+              <Routes>
+                {routes.map(({ key, path, element }) => (
+                  <Route key={key} path={path} element={element} />
+                ))}
+                <Route path="*" element={<Navigate to="/sessions" replace />} />
+              </Routes>
             </div>
-          </aside>
-
-          {/* Main content */}
-          <PageHeaderProvider pluginTabs={pluginTabMeta}>
-            <div
-              className={cn(
-                "relative z-2 flex min-w-0 min-h-0 flex-1 flex-col",
-                "px-3 sm:px-6",
-                /* bottom padding for mobile bottom nav */
-                "pb-20 lg:pb-0",
-                isChatRoute
-                  ? "pt-1 sm:pt-2 lg:pt-4"
-                  : "pt-2 sm:pt-4 lg:pt-6",
-                isDocsRoute && "min-h-0 flex-1",
-              )}
-            >
-              <PluginSlot name="pre-main" />
-              <div
-                className={cn(
-                  "w-full min-w-0",
-                  (isDocsRoute || isChatRoute) && "min-h-0 flex flex-1 flex-col",
-                )}
-              >
-                <Routes>
-                  {routes.map(({ key, path, element }) => (
-                    <Route key={key} path={path} element={element} />
-                  ))}
-                  <Route path="*" element={<Navigate to="/sessions" replace />} />
-                </Routes>
-              </div>
-              <PluginSlot name="post-main" />
-            </div>
-          </PageHeaderProvider>
-        </div>
+            <PluginSlot name="post-main" />
+          </div>
+        </PageHeaderProvider>
       </div>
 
-      {/* Mobile bottom nav — replaces the old fixed top header */}
       <BottomNav onMore={() => setMobileOpen(true)} showChat={embeddedChat} />
-
       <PluginSlot name="overlay" />
     </div>
   );
@@ -609,20 +504,8 @@ function SidebarSystemActions({ onNavigate }: { onNavigate: () => void }) {
   const { activeAction, isBusy, isRunning, pendingAction, runAction } = useSystemActions();
 
   const items: SystemActionItem[] = [
-    {
-      action: "restart",
-      icon: RotateCw,
-      label: t.status.restartGateway,
-      runningLabel: t.status.restartingGateway,
-      spin: true,
-    },
-    {
-      action: "update",
-      icon: Download,
-      label: t.status.updateMercury,
-      runningLabel: t.status.updatingMercury,
-      spin: false,
-    },
+    { action: "restart", icon: RotateCw, label: t.status.restartGateway, runningLabel: t.status.restartingGateway, spin: true },
+    { action: "update", icon: Download, label: t.status.updateMercury, runningLabel: t.status.updatingMercury, spin: false },
   ];
 
   const handleClick = (action: SystemAction) => {
@@ -633,21 +516,17 @@ function SidebarSystemActions({ onNavigate }: { onNavigate: () => void }) {
   };
 
   return (
-    <div className="shrink-0 flex flex-col border-t border-current/10 py-1">
-      <span className="px-5 pt-0.5 pb-0.5 font-mondwest text-[0.58rem] tracking-[0.15em] uppercase opacity-30">
+    <div className="shrink-0 flex flex-col py-1" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <span className="px-4 pt-1.5 pb-0.5 text-[0.58rem] font-semibold tracking-[0.12em] uppercase text-midground/22">
         {t.app.system}
       </span>
-
       <SidebarStatusStrip />
-
-      <ul className="flex flex-col">
+      <ul className="flex flex-col gap-0.5">
         {items.map(({ action, icon: Icon, label, runningLabel, spin }) => {
           const isPending = pendingAction === action;
           const isActionRunning = activeAction === action && isRunning && !isPending;
           const busy = isPending || isActionRunning;
-          const displayLabel = isActionRunning ? runningLabel : label;
           const disabled = isBusy && !busy;
-
           return (
             <li key={action}>
               <button
@@ -656,38 +535,19 @@ function SidebarSystemActions({ onNavigate }: { onNavigate: () => void }) {
                 disabled={disabled}
                 aria-busy={busy}
                 className={cn(
-                  "group relative flex w-full items-center gap-3",
-                  "px-5 py-1.5",
-                  "font-mondwest text-[0.75rem] tracking-[0.1em]",
-                  "text-left whitespace-nowrap transition-opacity cursor-pointer",
-                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-midground",
-                  busy ? "text-midground opacity-100" : "opacity-50 hover:opacity-90",
-                  "disabled:cursor-not-allowed disabled:opacity-30",
+                  "group relative flex w-full items-center gap-2.5 mx-2 px-3 py-1.5 rounded-md",
+                  "text-[0.78rem] font-medium text-left whitespace-nowrap",
+                  "transition-all duration-150 cursor-pointer focus-visible:outline-none",
+                  busy ? "text-midground/90 bg-white/[0.03]" : "text-midground/35 hover:text-midground/65 hover:bg-white/[0.03]",
+                  "disabled:cursor-not-allowed disabled:opacity-25",
                 )}
               >
                 {isPending ? (
                   <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
                 ) : (
-                  <Icon
-                    className={cn(
-                      "h-3.5 w-3.5 shrink-0",
-                      isActionRunning && spin && "animate-spin",
-                      isActionRunning && !spin && "animate-pulse",
-                    )}
-                  />
+                  <Icon className={cn("h-3.5 w-3.5 shrink-0", isActionRunning && spin && "animate-spin", isActionRunning && !spin && "animate-pulse")} />
                 )}
-                <span className="truncate">{displayLabel}</span>
-                <span
-                  aria-hidden
-                  className="absolute inset-y-0.5 left-1.5 right-1.5 bg-midground opacity-0 pointer-events-none transition-opacity duration-200 group-hover:opacity-5"
-                />
-                {busy && (
-                  <span
-                    aria-hidden
-                    className="absolute left-0 top-0 bottom-0 w-px bg-midground"
-                    style={{ mixBlendMode: "plus-lighter" }}
-                  />
-                )}
+                <span className="truncate">{isActionRunning ? runningLabel : label}</span>
               </button>
             </li>
           );
@@ -697,7 +557,7 @@ function SidebarSystemActions({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-interface NavItem {
+interface NavItemDef {
   icon: ComponentType<{ className?: string }>;
   label: string;
   labelKey?: string;
