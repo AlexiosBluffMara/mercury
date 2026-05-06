@@ -24,9 +24,11 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CORTEX_URL = "http://localhost:8765"
+DEFAULT_CORTEX_URL = "http://localhost:8773"
 HTTP_TIMEOUT_S = 2.0
 CACHE_TTL_S = 5.0
+# Cortex serves /api/utilization at port 8773 (FastAPI server.py).
+# Older deployments used 8765; we kept the env override CORTEX_URL for those.
 
 # Approximate VRAM footprints (GB) for Gemma 4 variants on a 32 GB card.
 MODEL_FOOTPRINT_GB: dict[str, float] = {
