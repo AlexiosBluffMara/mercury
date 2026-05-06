@@ -11,9 +11,14 @@
 
 > One brain. One memory. Six doors — terminal, Discord, a web page, iMessage, email, your phone. The same agent answers, with the same memory, on hardware you own. No round-trips to anyone else's cloud.
 
-Submitted to the **[Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)** (Kaggle × Google DeepMind, Digital Equity track, May 18 2026) by **Alexios Bluff Mara LLC (dba Red Team Kitchen)** in association with Illinois State University.
+Submitted simultaneously to two hackathons:
 
-Fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT).
+- **[Nous Research Mercury Creative Hackathon](https://nousresearch.com)** — judged early May 2026. Mercury is a fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT) and the social-post bundle lives at [`docs/SUBMISSION_BUNDLE.md`](docs/SUBMISSION_BUNDLE.md).
+- **[Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)** (Kaggle × Google DeepMind, Digital Equity track, deadline May 18 2026). The technical write-up for Gemma 4 Good is at [`SUBMISSION_GEMMA4.md`](SUBMISSION_GEMMA4.md).
+
+Submitted by **Alexios Bluff Mara LLC (dba Red Team Kitchen)** in association with Illinois State University.
+
+Both submissions share the same code repo. The Nous story is **how Mercury was built** — Kimi K2.6 wrote the fork in 75 minutes for $22 of inference. The Gemma 4 Good story is **what Mercury runs in production** — Gemma 4 31B/26B-A4B/E4B locally for $0/month, with cloud burst on OpenRouter free tier. Same agent, two truths.
 
 ---
 

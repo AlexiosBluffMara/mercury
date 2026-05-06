@@ -1,15 +1,21 @@
-# Nous Hackathon — submission bundle
+# Mercury — Submission bundle (dual-target: Nous + Gemma 4 Good)
 
-Ready-to-post copy. Tweet variants, multi-platform video specs (Twitter,
-YouTube, TikTok, Instagram Reels, YouTube Shorts), Discord post + thread,
-and a copyright-safe demo-content guide.
+Ready-to-post copy for two parallel hackathon submissions:
+
+- **Nous Research Mercury Creative** — judged this week (early May 2026). Original target. The bundle below already covered this.
+- **Gemma 4 Good Hackathon (Kaggle × Google DeepMind)** — Digital Equity track, deadline 2026-05-18. Mercury is also being submitted here because the architecture (open-weight Gemma 4, local-first, $0 marginal cost) is exactly the Digital Equity story.
+
+The same code repo serves both. Wherever this doc says "Kimi K2.6" — that's the Nous-bundled story; the Gemma 4 Good story uses Gemma 4 31B/26B/E4B as the production stack. Both are true: Kimi K2.6 *built* the Mercury fork in 75 min, then Gemma 4 *runs* the production agent.
+
+> **For Gemma 4 Good evaluators:** the canonical write-up is `SUBMISSION_GEMMA4.md` at the repo root. This file is the social-post backstop.
 
 ---
 
 ## 1. Tweets
 
 All variants are emoji-free, under 280 chars, packed with the keywords X's
-search index loves (`Mercury Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`).
+search index loves (`Mercury Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`,
+`Gemma 4`, `Digital Equity`).
 
 > If you want to quote-retweet a Nous Research hackathon post for engagement,
 > open https://x.com/NousResearch and pick a recent hackathon-launch tweet
@@ -36,6 +42,19 @@ search index loves (`Mercury Agent`, `Kimi K2.6`, `RTX 5090`, `Nous Research`).
 > Submitting Mercury for the Mercury Creative track. One Kimi K2.6 brain on Nous Portal drove an entire fork: 14 commits in 75 minutes, $22.04 of K2.6 spend, six client surfaces, four custom skill domains, three nodes, one RTX 5090 in Chicago.
 >
 > github.com/AlexiosBluffMara/mercury
+
+### D — Gemma 4 Good submission tweet (Kaggle × Google DeepMind, Digital Equity)
+
+> Mercury — multi-modal AI tutor that runs Gemma 4 entirely on a teacher's MacBook. Discord, WhatsApp, terminal, web. Costs $0/month because Gemma 4 is open-weight. A school district using it pays only the electricity bill they already pay. Apache 2.0.
+>
+> @kaggle @GoogleDeepMind #Gemma4Good
+> github.com/AlexiosBluffMara/mercury
+
+### E — cross-hackathon thread opener (use both submissions in one shot)
+
+> The same agent ran both hackathons. Kimi K2.6 wrote the Mercury fork on Nous Portal in 75 min ($22). Then Gemma 4 31B/26B/E4B took over as the production stack: native vision+audio, 256K context, $0/month because open-weight. Local-first by design.
+>
+> @NousResearch @kaggle @GoogleDeepMind
 
 ### Tweet thread to follow whichever variant you posted (reply to your own tweet)
 
