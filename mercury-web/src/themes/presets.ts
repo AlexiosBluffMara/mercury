@@ -21,6 +21,22 @@ const SYSTEM_SANS =
 const SYSTEM_MONO =
   'ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace';
 
+/** Red Team Kitchen brand stack — matches the Cortex webapp. */
+const RTK_SANS =
+  '"Open Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
+const RTK_MONO =
+  '"JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace';
+const RTK_DISPLAY = '"PT Serif", Georgia, "Times New Roman", serif';
+
+const RTK_TYPOGRAPHY: ThemeTypography = {
+  fontSans: RTK_SANS,
+  fontMono: RTK_MONO,
+  fontDisplay: RTK_DISPLAY,
+  baseSize: "14px",
+  lineHeight: "1.55",
+  letterSpacing: "-0.005em",
+};
+
 const DEFAULT_TYPOGRAPHY: ThemeTypography = {
   fontSans: SYSTEM_SANS,
   fontMono: SYSTEM_MONO,
@@ -38,18 +54,21 @@ const DEFAULT_LAYOUT: ThemeLayout = {
 // Themes
 // ---------------------------------------------------------------------------
 
+/** Default dashboard theme — Red Team Kitchen brand language.
+ *  ISU Cardinal Red on near-black canvas with Open Sans body, matching
+ *  the Cortex webapp at D:/cortex/webapp/public. */
 export const defaultTheme: DashboardTheme = {
   name: "default",
-  label: "Mercury Teal",
-  description: "Classic dark teal — the canonical Mercury look",
+  label: "Red Team Kitchen",
+  description: "ISU cardinal red on near-black with Open Sans + PT Serif",
   palette: {
-    background: { hex: "#041c1c", alpha: 1 },
-    midground: { hex: "#ffe6cb", alpha: 1 },
+    background: { hex: "#0a0b0e", alpha: 1 },
+    midground: { hex: "#e6e8ee", alpha: 1 },
     foreground: { hex: "#ffffff", alpha: 0 },
-    warmGlow: "rgba(255, 189, 56, 0.35)",
-    noiseOpacity: 1,
+    warmGlow: "rgba(204, 0, 0, 0.20)",
+    noiseOpacity: 0.5,
   },
-  typography: DEFAULT_TYPOGRAPHY,
+  typography: RTK_TYPOGRAPHY,
   layout: DEFAULT_LAYOUT,
 };
 

@@ -1,10 +1,12 @@
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useState,
   useCallback,
   useRef,
 } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -219,7 +221,15 @@ function MessageBubble({
   );
 }
 
-/** Message list with auto-scroll to first search hit. */
+/** Message list with virtualized rendering for long threads.
+ *
+ * Below ~50 messages we render flat (cheaper than virtualization overhead).
+ * At 50+ we switch to @tanstack/react-virtual: only DOM-render the messages
+ * actually in the viewport + a small overscan. Keeps a 5,000-message thread
+ * scrolling at 60fps where a flat .map() would freeze the tab.
+ *
+ * Search-hit auto-scroll uses the virtualizer's measure API for precision.
+ */
 function MessageList({
   messages,
   highlight,
@@ -228,27 +238,94 @@ function MessageList({
   highlight?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const VIRTUALIZE_THRESHOLD = 50;
+  const virtualize = messages.length > VIRTUALIZE_THRESHOLD;
 
-  useEffect(() => {
-    if (!highlight || !containerRef.current) return;
-    // Scroll to first hit after render
-    const timer = setTimeout(() => {
-      const hit = containerRef.current?.querySelector("[data-search-hit]");
-      if (hit) {
-        hit.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 50);
-    return () => clearTimeout(timer);
+  // Find first search-hit index for scroll-on-mount
+  const firstHitIndex = useMemo(() => {
+    if (!highlight) return -1;
+    const terms = highlight.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return -1;
+    return messages.findIndex((m) =>
+      m.content && terms.some((t) => m.content!.toLowerCase().includes(t)),
+    );
   }, [messages, highlight]);
 
+  const virtualizer = useVirtualizer({
+    count: virtualize ? messages.length : 0,
+    getScrollElement: () => containerRef.current,
+    estimateSize: () => 120, // average bubble height; auto-corrects via measure
+    overscan: 6,
+  });
+
+  useEffect(() => {
+    if (!virtualize) {
+      // Non-virtualized path — old scroll-into-view
+      if (!highlight || !containerRef.current) return;
+      const timer = setTimeout(() => {
+        const hit = containerRef.current?.querySelector("[data-search-hit]");
+        if (hit) hit.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+    // Virtualized path — scroll to the indexed hit
+    if (firstHitIndex >= 0) {
+      const timer = setTimeout(() => {
+        virtualizer.scrollToIndex(firstHitIndex, { align: "center" });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [messages, highlight, virtualize, firstHitIndex, virtualizer]);
+
+  if (!virtualize) {
+    // Short threads — flat render is fine and cheaper
+    return (
+      <div
+        ref={containerRef}
+        className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin"
+      >
+        {messages.map((msg, i) => (
+          <MessageBubble key={i} msg={msg} highlight={highlight} />
+        ))}
+      </div>
+    );
+  }
+
+  // Virtualized — keeps DOM size constant regardless of thread length
+  const items = virtualizer.getVirtualItems();
   return (
     <div
       ref={containerRef}
-      className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-2"
+      className="max-h-[600px] overflow-y-auto pr-2 scrollbar-thin"
     >
-      {messages.map((msg, i) => (
-        <MessageBubble key={i} msg={msg} highlight={highlight} />
-      ))}
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: "100%",
+          position: "relative",
+        }}
+      >
+        {items.map((virt) => {
+          const msg = messages[virt.index];
+          return (
+            <div
+              key={virt.key}
+              data-index={virt.index}
+              ref={virtualizer.measureElement}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                transform: `translateY(${virt.start}px)`,
+                paddingBottom: 12, // matches gap-3 (12px) on the flat path
+              }}
+            >
+              <MessageBubble msg={msg} highlight={highlight} />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

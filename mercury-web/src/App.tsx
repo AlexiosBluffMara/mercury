@@ -217,9 +217,9 @@ function NavRow({
             "group relative flex items-center gap-2.5 mx-2 px-3 py-2 rounded-md",
             "text-[0.8rem] font-medium tracking-[-0.005em]",
             "whitespace-nowrap transition-all duration-150 cursor-pointer",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#6366f1]/40",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#CC0000]/40",
             isActive
-              ? "bg-gradient-to-r from-[rgba(99,102,241,0.12)] to-[rgba(139,92,246,0.08)] text-midground shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)]"
+              ? "bg-gradient-to-r from-[rgba(204,0,0,0.12)] to-[rgba(238,45,63,0.08)] text-midground shadow-[inset_0_0_0_1px_rgba(204,0,0,0.2)]"
               : "text-midground/45 hover:text-midground/80 hover:bg-white/[0.04]",
           )
         }
@@ -231,10 +231,10 @@ function NavRow({
               <span
                 aria-hidden
                 className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-r-full"
-                style={{ background: "linear-gradient(180deg, #6366f1, #8b5cf6)", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }}
+                style={{ background: "linear-gradient(180deg, #CC0000, #ee2d3f)", boxShadow: "0 0 6px rgba(204,0,0,0.7)" }}
               />
             )}
-            <Icon className={cn("h-3.5 w-3.5 shrink-0 transition-colors", isActive ? "text-[#818cf8]" : "text-midground/40 group-hover:text-midground/70")} />
+            <Icon className={cn("h-3.5 w-3.5 shrink-0 transition-colors", isActive ? "text-[#ff5060]" : "text-midground/40 group-hover:text-midground/70")} />
             <span className="truncate leading-none">{navLabel}</span>
           </>
         )}
@@ -254,7 +254,7 @@ function VisibilityToggle({ label, visible, onToggle }: { label: string; visible
       <span
         className={cn(
           "relative h-3.5 w-6 shrink-0 rounded-full transition-colors duration-200",
-          visible ? "bg-[#6366f1]/60" : "bg-white/10",
+          visible ? "bg-[#CC0000]/60" : "bg-white/10",
         )}
       >
         <span
@@ -322,7 +322,7 @@ export default function App() {
     <div
       data-layout-variant={layoutVariant}
       className="flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden text-midground antialiased"
-      style={{ background: "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.08), transparent), #080c12" }}
+      style={{ background: "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(204,0,0,0.08), transparent), #080c12" }}
     >
       <SelectionSwitcher />
       <Backdrop />
@@ -364,8 +364,8 @@ export default function App() {
                 aria-hidden
                 className="h-5 w-5 shrink-0 rounded-full"
                 style={{
-                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                  boxShadow: "0 0 12px rgba(99,102,241,0.5)",
+                  background: "linear-gradient(135deg, #CC0000, #ee2d3f)",
+                  boxShadow: "0 0 12px rgba(204,0,0,0.5)",
                 }}
               />
               <span
@@ -455,7 +455,7 @@ export default function App() {
                 className={cn(
                   "h-7 w-7 flex items-center justify-center rounded-md transition-all cursor-pointer focus-visible:outline-none",
                   settingsOpen
-                    ? "text-[#818cf8] bg-[#6366f1]/15"
+                    ? "text-[#ff5060] bg-[#CC0000]/15"
                     : "text-midground/30 hover:text-midground/60 hover:bg-white/[0.04]",
                 )}
               >

@@ -17,25 +17,30 @@ The full architecture and roadmap will live in `PLAN.md` (TODO). For
 upstream Mercury documentation, see `AGENTS.md` and the original `README.md`
 section.
 
-## Brains
+## Brains (current policy, 2026-05-06)
 
-Mercury routes turns across providers and escalates on demand. The default
-inference surface is now the Nous Portal (`nous-portal` custom provider in
-`~/.mercury/config.yaml`, key in `$NOUS_API_KEY`).
+Mercury runs Gemma 4 only — open-weight Apache-2.0 — and routes turns across
+two physical hosts plus one cloud failover. Copilot, Gemini, Kimi, and Nous
+Portal are present in the codebase as historical infrastructure (see
+`copilot_acp_client.py`, `kimi_dispatch.py`, etc.) but are not active brain
+providers in the current submission. The brain ladder is exactly three rungs:
 
-| Role | Model | Provider | Use |
+| Order | Host | Model | When |
 |---|---|---|---|
-| **Default coder** | `moonshotai/kimi-k2.6` | nous-portal | Long-horizon code-gen, refactors, the `kimi_dispatch.py` pipeline |
-| **Default planner** | `nousresearch/mercury-4-405b` | nous-portal | Agentic planning, tool selection, reasoning escalation |
-| Local memory ops | Gemma 4 E4B (`gemma4:e4b` Ollama) | local | Memory ops, vision-gating, classification, fast WhatsApp/Discord replies |
-| Cortex narration | Gemma 4 26B (`gemma4:26b` Ollama) | local | Cortex narration tiers 0–2 |
-| Vision fallback | GPT-4o (Copilot) | copilot | When Gemma 4 unavailable |
-| Reasoning fallback | Sonnet 4.6 / GPT-5.4 (Copilot) | copilot | Hard reasoning when Mercury 4 / Kimi rate-limited |
-| Long context | Gemini 2.5 Pro (`google-genai`) | gemini | Multi-hundred-K-token escalation |
+| 1 | **Seratonin** (RTX 5090, 32 GB) | `gemma4:e4b` via Ollama (194 tok/s) | Default fast path. Hot 24/7. |
+| 1 | **Big Apple** (M4 Max, 48 GB) | `unsloth/gemma-4-{E4B,26B-A4B,31B}-it-UD-MLX-4bit` via mlx-vlm | Multimodal (E4B audio+vision), deep reasoning (31B), heavy MoE (26B) |
+| 2 | **Seratonin** (gaming-mode swap) | If Soumit's playing a game on the 5090, fast-path flips to Big Apple E4B automatically (`scripts/seratonin_gaming_watch.py`) | |
+| 3 | **OpenRouter** `:free` | `google/gemma-4-{e4b,26b-a4b,31b}-it:free` | Final fallback only when both Seratonin AND Big Apple are unreachable. 1000 reqs/day cap. Paid pool gated behind `--allow-paid`. |
 
-Routing lives in `mercury/router.py` (TODO). Override slash commands:
-`/model nous-portal:moonshotai/kimi-k2.6`, `/brain copilot`, `/brain gemma`,
-`/brain auto`.
+Routing lives in `dual_mode` + `failover` in `~/.mercury/config.yaml`. Live
+provider health visible via `python3 scripts/infra_status.py`.
+
+**Why no Copilot/Gemini/Kimi/Nous-Portal as brains:** the Gemma 4 Good
+submission is built on the local-first + open-weight + Apache-2.0 story.
+Routing user prompts through closed-weight models would defeat that. The
+Copilot scaffolding stays in tree because (a) it cost a non-trivial amount
+to build, (b) future post-deadline work may re-enable it as a developer-only
+tool for Mercury's dev workflow (kept off the user-facing path).
 
 ## Claude→Kimi orchestration workflow
 

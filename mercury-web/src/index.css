@@ -4,9 +4,9 @@
 /* Scan the published design-system bundle so its utility classes survive Tailwind's JIT purge. */
 @source '../node_modules/@nous-research/ui/dist';
 
-/* ── Inter — premium UI font loaded from Google Fonts CDN.
-   Falls back to system UI stack when offline (local dev still looks great). ── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+/* ── Open Sans + PT Serif — Red Team Kitchen brand fonts (matches Cortex).
+   Open Sans for UI, PT Serif for hero headings, JetBrains Mono for code. ── */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ── JetBrains Mono — bundled for the embedded TUI (/chat). ── */
 @font-face {
@@ -31,63 +31,84 @@
   src: url('/fonts-terminal/JetBrainsMono-Italic.woff2') format('woff2');
 }
 
-/* ── Mercury Premium — deep space palette with indigo accent.
-   Night-mode first, glassmorphism sidebar, multi-layer shadows. ── */
+/* ── Mercury — Red Team Kitchen brand language.
+   Matches the Cortex webapp design tokens (ISU Cardinal Red on near-black,
+   Open Sans UI, PT Serif display, JetBrains Mono for code). ── */
 :root {
-  /* Core palette */
+  /* Core palette — matches D:/cortex/webapp/public/index.html and style.css */
   --foreground: color-mix(in srgb, #ffffff 0%, transparent);
   --foreground-base: #ffffff;
   --foreground-alpha: 0;
-  --midground: color-mix(in srgb, #c8d3e0 100%, transparent);
-  --midground-base: #c8d3e0;
+
+  /* Mid-tone "ink" — RTK uses #e6e8ee as primary text on dark surfaces. */
+  --midground: color-mix(in srgb, #e6e8ee 100%, transparent);
+  --midground-base: #e6e8ee;
   --midground-alpha: 1;
-  --background: color-mix(in srgb, #080c12 100%, transparent);
-  --background-base: #080c12;
+
+  /* Backgrounds — Cortex uses #0a0b0e (apex) + #131722 (elevated) */
+  --background: color-mix(in srgb, #0a0b0e 100%, transparent);
+  --background-base: #0a0b0e;
   --background-alpha: 1;
+  --surface-1: #11131a;     /* one step up from bg */
+  --surface-2: #131722;     /* elevated panels */
+  --surface-3: #1a1f2c;     /* hover states */
 
-  /* Premium accent — indigo-violet */
-  --accent-hue: 245;
-  --accent-color: #6366f1;
-  --accent-glow: rgba(99, 102, 241, 0.20);
-  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --accent-gradient-subtle: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%);
+  /* RTK accent — ISU Cardinal Red (#CC0000), per designsystem.illinoisstate.edu */
+  --accent-color: #CC0000;
+  --accent-strong: #ee2d3f;
+  --accent-deep: #9c0d1d;
+  --accent-glow: rgba(204, 0, 0, 0.25);
+  --accent-gradient: linear-gradient(135deg, #CC0000 0%, #ee2d3f 100%);
+  --accent-gradient-subtle: linear-gradient(135deg, rgba(204,0,0,0.12) 0%, rgba(238,45,63,0.10) 100%);
 
-  /* Backdrop glow — subtler blue-indigo pulse */
-  --warm-glow: rgba(99, 102, 241, 0.18);
-  --noise-opacity-mul: 0.6;
+  /* Status colors — match Cortex */
+  --color-good-base: #6ee7a4;
+  --color-warn-base: #ffb86c;
+  --color-bad-base: #ff7b7b;
 
-  /* Typography — Inter UI */
-  --theme-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Display',
-    'Segoe UI', system-ui, Helvetica, Arial, sans-serif;
+  /* Borders — match Cortex */
+  --border-base: #262834;
+  --border-strong: #383a47;
+
+  /* Backdrop glow — subtle red pulse on the radial backdrop */
+  --warm-glow: rgba(204, 0, 0, 0.16);
+  --noise-opacity-mul: 0.5;
+
+  /* Typography — Open Sans body + PT Serif display + JetBrains Mono code */
+  --theme-font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    Helvetica, Arial, sans-serif;
   --theme-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
-  --theme-font-display: 'Inter', var(--theme-font-sans);
+  --theme-font-display: 'PT Serif', Georgia, 'Times New Roman', serif;
   --theme-base-size: 14px;
-  --theme-line-height: 1.6;
-  --theme-letter-spacing: -0.01em;
+  --theme-line-height: 1.55;
+  --theme-letter-spacing: -0.005em;
 
-  /* Layout */
-  --radius: 0.625rem;
-  --theme-radius: 0.625rem;
+  /* Layout — RTK favors tighter rectangles than the previous indigo round-everything */
+  --radius: 0.5rem;          /* 8px — matches Cortex's --radius: 10px tighter side */
+  --theme-radius: 0.5rem;
   --theme-spacing-mul: 1;
   --theme-density: comfortable;
 
-  /* Glass effect tokens */
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.07);
-  --glass-blur: 16px;
+  /* Surface tokens (replaces the glass-only approach) */
+  --surface-bg: var(--surface-1);
+  --surface-border: var(--border-base);
+  --surface-hover: var(--surface-3);
+  --glass-bg: rgba(19, 23, 34, 0.75);    /* surface-2 with translucency */
+  --glass-border: rgba(56, 58, 71, 0.55);
+  --glass-blur: 12px;
 
-  /* Shadow system */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
-  --shadow-xl: 0 16px 48px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.07);
-  --shadow-accent: 0 0 24px rgba(99,102,241,0.25), 0 4px 12px rgba(0,0,0,0.5);
+  /* Shadow system — flatter, redder accent ring */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4), 0 0 0 1px var(--border-base);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.35), 0 0 0 1px var(--border-base);
+  --shadow-lg: 0 8px 28px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.35), 0 0 0 1px var(--border-strong);
+  --shadow-xl: 0 16px 44px rgba(0,0,0,0.65), 0 8px 20px rgba(0,0,0,0.45), 0 0 0 1px var(--border-strong);
+  --shadow-accent: 0 0 24px rgba(204,0,0,0.22), 0 4px 12px rgba(0,0,0,0.5);
 
-  /* Sidebar component tokens */
+  /* Sidebar component tokens — match Cortex sidebar treatment */
   --component-sidebar-background: linear-gradient(180deg,
-    rgba(12,16,24,0.97) 0%,
-    rgba(8,12,20,0.98) 100%);
-  --component-header-background: rgba(8,12,20,0.92);
+    rgba(11, 13, 18, 0.98) 0%,
+    rgba(10, 11, 14, 0.99) 100%);
+  --component-header-background: rgba(11, 13, 18, 0.95);
 }
 
 html {
@@ -117,6 +138,23 @@ code, kbd, pre, samp, .font-mono, .font-mono-ui {
   font-family: var(--theme-font-mono);
 }
 
+/* RTK theme override: redirect Nous DS font classes to our brand fonts.
+   font-mondwest is used pervasively by upstream components — instead of
+   rewriting every component, we hijack the class at the CSS level. */
+.font-mondwest, .font-courier {
+  font-family: var(--theme-font-sans) !important;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+/* Brand-only display text (e.g. the "Mercury" sidebar title) — keep this
+   distinctive with PT Serif so the brand mark reads more refined than the
+   utilitarian body. Apply via `.font-brand` explicitly where needed. */
+.font-brand {
+  font-family: var(--theme-font-display) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
 /* ── Tailwind spacing scale ── */
 @theme inline {
   --spacing: calc(0.25rem * var(--theme-spacing-mul, 1));
@@ -129,27 +167,27 @@ code, kbd, pre, samp, .font-mono, .font-mono-ui {
   overflow: hidden;
 }
 
-/* ── Shadcn-compat tokens ── */
+/* ── Shadcn-compat tokens, mapped to the RTK palette ── */
 @theme inline {
   --color-foreground: var(--midground);
-  --color-card: color-mix(in srgb, var(--midground-base) 4%, var(--background-base));
+  --color-card: var(--surface-1);
   --color-card-foreground: var(--midground);
   --color-primary: var(--midground);
   --color-primary-foreground: var(--background-base);
-  --color-secondary: color-mix(in srgb, var(--midground-base) 5%, var(--background-base));
+  --color-secondary: var(--surface-2);
   --color-secondary-foreground: var(--midground);
-  --color-muted: color-mix(in srgb, var(--midground-base) 7%, var(--background-base));
-  --color-muted-foreground: color-mix(in srgb, var(--midground-base) 45%, transparent);
-  --color-accent: color-mix(in srgb, #6366f1 12%, var(--background-base));
+  --color-muted: var(--surface-1);
+  --color-muted-foreground: #8b8d96;            /* matches Cortex --muted */
+  --color-accent: color-mix(in srgb, var(--accent-color) 14%, var(--background-base));
   --color-accent-foreground: var(--midground);
-  --color-destructive: #ef4444;
+  --color-destructive: var(--color-bad-base);
   --color-destructive-foreground: #ffffff;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-border: color-mix(in srgb, var(--midground-base) 10%, transparent);
-  --color-input: color-mix(in srgb, var(--midground-base) 10%, transparent);
-  --color-ring: #6366f1;
-  --color-popover: color-mix(in srgb, var(--midground-base) 3%, var(--background-base));
+  --color-success: var(--color-good-base);
+  --color-warning: var(--color-warn-base);
+  --color-border: var(--border-base);
+  --color-input: var(--border-base);
+  --color-ring: var(--accent-color);             /* focus rings now ISU red */
+  --color-popover: var(--surface-2);
   --color-popover-foreground: var(--midground);
 
   --radius-sm: calc(var(--theme-radius) - 4px);

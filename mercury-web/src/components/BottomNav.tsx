@@ -51,15 +51,15 @@ export function BottomNav({ onMore, showChat }: BottomNavProps) {
               <span
                 className="relative flex items-center justify-center"
                 style={isActive ? {
-                  filter: "drop-shadow(0 0 6px rgba(99,102,241,0.5))",
+                  filter: "drop-shadow(0 0 6px rgba(204,0,0,0.5))",
                 } : undefined}
               >
-                <Icon className={cn("h-5 w-5 shrink-0 transition-colors", isActive && "text-[#818cf8]")} />
+                <Icon className={cn("h-5 w-5 shrink-0 transition-colors", isActive && "text-[#ff5060]")} />
                 {isActive && (
                   <span
                     aria-hidden
                     className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full"
-                    style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }}
+                    style={{ background: "linear-gradient(90deg, #CC0000, #ee2d3f)", boxShadow: "0 0 6px rgba(204,0,0,0.7)" }}
                   />
                 )}
               </span>
