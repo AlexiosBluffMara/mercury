@@ -20,6 +20,19 @@ Submitted by **Alexios Bluff Mara LLC (dba Red Team Kitchen)** in association wi
 
 Both submissions share the same code repo. The Nous story is **how Mercury was built** — Kimi K2.6 wrote the fork in 75 minutes for $22 of inference. The Gemma 4 Good story is **what Mercury runs in production** — Gemma 4 31B/26B-A4B/E4B locally for $0/month, with cloud burst on OpenRouter free tier. Same agent, two truths.
 
+> **Just want to try it?** [`GET_STARTED.md`](GET_STARTED.md) is three commands from clone to chat. No API key required for local-only mode.
+
+> **Judging?** Start at [`SUBMISSION_GEMMA4.md`](SUBMISSION_GEMMA4.md). The technical writeup is the canonical entry point.
+
+> **What's in `docs/`?**
+> - [`HACKATHON_COSTS_2026-05-06.md`](docs/HACKATHON_COSTS_2026-05-06.md) — line-item cost analysis vs API-only competitors
+> - [`CLOUD_REPLICATION_2026-05-06.md`](docs/CLOUD_REPLICATION_2026-05-06.md) — full cloud-mirror architecture, per-tier pricing, failover patterns
+> - [`GEMMA4_UPDATE_2026-05-06.md`](docs/GEMMA4_UPDATE_2026-05-06.md) — engineering notes on Apr 11 chat template fix, May 6 MTP drafters, measured speedups (and one honest negative result)
+> - [`SELF_UPDATE_LOOP_2026-05-06.md`](docs/SELF_UPDATE_LOOP_2026-05-06.md) — how Mercury uses its 1000 free OpenRouter reqs/day for nightly self-improvement
+> - [`MERCURY_CORTEX_CONTRACT.md`](docs/MERCURY_CORTEX_CONTRACT.md) — how Mercury and Cortex share the same RTX 5090
+> - [`SUBMISSION_BUNDLE.md`](docs/SUBMISSION_BUNDLE.md) — social-post copy for both Nous and Gemma 4 Good
+> - [`SUBMISSION_READINESS_2026-05-06.md`](docs/SUBMISSION_READINESS_2026-05-06.md) — internal punchlist (open for judges who want to see how the sausage is made)
+
 ---
 
 ## The Six-Door Office — how Mercury works
@@ -39,7 +52,18 @@ Walk through any door, and you're talking to the same person. Tell it something 
 
 **Skills, not prompts.** Mercury ships with four specialist skill sets that compose tools out of a five-source data layer (filesystem, web search, browser MCP, Python exec, knowledge graph). The dispatcher auto-loads the right skill by domain context — no `/skill` slash commands, no manual routing. Add a fifth skill tomorrow without touching the agent loop.
 
-**Local by default, cloud on demand.** When the 5090 is busy or offline, Mercury falls over to Google Cloud Run with the same Gemma 4 model. When it's back, the local path resumes automatically. You never see the cutover.
+**Local by default, cloud on demand.** When local is unreachable Mercury falls over to OpenRouter's `:free` Gemma 4 tier (1000 reqs/day on a $10+ account, 50 otherwise). The paid OpenRouter tier is gated behind `--allow-paid` and a daily `$0.50` cap so the agent can never silently burn the credit pool. When local is back, the failover unwinds automatically. You never see the cutover.
+
+**Measured throughput** (M4 Max + RTX 5090, Big Apple + Seratonin in the same Tailnet, 596-token essay generation, 3-trial avg):
+
+| Endpoint | Tok/s | Notes |
+|---|---|---|
+| RTX 5090 / Ollama / `gemma4:e4b` | ~194 | Fastest path, CUDA |
+| M4 Max / mlx-vlm / E4B (vanilla) | 94 | Multimodal hot path |
+| M4 Max / mlx-vlm / E4B (MTP, block=3) | 75 | 0.80× of vanilla — measured negative result, see docs |
+| M4 Max / mlx-vlm / 26B-A4B | 78 | MoE, 4B active |
+| M4 Max / mlx-vlm / 31B | 32 | Deep reasoning |
+| OpenRouter `:free` / 26B | ~50 (WAN) | Free fallback, 1000/day cap |
 
 ---
 
