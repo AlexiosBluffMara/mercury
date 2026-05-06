@@ -5,6 +5,19 @@
 **Repo:** [github.com/AlexiosBluffMara/mercury](https://github.com/AlexiosBluffMara/mercury) · [github.com/AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex)
 **Submission deadline:** 2026-05-18
 
+## Visual tour (auto-captured 2026-05-06)
+
+Every link in this writeup was browser-clicked through Patchright headless Chromium, screenshotted, and saved to `assets/screenshots/`. The link audit (274 unique URLs) and full screenshot inventory live in [`docs/VALIDATION_REPORT_2026-05-06.md`](docs/VALIDATION_REPORT_2026-05-06.md).
+
+| | |
+|---|---|
+| ![Mercury repo](assets/screenshots/01_mercury_github_repo.png) | ![Submission rendering](assets/screenshots/03_submission_gemma4.png) |
+| Mercury GitHub repo (Apache-2.0, public) | This writeup as a judge sees it |
+| ![GET_STARTED](assets/screenshots/04_get_started.png) | ![Mercury×Cortex contract](assets/screenshots/05_mercury_cortex_contract.png) |
+| Three-command teacher onboarding | The Mercury × Cortex shared-GPU contract |
+| ![Cortex live demo](assets/screenshots/12_cortex_live_demo.png) | ![Mercury WebUI mobile](assets/screenshots/19_mercury_webui_mobile.png) |
+| Cortex live demo at `cortex.redteamkitchen.com` | WebUI at iPhone-sized 390×844 viewport |
+
 ## TL;DR
 
 Mercury is an open-source multimodal agent that runs Gemma 4 entirely on a teacher's MacBook or a single consumer GPU, then talks to students through Discord, WhatsApp, the terminal, or a phone — whatever they have access to. It costs **$0/month** to run because Gemma 4 is open-weight and we self-host on consumer hardware. A school district that adopted it would pay only the electricity bill they already pay.
