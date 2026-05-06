@@ -47,18 +47,45 @@ Speculative decoding via paired drafter models gives a measured 1.42× wall-cloc
 - Drafter: `google/gemma-4-E4B-it-assistant` (HF transformers format, auto-converted to MLX by mlx-vlm at load time)
 - launchd job: `~/Library/LaunchAgents/ai.mercury.mlx-e4b-mtp.plist` (port 8083, KeepAlive)
 
-**Measured baseline vs MTP** (CLI `mlx_vlm.generate`, prompt `"Count from 1 to 20."`, max_tokens=80, temp=0):
+**Measured baseline vs MTP — initial CLI bench** (`mlx_vlm.generate`, prompt `"Count from 1 to 20."`, max_tokens=80, temp=0):
 
 | | Wall-clock | Generation tps | Prompt tps | Peak memory | Spec rounds |
 |---|---|---|---|---|---|
 | Baseline (no drafter) | 6.02s | 97.78 t/s | 16.50 t/s | 6.65 GB | n/a |
-| MTP (Google drafter, block=6) | **4.25s** | 73.10 t/s* | 338.83 t/s | 6.81 GB | 22 rounds, 2.27 accepted/round |
+| MTP (Google drafter, block=6) | **4.25s** | 73.10 t/s | 338.83 t/s | 6.81 GB | 22 rounds, 2.27 accepted/round |
 
-\* Generation tps reads lower because mlx-vlm's metric counts only validated tokens divided by total time, but the *wall-clock* improvement is the truth: ~30% faster end-to-end on this prompt.
+The CLI bench showed 30% wall-clock improvement on this specific prompt. **However**, server-mode benchmarks against longer prompts told a different story.
 
-**Why mlx-vlm and not vLLM:** vLLM 0.20.1 explicitly raises `NotImplementedError: Speculative Decoding with draft models or parallel drafting does not support multimodal models yet`. Since Gemma 4 E4B is multimodal (text + image + audio), vLLM is incompatible with the MTP path for our model. mlx-vlm 0.5.0 is the only stack that supports MTP + Gemma 4 multimodal today.
+### Server-mode measurement — MTP is a NET LOSS in this config
 
-**Why not 26B/31B + MTP:** the mlx-vlm drafter docs require BF16 targets. BF16 26B is ~52 GB; BF16 31B is ~62 GB. Big Apple has 48 GB unified memory. Neither fits. The 4-bit Unsloth target works for E4B (BF16 ~9 GB) but not the larger sizes. Future option: try 8-bit/6-bit targets if mlx-vlm relaxes the BF16 requirement.
+Long-prompt eval (3-trial avg, 400-word essay generation, 596 tokens output, max_tokens=600):
+
+| Endpoint | Wall-clock | Effective tok/s | Ratio vs baseline |
+|---|---|---|---|
+| Vanilla E4B (port 8080, no drafter) | **5.94s avg** | **94 tok/s** | **1.00× (baseline)** |
+| MTP block=6 (port 8083) | 10.82s avg | 57 tok/s | 0.61× (slower!) |
+| MTP block=3 (port 8083) | 7.96s avg | 75 tok/s | 0.80× (still slower) |
+
+**Conclusion: in our stack (M4 Max + mlx-vlm 0.5.0 + Unsloth 4-bit target + Google BF16 drafter), MTP introduces 20-40% wall-clock overhead vs the vanilla E4B server.**
+
+### Why MTP is slower here (likely root causes)
+
+1. **Drafter overhead exceeds acceptance benefit.** 0.5B drafter forward + 6 spec checks per round costs more than the round saves at 38% acceptance rate.
+2. **Mixed-precision misalignment.** Drafter docs require BF16 target; we used Unsloth 4-bit. The drafter's logits guide the 4-bit target's sampling well enough to count as "accepted" only ~38% of the time.
+3. **mlx-vlm 0.5.0 is git-main-only.** Released bug fixes likely improve this. Worth re-measuring when 0.5.x or 0.6.x ships to PyPI.
+4. **E4B's per-layer-token-embedding (PLE) routing makes each draft token less predictable than dense models — likely lower acceptance rate than 31B dense would have.**
+
+### Decision: ship without MTP in the hot path
+
+`dual_mode.fast` routes through port 8080 (vanilla E4B, 94 tok/s). MTP server stays running on port 8083 as a third-tier failover for situations where 8080 and Seratonin Ollama are both down. Documented as a measured negative result rather than dropped — judges should see we tried it, measured it, and made an evidence-based call.
+
+### Why mlx-vlm and not vLLM
+
+vLLM 0.20.1 explicitly raises `NotImplementedError: Speculative Decoding with draft models or parallel drafting does not support multimodal models yet`. Since Gemma 4 E4B is multimodal (text + image + audio), vLLM is incompatible with the MTP path for our model. mlx-vlm 0.5.0 is the only stack that supports MTP + Gemma 4 multimodal today, even if the speedup didn't materialize for our specific config.
+
+### Why not 26B/31B + MTP
+
+The mlx-vlm drafter docs require BF16 targets. BF16 26B is ~52 GB; BF16 31B is ~62 GB. Big Apple has 48 GB unified memory. Neither fits. The 4-bit Unsloth target works for E4B (BF16 ~9 GB) but not the larger sizes. Open question: with a BF16 target where the drafter logits should be perfectly aligned, MTP might actually win — but we can't test it without first solving the memory budget.
 
 ## Topology after this update
 

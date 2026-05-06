@@ -78,29 +78,39 @@ Observability: Hue lights green/amber/red on agent activity ("ambient AI" — ki
 
 ## What runs where (current state)
 
-| Component | Hardware | Cost | Latency p50 |
+| Component | Hardware | Cost | Effective tok/s |
 |---|---|---|---|
-| Gemma 4 E4B (multimodal + audio) | M4 Max via mlx-vlm port 8080 | $0 | 12 ms LAN |
-| **Gemma 4 E4B + MTP drafter** | **M4 Max via mlx-vlm port 8083** | **$0** | **~30% faster wall-clock vs 8080** |
-| Gemma 4 26B-A4B (MoE, 4B active) | M4 Max via mlx-vlm port 8081 | $0 | 18 ms LAN |
-| Gemma 4 31B (deep reasoning) | M4 Max via mlx-vlm port 8082 | $0 | 22 ms LAN |
-| Gemma 4 E4B fast | RTX 5090 via Ollama 0.23.1 | $0 | 7 ms LAN |
-| TRIBE v2 (cortex specialist) | RTX 5090 via Ollama, fine-tune of Gemma 4 E4B | $0 | 9 ms LAN |
-| `embeddinggemma:300m` retrieval | RTX 5090 via Ollama | $0 | 4 ms LAN |
-| Cloud fall-back | OpenRouter `:free` Gemma 4 26B | $0 (1000/day cap) | 600-900 ms WAN |
+| Gemma 4 E4B (multimodal + audio, hot path) | M4 Max via mlx-vlm port 8080 | $0 | **94 tok/s** |
+| Gemma 4 E4B + MTP drafter (experimental) | M4 Max via mlx-vlm port 8083 | $0 | 75 tok/s (slower, see below) |
+| Gemma 4 26B-A4B (MoE, 4B active) | M4 Max via mlx-vlm port 8081 | $0 | ~78 tok/s |
+| Gemma 4 31B (deep reasoning) | M4 Max via mlx-vlm port 8082 | $0 | ~32 tok/s |
+| Gemma 4 E4B fast | RTX 5090 via Ollama 0.23.1 | $0 | ~194 tok/s |
+| TRIBE v2 (cortex specialist) | RTX 5090 via Ollama, fine-tune of Gemma 4 E4B | $0 | ~190 tok/s |
+| `embeddinggemma:300m` retrieval | RTX 5090 via Ollama | $0 | n/a |
+| Cloud fall-back | OpenRouter `:free` Gemma 4 26B | $0 (1000/day cap) | ~50 tok/s WAN |
 
-### MTP — speculative decoding shipped 2026-05-06
+### MTP — measured negative result (intellectually honest finding)
 
-Pairing the official Google drafter (`google/gemma-4-E4B-it-assistant`, 0.5B params) with the Unsloth 4-bit target (`unsloth/gemma-4-E4B-it-UD-MLX-4bit`) via mlx-vlm 0.5.0's `--draft-kind mtp` gives a **measured 1.42× wall-clock speedup** on E4B with 38% draft-acceptance rate (2.27 of 6 tokens accepted per round on average), all while preserving the multimodal pipeline (text + image + audio).
+We integrated MTP per Google's May 6, 2026 drafter announcement. We paired the **official Google drafter** (`google/gemma-4-E4B-it-assistant`, 0.5B params, BF16) with the Unsloth 4-bit target (`unsloth/gemma-4-E4B-it-UD-MLX-4bit`) via mlx-vlm 0.5.0's `--draft-kind mtp`. We measured at multiple block sizes.
 
-This is significant because **vLLM 0.20.1 explicitly does NOT support speculative decoding on multimodal models** (`NotImplementedError`). Our submission ships MTP because we picked the only stack that supports it today: mlx-vlm on M-series Macs.
+**Result: in our specific hardware/library combo, MTP introduced 20-40% wall-clock overhead vs the vanilla E4B server.** Long-prompt 400-word essay generation, 3-trial avg:
+
+- Vanilla E4B (port 8080): 5.94s avg, **94 tok/s**
+- MTP block=6 (port 8083): 10.82s avg, 57 tok/s (0.61× of baseline)
+- MTP block=3 (port 8083): 7.96s avg, 75 tok/s (0.80× of baseline)
+
+Why this is a stronger story for the submission than just claiming a speedup: **we ran the experiment, the data said no, and we made the evidence-based call to keep MTP off the hot path.** The MTP server stays on port 8083 as a documented third-tier failover — judges can hit it directly to verify our measurements.
+
+Likely root cause: the drafter docs require BF16 targets, but BF16 26B/31B don't fit in the 5090's 32 GB or Big Apple's 48 GB unified memory; we used the only target that fits (Unsloth 4-bit). The mixed-precision logits limit acceptance rate to 38%, and the drafter forward pass costs more than 38%-acceptance saves. Worth retesting when mlx-vlm releases a more optimized speculative-decoding implementation, or when target weights of size that allow BF16 on consumer hardware exist.
+
+This is the only path we tried that supports speculative decoding + multimodal Gemma 4 — vLLM 0.20.1 explicitly raises `NotImplementedError` for that combination. The honest result is the result.
 
 ## Why this hybrid is good (judging criteria: technical depth)
 
 1. **Local first, cloud second, paid never.** Mercury's `custom_providers` list is ordered. The router walks it on every request: local LAN → cloud free → cloud paid (locked behind explicit flag). 95%+ of traffic hits a free path; the paid path exists only as a last resort and has hard daily/monthly caps in config.
 2. **Failure isolation across three machines.** WSL2 process crash → MLX still serves. Big Apple launchd dies → Seratonin Ollama covers. Both LAN nodes off → OpenRouter free picks up. Internet down → Pixel Fold's local NPU still answers most questions.
 3. **Cost predictability.** A judge testing the demo at 100 prompts × 3 evaluators = 300 sessions costs us $0. Same demo on a Vertex Gemma rate would burn ~$60. That gap *is* the Digital Equity argument expressed in dollars.
-4. **MTP shipped, not aspirational.** mlx-vlm 0.5.0 (installed from `git+https://github.com/Blaizzy/mlx-vlm.git@main`, not yet on PyPI) supports `--draft-kind mtp` and `--draft-block-size`. Big Apple port 8083 runs the official Google drafter `google/gemma-4-E4B-it-assistant` paired with the Unsloth 4-bit target. Measured 1.42× wall-clock speedup, 38% acceptance rate, multimodal preserved, $0 marginal cost. We're aware that vLLM 0.20.1 raises `NotImplementedError` for spec-decode on multimodal models — we picked mlx-vlm precisely because it's the only stack that supports MTP + Gemma 4 multimodal today.
+4. **MTP integrated and measured.** mlx-vlm 0.5.0 (git main) supports `--draft-kind mtp` for multimodal Gemma 4 — the only stack that does (vLLM 0.20.1 raises `NotImplementedError` for the combination). Big Apple port 8083 runs the official Google drafter `google/gemma-4-E4B-it-assistant` paired with the Unsloth 4-bit target. **Measured 0.61-0.80× of baseline tok/s** at block sizes 6 and 3 respectively — a *negative* result we document honestly. The vanilla E4B server at 94 tok/s wins the hot path. MTP stays on as a third-tier failover so judges can verify the measurement. The likely fix (BF16 target weights, when consumer hardware can fit them) is post-deadline.
 
 ## Reproducibility (judging criteria: technical execution)
 
@@ -143,7 +153,7 @@ Numbers based on Vertex AI Gemma 3 27B managed pricing (Gemma 4 isn't on the man
 
 ## Roadmap (post-May 18)
 
-1. ~~MTP speculative decoding wired into mlx-vlm port 8083~~ — **shipped 2026-05-06**, measured 1.42× wall-clock speedup with 38% acceptance rate. Going forward, watch for mlx-vlm support of larger-target MTP (currently bf16-only target requirement excludes 26B/31B which won't fit Big Apple's 48 GB unified memory).
+1. **Re-test MTP** when mlx-vlm 0.6.x ships, or when an A100-class machine can host a BF16 target. Current measurement: 0.61-0.80× of baseline; we want to verify whether the cause is mixed-precision drafter alignment or a fixable mlx-vlm bottleneck.
 2. **Modal A100 cloud-mirror** — for the ≤5% of traffic that arrives when local is unreachable. ~$8/mo at 1k req/day.
 3. **TRIBE v2 cloud offload** to HuggingFace Inference Endpoints — shipped with `wrangler r2 cp` of the GGUF and a one-line Mercury config update.
 4. **Cloudflare Workers AI for embeddings** — drops embedding latency on cloud path from 600 ms → 80 ms.
