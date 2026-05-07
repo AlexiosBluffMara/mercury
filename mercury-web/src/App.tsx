@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -43,7 +45,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { SelectionSwitcher, Typography } from "@nous-research/ui";
+import { SelectionSwitcher } from "@nous-research/ui";
 import { cn } from "@/lib/utils";
 import { Backdrop } from "@/components/Backdrop";
 import { BottomNav } from "@/components/BottomNav";
@@ -54,17 +56,17 @@ import { useSystemActions } from "@/contexts/useSystemActions";
 import type { SystemAction } from "@/contexts/system-actions-context";
 import { useNavVisibility, ALL_TOGGLEABLE_SECTIONS } from "@/hooks/useNavVisibility";
 import type { NavSection } from "@/hooks/useNavVisibility";
-import ConfigPage from "@/pages/ConfigPage";
-import DocsPage from "@/pages/DocsPage";
-import EnvPage from "@/pages/EnvPage";
 import SessionsPage from "@/pages/SessionsPage";
-import LogsPage from "@/pages/LogsPage";
-import AnalyticsPage from "@/pages/AnalyticsPage";
-import CronPage from "@/pages/CronPage";
-import SkillsPage from "@/pages/SkillsPage";
 import ChatPage from "@/pages/ChatPage";
-import BrainsPage from "@/pages/BrainsPage";
-import CortexOverlayPage from "@/pages/CortexOverlayPage";
+const ConfigPage  = lazy(() => import("@/pages/ConfigPage"));
+const DocsPage    = lazy(() => import("@/pages/DocsPage"));
+const EnvPage     = lazy(() => import("@/pages/EnvPage"));
+const LogsPage    = lazy(() => import("@/pages/LogsPage"));
+const AnalyticsPage = lazy(() => import("@/pages/AnalyticsPage"));
+const CronPage    = lazy(() => import("@/pages/CronPage"));
+const SkillsPage  = lazy(() => import("@/pages/SkillsPage"));
+const BrainsPage  = lazy(() => import("@/pages/BrainsPage"));
+const CortexOverlayPage = lazy(() => import("@/pages/CortexOverlayPage"));
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useI18n } from "@/i18n";
@@ -473,19 +475,27 @@ export default function App() {
             className={cn(
               "relative z-2 flex min-w-0 min-h-0 flex-1 flex-col",
               "px-3 sm:px-5 xl:px-8",
-              "pb-20 lg:pb-0",
+              "pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0",
               isChatRoute ? "pt-1 sm:pt-2 lg:pt-3" : "pt-3 sm:pt-5 lg:pt-7",
               isDocsRoute && "min-h-0 flex-1",
             )}
           >
             <PluginSlot name="pre-main" />
             <div className={cn("w-full min-w-0", (isDocsRoute || isChatRoute) && "min-h-0 flex flex-1 flex-col")}>
-              <Routes>
-                {routes.map(({ key, path, element }) => (
-                  <Route key={key} path={path} element={element} />
-                ))}
-                <Route path="*" element={<Navigate to="/sessions" replace />} />
-              </Routes>
+              <Suspense
+                fallback={
+                  <div className="flex h-full min-h-[40vh] items-center justify-center text-midground/40">
+                    <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                  </div>
+                }
+              >
+                <Routes>
+                  {routes.map(({ key, path, element }) => (
+                    <Route key={key} path={path} element={element} />
+                  ))}
+                  <Route path="*" element={<Navigate to="/sessions" replace />} />
+                </Routes>
+              </Suspense>
             </div>
             <PluginSlot name="post-main" />
           </div>

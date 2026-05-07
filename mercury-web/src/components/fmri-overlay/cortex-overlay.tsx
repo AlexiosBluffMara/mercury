@@ -72,7 +72,7 @@ function flatten(trace: Float32Array | number[][]): { flat: Float32Array; nT: nu
   return { flat, nT };
 }
 
-export function Cortex(props: CortexProps): JSX.Element {
+export function Cortex(props: CortexProps): JSX.Element | null {
   const {
     trace,
     fps = 2,

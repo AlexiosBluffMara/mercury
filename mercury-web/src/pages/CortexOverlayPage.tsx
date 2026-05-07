@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { CortexViewer } from "@/components/cortex-viewer/CortexViewer";
 import type { Colormap } from "@/components/fmri-overlay/colormaps";
 import narr from "@/data/cortex-narrations.json";
@@ -69,14 +69,22 @@ export default function CortexOverlayPage() {
 
   useEffect(() => { document.title = "Mercury — Cortex Overlay"; }, []);
 
+  const isWide = useMemo(() => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia("(min-width: 768px)").matches;
+  }, []);
+
   return (
     <div style={{
-      display:        "grid",
-      gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 380px)",
-      gap:            16,
-      padding:        16,
+      display:        isWide ? "grid" : "flex",
+      flexDirection:  isWide ? undefined : "column",
+      gridTemplateColumns: isWide
+        ? "minmax(0, 1fr) minmax(280px, 380px)"
+        : undefined,
+      gap:            isWide ? 16 : 12,
+      padding:        isWide ? 16 : 12,
       height:         "100%",
-      minHeight:      "calc(100vh - 200px)",
+      minHeight:      "calc(100dvh - 200px)",
       overflow:       "auto",
       color:          "#d6dde3",
       fontFamily:     "system-ui, -apple-system, Segoe UI, sans-serif",
@@ -97,7 +105,7 @@ export default function CortexOverlayPage() {
 
         <div style={{
           flex: "1 1 auto",
-          minHeight: 0,
+          minHeight: isWide ? 0 : 320,
           position: "relative",
           borderRadius: 10,
           overflow: "hidden",

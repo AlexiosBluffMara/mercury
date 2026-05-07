@@ -37,13 +37,6 @@ const RTK_TYPOGRAPHY: ThemeTypography = {
   letterSpacing: "-0.005em",
 };
 
-const DEFAULT_TYPOGRAPHY: ThemeTypography = {
-  fontSans: SYSTEM_SANS,
-  fontMono: SYSTEM_MONO,
-  baseSize: "15px",
-  lineHeight: "1.55",
-  letterSpacing: "0",
-};
 
 const DEFAULT_LAYOUT: ThemeLayout = {
   radius: "0.5rem",

@@ -435,7 +435,7 @@ export default function ConfigPage() {
                 </div>
 
                 {/* Category nav — horizontal scroll on mobile, pill list on sm+ */}
-                <div className="flex sm:flex-col gap-1 sm:gap-px p-2 sm:pt-1 overflow-x-auto sm:overflow-x-visible scrollbar-none sm:max-h-[calc(100vh-260px)] sm:overflow-y-auto">
+                <div className="flex sm:flex-col gap-1 sm:gap-px p-2 sm:pt-1 overflow-x-auto sm:overflow-x-visible scrollbar-none sm:max-h-[calc(100dvh-260px)] sm:overflow-y-auto">
                   {categories.map((cat) => {
                     const isActive = !isSearching && activeCategory === cat;
 

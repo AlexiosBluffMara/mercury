@@ -709,7 +709,7 @@ export default function ChatPage() {
               "transition-opacity duration-150",
               "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current",
               "cursor-pointer",
-              "bottom-2 right-2 px-2 py-1 text-[0.65rem] sm:bottom-3 sm:right-3 sm:px-2.5 sm:py-1.5 sm:text-xs",
+              "bottom-[calc(0.5rem+env(safe-area-inset-bottom))] right-2 px-2 py-1 text-[0.65rem] sm:bottom-3 sm:right-3 sm:px-2.5 sm:py-1.5 sm:text-xs",
               "lg:bottom-4 lg:right-4",
             )}
             style={{ color: TERMINAL_THEME.foreground }}

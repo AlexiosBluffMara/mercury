@@ -196,7 +196,7 @@ export default function LogsPage() {
 
           <div
             ref={scrollRef}
-            className="p-4 font-mono-ui text-xs leading-5 overflow-auto min-h-[400px] max-h-[calc(100vh-220px)]"
+            className="p-4 font-mono-ui text-xs leading-5 overflow-auto min-h-[400px] max-h-[calc(100dvh-220px)]"
           >
             {lines.length === 0 && !loading && (
               <p className="text-muted-foreground text-center py-8">

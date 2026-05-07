@@ -363,6 +363,22 @@ code  { font-size: 0.8125rem; }
   border: 1px solid rgba(99,102,241,0.25);
 }
 
+/* ── Touch-target floor ──
+   On coarse pointers (phones, tablets) ensure any focusable square button
+   is at least 44×44px.  Doesn't affect mouse-driven layouts. */
+@media (pointer: coarse) {
+  button.h-7,
+  a.h-7,
+  [role="button"].h-7 {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  button.h-8,
+  button.h-9 {
+    min-height: 44px;
+  }
+}
+
 /* Theme default filler control */
 :root:not([style*="--theme-asset-bg:"]) .theme-default-filler { display: block; }
 :root[style*="--theme-asset-bg:"] .theme-default-filler { display: none; }

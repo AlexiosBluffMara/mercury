@@ -8,12 +8,24 @@
 // shaders.  The component manages its own renderer + scene + camera, and
 // disposes everything cleanly on unmount.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { colormapLUT, type Colormap } from "@/components/fmri-overlay/colormaps";
 import { cortexVertexShader, cortexFragmentShader } from "@/components/fmri-overlay/shaders";
+
+interface CortexViewerState {
+  renderer:  THREE.WebGLRenderer;
+  scene:     THREE.Scene;
+  camera:    THREE.PerspectiveCamera;
+  controls:  OrbitControls;
+  material?: THREE.ShaderMaterial;
+  cortex?:   THREE.Mesh;
+  raf:       number;
+  ro:        ResizeObserver;
+  disposed:  boolean;
+}
 
 export interface CortexViewerProps {
   /** Real BOLD trace [nT*20484].  Optional — when absent or `demo` is true,
@@ -48,17 +60,7 @@ export function CortexViewer(props: CortexViewerProps): JSX.Element {
   } = props;
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const stateRef     = useRef<{
-    renderer:  THREE.WebGLRenderer;
-    scene:     THREE.Scene;
-    camera:    THREE.PerspectiveCamera;
-    controls:  OrbitControls;
-    material?: THREE.ShaderMaterial;
-    cortex?:   THREE.Mesh;
-    raf:       number;
-    ro:        ResizeObserver;
-    disposed:  boolean;
-  } | null>(null);
+  const stateRef     = useRef<CortexViewerState | null>(null);
 
   const playingRef = useRef(playing);
   const spinRef    = useRef(spinRate);
@@ -111,7 +113,7 @@ export function CortexViewer(props: CortexViewerProps): JSX.Element {
     });
     ro.observe(container);
 
-    const state = stateRef.current = {
+    const state: CortexViewerState = stateRef.current = {
       renderer, scene, camera, controls,
       raf: 0, ro, disposed: false,
     };
@@ -122,11 +124,11 @@ export function CortexViewer(props: CortexViewerProps): JSX.Element {
       (gltf) => {
         if (state.disposed) return;
         let geom: THREE.BufferGeometry | null = null;
-        gltf.scene.traverse((o) => {
+        gltf.scene.traverse((o: THREE.Object3D) => {
           if (!geom && (o as THREE.Mesh).isMesh) geom = (o as THREE.Mesh).geometry as THREE.BufferGeometry;
         });
         if (!geom) { console.error("[CortexViewer] no Mesh in GLB"); return; }
-        geom.computeVertexNormals();
+        (geom as THREE.BufferGeometry).computeVertexNormals();
 
         const boldTex = makeBoldTexture(trace ?? new Float32Array(FSAVERAGE5_VERTS), nT);
         const lutTex  = makeLutTexture(colormap);

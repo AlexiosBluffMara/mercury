@@ -306,7 +306,7 @@ export default function SkillsPage() {
                   <div className="px-3 pt-2 pb-1 font-mondwest text-[0.6rem] tracking-[0.12em] uppercase text-muted-foreground/70">
                     {t.skills.categories}
                   </div>
-                  <div className="flex flex-col p-2 pt-1 gap-px max-h-[calc(100vh-340px)] overflow-y-auto">
+                  <div className="flex flex-col p-2 pt-1 gap-px max-h-[calc(100dvh-340px)] overflow-y-auto">
                     {allCategories.map(({ key, name, count }) => {
                       const isActive = activeCategory === key;
 
