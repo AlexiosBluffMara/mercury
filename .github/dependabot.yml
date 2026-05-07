@@ -1,0 +1,97 @@
+version: 2
+updates:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Python (root: pyproject.toml + requirements*.txt)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python"]
+    groups:
+      anthropic-and-friends:
+        patterns: ["anthropic", "openai", "google-genai", "google-generativeai"]
+      pytest-and-friends:
+        patterns: ["pytest*", "ruff*"]
+    commit-message:
+      prefix: "deps(py)"
+      include: scope
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Node — mercury-web (the dashboard SPA)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /mercury-web
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "mercury-web"]
+    groups:
+      react-and-friends:
+        patterns: ["react", "react-dom", "@types/react*", "react-router*"]
+      three-js:
+        patterns: ["three", "@react-three/*", "@types/three"]
+      build-tooling:
+        patterns: ["vite", "@vitejs/*", "typescript", "eslint*", "@eslint/*"]
+    commit-message:
+      prefix: "deps(web)"
+      include: scope
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Node — ui-tui (the Ink terminal UI)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /ui-tui
+    schedule:
+      interval: weekly
+      timezone: America/Chicago
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "ui-tui"]
+    commit-message:
+      prefix: "deps(tui)"
+      include: scope
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Node — website (Docusaurus)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /website
+    schedule:
+      interval: monthly  # docs site moves slow
+      timezone: America/Chicago
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "docs"]
+    commit-message:
+      prefix: "deps(docs)"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # GitHub Actions — keep the workflow toolchain current.
+  # ─────────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "ci"]
+    commit-message:
+      prefix: "deps(actions)"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Docker — base images for the runtime container.
+  # ─────────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      timezone: America/Chicago
+    open-pull-requests-limit: 2
+    labels: ["dependencies", "docker"]
+    commit-message:
+      prefix: "deps(docker)"

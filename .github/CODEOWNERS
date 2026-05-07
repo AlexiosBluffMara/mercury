@@ -1,0 +1,29 @@
+# Mercury CODEOWNERS
+#
+# Anyone in @AlexiosBluffMara/maintainers (today: just Soumit) is auto-requested
+# on every PR.  Specific paths can route to additional reviewers as the team grows.
+#
+# Format: path-pattern  owner-or-team
+
+*                                          @AlexiosBluffMara/maintainers
+
+# Hot paths — mark explicitly so future contributors know they need extra eyes.
+/run_agent.py                              @AlexiosBluffMara/maintainers
+/agent/transports/                         @AlexiosBluffMara/maintainers
+/agent/credential_pool.py                  @AlexiosBluffMara/maintainers
+/agent/redact.py                           @AlexiosBluffMara/maintainers
+/gateway/run.py                            @AlexiosBluffMara/maintainers
+/gateway/platforms/                        @AlexiosBluffMara/maintainers
+/mercury/                                  @AlexiosBluffMara/maintainers
+/mercury_state.py                          @AlexiosBluffMara/maintainers
+
+# Build / release / security infrastructure
+/.github/                                  @AlexiosBluffMara/maintainers
+/Dockerfile                                @AlexiosBluffMara/maintainers
+/docker-compose.yml                        @AlexiosBluffMara/maintainers
+/SECURITY.md                               @AlexiosBluffMara/maintainers
+
+# Web surfaces
+/mercury-web/                              @AlexiosBluffMara/maintainers
+/ui-tui/                                   @AlexiosBluffMara/maintainers
+/website/                                  @AlexiosBluffMara/maintainers

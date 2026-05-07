@@ -117,6 +117,10 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy → mercury host
+    # Only deploy when explicitly triggered. push-to-main still builds and
+    # pushes the image; deploying to the self-hosted runner is a manual step
+    # so unattended pushes don't bounce production.
+    if: github.event_name == 'workflow_dispatch'
     needs: build-push
     runs-on: [self-hosted, mercury]
     environment: production

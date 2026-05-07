@@ -4,7 +4,19 @@ This document outlines the security protocols, trust model, and deployment harde
 
 ## 1. Vulnerability Reporting
 
-Hermes Agent does **not** operate a bug bounty program. Security issues should be reported via [GitHub Security Advisories (GHSA)](https://github.com/NousResearch/hermes-agent/security/advisories/new) or by emailing **security@nousresearch.com**. Do not open public issues for security vulnerabilities.
+Mercury is a fork of Nous Research's [hermes-agent](https://github.com/NousResearch/hermes-agent), maintained by Alexios Bluff Mara LLC (dba Red Team Kitchen). It does **not** operate a bug bounty program.
+
+**For issues in Mercury fork–specific code** (anything under `mercury/`, `mercury_cli/`, `mercury-web/`, `gcp/`, or files renamed from `hermes_*` to `mercury_*`):
+
+- Preferred: [GitHub Security Advisories on this repository](https://github.com/AlexiosBluffMara/Mercury-Agent/security/advisories/new)
+- Email: **security@redteamkitchen.com** (alternate: soumitlahiri@philanthropytraders.com)
+
+**For issues in the shared upstream codebase** (anything under `agent/`, `tools/`, `gateway/`, `run_agent.py`, etc. that traces back to upstream hermes-agent), please **also** file with upstream:
+
+- [Nous Research GHSA](https://github.com/NousResearch/hermes-agent/security/advisories/new)
+- Email: security@nousresearch.com
+
+Do not open public issues for security vulnerabilities in either location.
 
 ### Required Submission Details
 - **Title & Severity:** Concise description and CVSS score/rating.

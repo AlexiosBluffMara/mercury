@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ghcr.io/${{ github.repository_owner }}/mercury
+
+jobs:
+  release:
+    name: GitHub Release + tagged image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history so changelog can diff prior tag
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || echo "")
+          {
+            echo "## Mercury ${GITHUB_REF_NAME}"
+            echo
+            if [ -n "$PREV_TAG" ]; then
+              echo "Changes since \`$PREV_TAG\`:"
+            else
+              echo "Initial tagged release."
+            fi
+            echo
+            git log --pretty=format:"- %s (%h)" "${PREV_TAG:+$PREV_TAG..}${GITHUB_REF_NAME}" --no-merges
+            echo
+            echo
+            echo "---"
+            echo
+            echo "Container: \`${{ env.IMAGE }}:${GITHUB_REF_NAME}\`"
+            echo "Upstream: [hermes-agent (Nous Research)](https://github.com/NousResearch/hermes-agent)"
+          } > CHANGELOG_FRAGMENT.md
+          cat CHANGELOG_FRAGMENT.md
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push tagged image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.ref_name }}
+            ${{ env.IMAGE }}:stable
+          cache-from: type=gha,scope=mercury-docker
+          cache-to: type=gha,mode=max,scope=mercury-docker
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG_FRAGMENT.md
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          token: ${{ secrets.GITHUB_TOKEN }}
