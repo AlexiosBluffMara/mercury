@@ -45,7 +45,7 @@ jobs:
 
       - name: Smoke import
         run: |
-          python -c "from agent import context_engine, prompt_builder, model_metadata, logger"
+          python -c "from agent import context_engine, prompt_builder, model_metadata"
           python -c "from gateway import config, hooks, delivery"
 
   # ─────────────────────────────────────────────────────────────────────────────
