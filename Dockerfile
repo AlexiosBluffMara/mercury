@@ -29,11 +29,11 @@ WORKDIR /opt/mercury
 # Copy only package manifests first so npm install + Playwright are cached
 # unless the lockfiles themselves change.
 COPY package.json package-lock.json ./
-COPY web/package.json web/package-lock.json web/
+COPY mercury-web/package.json mercury-web/package-lock.json mercury-web/
 
 RUN npm install --prefer-offline --no-audit && \
     npx playwright install --with-deps chromium --only-shell && \
-    (cd web && npm install --prefer-offline --no-audit) && \
+    (cd mercury-web && npm install --prefer-offline --no-audit) && \
     npm cache clean --force
 
 # ---------- Source code ----------
@@ -41,7 +41,7 @@ RUN npm install --prefer-offline --no-audit && \
 COPY --chown=mercury:mercury . .
 
 # Build web dashboard (Vite outputs to mercury_cli/web_dist/)
-RUN cd web && npm run build
+RUN cd mercury-web && npm run build
 
 # ---------- Permissions ----------
 # Make install dir world-readable so any MERCURY_UID can read it at runtime.
