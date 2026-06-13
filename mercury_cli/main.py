@@ -1649,6 +1649,7 @@ def select_provider_and_model(args=None):
     elif selected_provider in (
         "gemini",
         "deepseek",
+        "evolink",
         "xai",
         "zai",
         "kimi-coding-cn",
@@ -7065,6 +7066,7 @@ For more help on a command:
             "copilot",
             "anthropic",
             "gemini",
+            "evolink",
             "xai",
             "ollama-cloud",
             "huggingface",
