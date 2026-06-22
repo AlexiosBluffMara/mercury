@@ -11,18 +11,26 @@
 
 > One brain. One memory. Six doors — terminal, Discord, a web page, iMessage, email, your phone. The same agent answers, with the same memory, on hardware you own. No round-trips to anyone else's cloud.
 
-Submitted simultaneously to two hackathons:
+## Current status — June 22, 2026
+
+Mercury is now best treated as a **Gemma 4 Good hackathon archive and integration notebook**, not a product fork we should keep expanding indefinitely. The experiment proved useful pieces: local Gemma routing on owned hardware, a dashboard/gateway surface, Discord and terminal workflows, Cortex bridge ideas, and several honest negative results around speculative paths and brittle public routing.
+
+The conclusion is also clear: **it is not worth maintaining our own long-lived fork of Hermes at this point in time.** Future Red Team Kitchen agent work should use [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) directly, keep our adapters small, and upstream improvements when they are generally useful. This repository stays public as a record of what we tried, what worked, and what did not.
+
+Historical hackathon context:
 
 - **[Nous Research Mercury Creative Hackathon](https://nousresearch.com)** — judged early May 2026. Mercury is a fork of [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT) and the social-post bundle lives at [`docs/SUBMISSION_BUNDLE.md`](docs/SUBMISSION_BUNDLE.md).
 - **[Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)** (Kaggle × Google DeepMind, Digital Equity track, deadline May 18 2026). The technical write-up for Gemma 4 Good is at [`SUBMISSION_GEMMA4.md`](SUBMISSION_GEMMA4.md).
 
 Submitted by **Alexios Bluff Mara LLC (dba Red Team Kitchen)** in association with Illinois State University.
 
-Both submissions share the same code repo. The Nous story is **how Mercury was built** — Kimi K2.6 wrote the fork in 75 minutes for $22 of inference. The Gemma 4 Good story is **what Mercury runs in production** — Gemma 4 31B/26B-A4B/E4B locally for $0/month, with cloud burst on OpenRouter free tier. Same agent, two truths.
+Both submissions shared the same code repo at submission time. The Nous story was **how the fork and Cortex viewer were built** — Kimi K2.6 wrote a large early slice in 75 minutes for $22 of inference. The Gemma 4 Good story was **what we learned from local-first Gemma** — useful on owned hardware, fragile when presented as always-on public infrastructure.
 
 > **Just want to try it?** [`GET_STARTED.md`](GET_STARTED.md) is three commands from clone to chat. No API key required for local-only mode.
 
 > **Judging?** Start at [`SUBMISSION_GEMMA4.md`](SUBMISSION_GEMMA4.md). The technical writeup is the canonical entry point.
+
+> **2026 update:** live public endpoints described in the submission-era docs may no longer be valid. Treat those docs as dated evidence from May 2026, not current operations promises.
 
 > **What's in `docs/`?**
 > - [`HACKATHON_COSTS_2026-05-06.md`](docs/HACKATHON_COSTS_2026-05-06.md) — line-item cost analysis vs API-only competitors
@@ -86,6 +94,7 @@ The cost case isn't subtle. An RTX 5090 runs about $2,500–3,000 street price. 
 
 - **Not a chatbot wrapper.** Mercury runs an actual agent loop with tool use, memory, and skill dispatch — not a single-turn LLM call dressed up with a chat UI.
 - **Not a hosted service.** There is no `app.mercury.com`. To run Mercury, you need your own GPU. We ship the code; you ship the hardware.
+- **Not our current fork strategy.** The fork was valuable for the hackathon, but the ongoing plan is to use Hermes directly and keep Red Team Kitchen-specific work as small adapters or upstreamable patches.
 - **Not a Mercury Agent fork in name only.** Mercury is the Nous Research Mercury-agent codebase with a custom dispatcher, a six-surface gateway, four skill domains, and a Cortex-bridge — but the agent loop, tool router, and config schema are upstream Mercury. We send patches back when they're general-purpose.
 - **Not for production at scale.** Mercury is a personal agent for a single user (or a small group). It is not designed to serve a thousand concurrent sessions. The whole point is that the GPU is yours.
 - **Not a Kimi-only project.** Kimi K2.6 (via the Nous Portal) wrote the initial Cortex viewer in a 75-minute, 14-commit, $22.04 sprint — that is the Nous/Kimi track submission. The live agent runs entirely on Gemma 4 E4B locally. Kimi is acknowledged as the build collaborator, not a runtime dependency.
@@ -344,9 +353,9 @@ Persona lives in `~/.mercury/SOUL.md`. Mercury runs as **Snowy The Bot** (Discor
 
 ## Hackathon context
 
-### Gemma 4 Good Hackathon (primary — May 18, 2026)
+### Gemma 4 Good Hackathon (completed — May 18, 2026)
 
-Mercury is submitted to the **[Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)** (Kaggle × Google DeepMind) — **Digital Equity** track.
+Mercury was submitted to the **[Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/gemma-4-good-hackathon)** (Kaggle × Google DeepMind) — **Digital Equity** track.
 
 **Why Digital Equity?** AI access today is stratified by subscription tier. GPT-4, Gemini Ultra, Claude Pro — the capable models require $20–200/month, and every token goes through someone else's datacenter. Mercury's thesis is that Gemma 4, running on commodity hardware you already own, can match or exceed the quality of those hosted products at the cost of electricity. An M4 MacBook or an RTX 4090 desktop breaks even against a hosted API in 3–5 months and then runs indefinitely for ~$0.02/hr. The privacy implications follow from the architecture: no cloud path means no data retention clause to trust.
 
@@ -371,7 +380,7 @@ The **[Cortex](https://github.com/AlexiosBluffMara/cortex)** sister project is a
 
 - **Mercury (this repo):** [https://github.com/AlexiosBluffMara/mercury](https://github.com/AlexiosBluffMara/mercury)
 - **Cortex (sister project — Health & Sciences track):** [https://github.com/AlexiosBluffMara/cortex](https://github.com/AlexiosBluffMara/cortex)
-- **Cortex live demo:** [https://cortex.redteamkitchen.com](https://cortex.redteamkitchen.com)
+- **Cortex project page:** [https://redteamkitchen.com/cortex](https://redteamkitchen.com/cortex)
 - **Hackathon:** [Gemma 4 Good Hackathon on Kaggle](https://www.kaggle.com/competitions/gemma-4-good-hackathon) — Digital Equity track, deadline May 18 2026
 - **Nous Portal usage proof (Kimi sprint):** [`kimi_proof/06_nous_portal_usage_2026-04-30.png`](kimi_proof/06_nous_portal_usage_2026-04-30.png)
 
