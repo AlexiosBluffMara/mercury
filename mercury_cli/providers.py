@@ -112,6 +112,12 @@ MERCURY_OVERLAYS: Dict[str, MercuryOverlay] = {
         transport="openai_chat",
         base_url_env_var="DEEPSEEK_BASE_URL",
     ),
+    "evolink": MercuryOverlay(
+        transport="openai_chat",
+        extra_env_vars=("EVOLINK_API_KEY",),
+        base_url_override="https://direct.evolink.ai/v1",
+        base_url_env_var="EVOLINK_BASE_URL",
+    ),
     "alibaba": MercuryOverlay(
         transport="openai_chat",
         base_url_env_var="DASHSCOPE_BASE_URL",
@@ -258,6 +264,10 @@ ALIASES: Dict[str, str] = {
     # deepseek
     "deep-seek": "deepseek",
 
+    # evolink
+    "evo-link": "evolink",
+    "evo_link": "evolink",
+
     # alibaba
     "dashscope": "alibaba",
     "aliyun": "alibaba",
@@ -312,6 +322,7 @@ _LABEL_OVERRIDES: Dict[str, str] = {
     "openai-codex": "OpenAI Codex",
     "copilot-acp": "GitHub Copilot ACP",
     "stepfun": "StepFun Step Plan",
+    "evolink": "EvoLink",
     "xiaomi": "Xiaomi MiMo",
     "local": "Local endpoint",
     "bedrock": "AWS Bedrock",

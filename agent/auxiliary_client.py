@@ -80,6 +80,8 @@ _PROVIDER_ALIASES = {
     "github-models": "copilot",
     "github-copilot-acp": "copilot-acp",
     "copilot-acp-agent": "copilot-acp",
+    "evo-link": "evolink",
+    "evo_link": "evolink",
 }
 
 
@@ -148,6 +150,7 @@ _API_KEY_PROVIDER_AUX_MODELS: Dict[str, str] = {
     "minimax-cn": "MiniMax-M2.7",
     "anthropic": "claude-haiku-4-5-20251001",
     "ai-gateway": "google/gemini-3.1-flash-lite-preview",
+    "evolink": "gemini-3.1-flash-lite-preview",
     "opencode-zen": "gemini-3.1-flash-lite-preview",
     "opencode-go": "glm-5",
     "kilocode": "google/gemini-3.1-flash-lite-preview",
